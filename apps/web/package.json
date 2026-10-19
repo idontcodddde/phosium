@@ -1,0 +1,38 @@
+{
+    "name": "web",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc -b && vite build",
+        "lint": "oxlint",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "@mercuryworkshop/bare-mux": "2.1.9",
+        "@mercuryworkshop/epoxy-tls": "2.1.19-1",
+        "@mercuryworkshop/epoxy-transport": "3.0.1",
+        "@mercuryworkshop/libcurl-transport": "2.0.5",
+        "@mercuryworkshop/scramjet": "2.0.67-alpha.2",
+        "@mercuryworkshop/scramjet-controller": "0.0.14",
+        "@repo/os-shell": "workspace:*",
+        "@repo/proxy": "workspace:*",
+        "@repo/utils": "workspace:*",
+        "@rubynetwork/rammerhead-browser": "1.0.9",
+        "@titaniumnetwork-dev/ultraviolet": "3.2.10",
+        "phosphorous": "^1.0.0",
+        "react": "^19.2.8",
+        "react-dom": "^19.2.8"
+    },
+    "devDependencies": {
+        "@types/node": "^24.13.3",
+        "@types/react": "^19.2.18",
+        "@types/react-dom": "^19.2.7",
+        "@vitejs/plugin-react": "^6.1.1",
+        "oxlint": "^1.81.0",
+        "typescript": "^7.0.0",
+        "vite": "^8.3.0",
+        "vite-plugin-static-copy": "^4.1.1"
+    }
+}
