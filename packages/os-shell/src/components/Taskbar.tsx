@@ -40,7 +40,15 @@ export const Taskbar: React.FC<TaskbarProps> = ({ windows, onToggleWindow, onClo
             <button className="os-start-button" aria-label="Open app launcher" onClick={() => onOpenApp('start')}>
                 <span className="os-brand-mark">P</span>
             </button>
-            <div className="os-taskbar-apps">
+            <div
+                className="os-taskbar-apps"
+                onWheel={(event) => {
+                    const list = event.currentTarget;
+                    if (list.scrollWidth <= list.clientWidth || event.deltaY === 0) return;
+                    event.preventDefault();
+                    list.scrollLeft += event.deltaY || event.deltaX;
+                }}
+            >
                 {windows.filter((win) => win.isOpen).map((win) => (
                     <button
                         className={`os-taskbar-app${!win.isMinimized ? ' is-active' : ''}`}

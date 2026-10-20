@@ -8,13 +8,16 @@ import { Desktop } from "@repo/os-shell";
 import type { WindowState } from "@repo/os-shell";
 import { proxyManager } from "@repo/proxy";
 import type { ProxySettings } from "@repo/proxy";
-import { BrowserApp } from "./BrowserApp";
-import { GameApp } from "./GameApp";
-import { GamePlayerApp } from "./GamePlayerApp";
-import { SettingsApp } from "./SettingsApp";
+import { BrowserApp } from "./components/apps/BrowserApp";
+import { GameApp } from "./components/apps/GameApp";
+import { GamePlayerApp } from "./components/apps/GamePlayerApp";
+import { SettingsApp } from "./components/apps/SettingsApp";
 import { SystemContext } from "./SystemContext";
 import type { DesktopTheme, SearchEngine } from "./SystemContext";
-import { createBareMuxCompatibleTransport } from "./bareMuxTransport";
+import { applyCloak, isCloakOption } from "./lib/cloak";
+import type { CloakOption } from "./lib/cloak";
+import { createBareMuxCompatibleTransport } from "./lib/proxy/bareMuxTransport";
+import { createTransport, registerSystemWorker } from "./lib/proxy/runtime";
 
 function getSavedTheme(): DesktopTheme {
   if (typeof window === "undefined") return "midnight";
@@ -28,54 +31,17 @@ function getSavedSearchEngine(): SearchEngine {
   return engine === "duckduckgo" || engine === "bing" || engine === "brave" ? engine : "google";
 }
 
-function createTransport(settings: ProxySettings) {
-  const wisp = new URL(settings.wispUrl);
-  if (wisp.protocol !== "ws:" && wisp.protocol !== "wss:") {
-    throw new TypeError("Wisp URL must use ws:// or wss://.");
-  }
-  if (settings.transport === "libcurl") {
-    return new LibcurlTransport({ wisp: wisp.href, websocket: wisp.href });
-  }
-  return new EpoxyTransport({ wisp: wisp.href });
-}
-
-async function registerSystemWorker(): Promise<ServiceWorker> {
-  const registration = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
-  console.log("SW registered:", registration.scope);
-
-  const readyRegistration = await navigator.serviceWorker.ready;
-  const serviceWorker = [
-    navigator.serviceWorker.controller,
-    readyRegistration.active,
-  ].find((worker) => worker?.state === "activated")
-    ?? readyRegistration.active
-    ?? navigator.serviceWorker.controller;
-  if (!serviceWorker) throw new Error("Service Worker registration has no active worker.");
-  if (serviceWorker.state === "redundant") {
-    throw new Error("Service Worker became redundant before activation.");
-  }
-  if (serviceWorker.state !== "activated") {
-    await new Promise<void>((resolve, reject) => {
-      const handleStateChange = () => {
-        if (serviceWorker.state === "activated") {
-          serviceWorker.removeEventListener("statechange", handleStateChange);
-          resolve();
-        } else if (serviceWorker.state === "redundant") {
-          serviceWorker.removeEventListener("statechange", handleStateChange);
-          reject(new Error("Service Worker became redundant before activation."));
-        }
-      };
-      serviceWorker.addEventListener("statechange", handleStateChange);
-      handleStateChange();
-    });
-  }
-  return serviceWorker;
+function getSavedCloak(): CloakOption {
+  if (typeof window === "undefined") return "none";
+  const saved = localStorage.getItem("phosium_cloak");
+  return isCloakOption(saved) ? saved : "none";
 }
 
 export default function App() {
   const [proxySettings, setProxySettings] = useState(() => proxyManager.getSettings());
   const [theme, setThemeState] = useState<DesktopTheme>(getSavedTheme);
   const [searchEngine, setSearchEngineState] = useState<SearchEngine>(getSavedSearchEngine);
+  const [cloak, setCloakState] = useState<CloakOption>(getSavedCloak);
   const [proxyStatus, setProxyStatus] = useState(() =>
     typeof navigator !== "undefined" && "serviceWorker" in navigator
       ? "Starting system services..."
@@ -131,6 +97,11 @@ export default function App() {
   const setSearchEngine = useCallback((engine: SearchEngine) => {
     localStorage.setItem("phosium_search_engine", engine);
     setSearchEngineState(engine);
+  }, []);
+
+  const setCloak = useCallback((option: CloakOption) => {
+    localStorage.setItem("phosium_cloak", option);
+    setCloakState(option);
   }, []);
 
   const setBrowserEnhancementsEnabled = useCallback((enabled: boolean) => {
@@ -217,6 +188,10 @@ export default function App() {
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
+
+  useEffect(() => {
+    applyCloak(cloak);
+  }, [cloak]);
 
   useEffect(() => {
     const revision = ++syncRevisionRef.current;
@@ -365,6 +340,8 @@ export default function App() {
       openGame,
       searchEngine,
       setSearchEngine,
+      cloak,
+      setCloak,
     }}>
       <div className="phosium-root">
         <Desktop initialWindows={initialWindows} />

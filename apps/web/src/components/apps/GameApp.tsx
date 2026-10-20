@@ -1,38 +1,17 @@
 import { useState } from "react";
-import { useSystem } from "./SystemContext";
+import { useSystem } from "../../SystemContext";
+import gamesCatalogData from "../../assets/games.json";
+import { loadGamesCatalog } from "../../lib/gameCatalog";
 
-const games = [
-  { title: "2048", category: "Puzzle", url: "https://play2048.co/", art: "2048", tint: "mint", detail: "One more move. One more tile." },
-  { title: "HexGL", category: "Racing", url: "https://hexgl.bkcore.com/", art: "HEX", tint: "blue", detail: "High-speed anti-gravity racing." },
-  { title: "Cookie Clicker", category: "Idle", url: "https://orteil.dashnet.org/cookieclicker/", art: "COOKIE", tint: "amber", detail: "Build an increasingly sweet empire." },
-  { title: "Wordle", category: "Puzzle", url: "https://www.nytimes.com/games/wordle/index.html", art: "WORD", tint: "green", detail: "A new word puzzle every day." },
-  { title: "Little Alchemy 2", category: "Discovery", url: "https://littlealchemy2.com/", art: "ALCHEMY", tint: "violet", detail: "Combine elements and discover more." },
-  { title: "Neal.fun", category: "Arcade", url: "https://neal.fun/", art: "FUN", tint: "pink", detail: "A collection of playful web experiments." },
-  { title: "Tetris", category: "Puzzle", url: "https://tetris.com/play-tetris", art: "TETRIS", tint: "cyan", detail: "Stack, clear lines, and chase a high score." },
-  { title: "Slither.io", category: "Arcade", url: "https://slither.io/", art: "SLITHER", tint: "lime", detail: "Grow your snake and outmaneuver rivals." },
-  { title: "Agar.io", category: "Arcade", url: "https://agar.io/", art: "AGAR", tint: "blue", detail: "Grow your cell in a colorful arena." },
-  { title: "Lichess", category: "Board", url: "https://lichess.org/", art: "CHESS", tint: "wood", detail: "Play chess puzzles and matches online." },
-  { title: "Minesweeper", category: "Puzzle", url: "https://minesweeper.online/", art: "MINE", tint: "slate", detail: "Clear the field without hitting a mine." },
-  { title: "Snake", category: "Arcade", url: "https://playsnake.org/", art: "SNAKE", tint: "green", detail: "A classic arcade snake game." },
-  { title: "Minecraft Classic", category: "Sandbox", url: "https://classic.minecraft.net/", art: "CRAFT", tint: "block", detail: "Build in the original creative sandbox." },
-  { title: "Solitaire", category: "Card", url: "https://cardgames.io/solitaire/", art: "♠", tint: "felt", detail: "A relaxing round of classic solitaire." },
-  { title: "Jstris", category: "Puzzle", url: "https://jstris.jezevec10.com/", art: "JSTRIS", tint: "purple", detail: "Fast competitive falling-block puzzles." },
-  { title: "Pac-Man", category: "Arcade", url: "https://www.google.com/logos/2010/pacman10-i.html", art: "PAC-MAN", tint: "yellow", detail: "Chomp dots and dodge the ghosts." },
-  { title: "Slope", category: "Racing", url: "https://www.crazygames.com/game/slope", art: "SLOPE", tint: "red", detail: "Race a ball down a neon 3D course." },
-  { title: "Chess.com", category: "Board", url: "https://www.chess.com/play/computer", art: "♞", tint: "wood", detail: "Play a quick game against the computer." },
-];
-
-const categories = ["All games", "Arcade", "Board", "Card", "Discovery", "Idle", "Puzzle", "Racing", "Sandbox"];
+const { games, hubs: gameHubs } = loadGamesCatalog(gamesCatalogData);
+const categories = ["All", ...new Set(games.map((game) => game.category).sort((a, b) => a.localeCompare(b)))];
 
 export function GameApp() {
   const { openGame, proxySettings } = useSystem();
   const [view, setView] = useState<"discover" | "all-games" | "hubs">("discover");
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
-  const gameHubs = [
-    { title: "Poki", url: "https://poki.com/", art: "POKI", tint: "blue", detail: "A huge collection of free online games." },
-    { title: "CrazyGames", url: "https://www.crazygames.com/", art: "CRAZY", tint: "red", detail: "Discover new browser games and popular hits." },
-  ];
+  const featuredGame = games.find((game) => game.featured) ?? games[0];
   const filteredGames = games.filter((game) =>
     (category === "All" || game.category === category)
       && game.title.toLowerCase().includes(search.trim().toLowerCase()),
@@ -62,7 +41,7 @@ export function GameApp() {
             <span className="game-eyebrow">FEATURED · BROWSER GAME</span>
             <h1>Find your<br />next favorite.</h1>
             <p>Play a hand-picked collection of games right from your Phosium desktop.</p>
-            <button type="button" onClick={() => openGame(games[0])}>Explore games <span>→</span></button>
+            <button type="button" onClick={() => openGame(featuredGame)}>Explore games <span>→</span></button>
           </div>
           <div className="game-feature-art" aria-hidden="true">
             <span className="feature-orbit orbit-one" />
@@ -79,7 +58,7 @@ export function GameApp() {
             <span>{filteredGames.length} titles</span>
           </div>
           <div className="game-categories" role="group" aria-label="Filter game category">
-            {["All", ...categories.filter((item) => item !== "All games")].map((item) => (
+            {categories.map((item) => (
               <button
                 aria-pressed={category === item}
                 className={category === item ? "is-selected" : ""}
@@ -114,7 +93,7 @@ export function GameApp() {
           </div>
           <div className="game-grid">
             {filteredHubs.map((hub) => (
-              <article className="game-card" key={hub.title}>
+              <article className="game-card" key={hub.url}>
                 <button className="game-card-launch" onClick={() => openGame({ title: hub.title, url: hub.url })} type="button">
                   <span className={`game-card-art art-${hub.tint}`}><span>{hub.art}</span><i>▶</i></span>
                   <span className="game-card-info"><span><strong>{hub.title}</strong><small>Game hub</small></span><span className="game-play">▶</span></span>

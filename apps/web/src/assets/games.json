@@ -1,0 +1,2349 @@
+{
+    "games": [
+        {
+            "title": "!Krunk.io",
+            "category": "Multiplayer",
+            "url": "https://krunk.io/",
+            "art": "KRUNKIO",
+            "tint": "blue",
+            "detail": "Play with other players online."
+        },
+        {
+            "title": "1v1.LOL",
+            "category": "Multiplayer",
+            "url": "https://1v1.lol/",
+            "art": "1V1LOL",
+            "tint": "purple",
+            "detail": "Play with other players online."
+        },
+        {
+            "title": "2048",
+            "category": "Puzzle",
+            "url": "https://www.2048.org/",
+            "art": "2048",
+            "tint": "mint",
+            "detail": "One more move. One more tile.",
+            "featured": true
+        },
+        {
+            "title": "2048 Multitasking",
+            "category": "Arcade",
+            "url": "https://calculatorgames.github.io/simplegimes/2048-multitask/index.html",
+            "art": "2048MULTI",
+            "tint": "violet",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Ball Dodge",
+            "category": "Arcade",
+            "url": "https://3kh0-assets.silvereen.net/3kh0-assets/ball-dodge",
+            "art": "BALLDODGE",
+            "tint": "felt",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "3D Dino Game",
+            "category": "Arcade",
+            "url": "https://lagged.com/api/play2/t-rex-3d2/",
+            "art": "3DDINOGAME",
+            "tint": "cyan",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "60 Second Burger Run",
+            "category": "Arcade",
+            "url": "https://www.coolmathgames.com/0-60-second-burger-run/play",
+            "art": "60SECONDB",
+            "tint": "purple",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "A Dark Room",
+            "category": "Arcade",
+            "url": "https://adarkroom.doublespeakgames.com/",
+            "art": "ADARKROOM",
+            "tint": "violet",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Age of War",
+            "category": "Arcade",
+            "url": "https://age-of-war.game-files.crazygames.com/ruffle/ageofwar.html",
+            "art": "AGEOFWAR",
+            "tint": "cyan",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Happy Wheels",
+            "category": "Arcade",
+            "url": "https://totaljerkface.com",
+            "art": "HAPPYWHEE",
+            "tint": "slate",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Basketball Random",
+            "category": "Arcade",
+            "url": "https://basketrandomonline.github.io/g8/basket-random/",
+            "art": "BASKETBAL",
+            "tint": "slate",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Soccer Random",
+            "category": "Arcade",
+            "url": "https://soccer-random.github.io/s8/soccer-random/",
+            "art": "SOCCERRAN",
+            "tint": "red",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Basketball Stars",
+            "category": "Arcade",
+            "url": "https://basketballstars.pro/game/basketball-stars/",
+            "art": "BASKETBAL",
+            "tint": "blue",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Getaway Shootout",
+            "category": "Arcade",
+            "url": "https://www.twoplayergames.org/embed/getaway-shootout",
+            "art": "GETAWAYSH",
+            "tint": "lime",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Boxing Random",
+            "category": "Arcade",
+            "url": "https://boxingrandom.github.io/file/",
+            "art": "BOXINGRAN",
+            "tint": "violet",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Rooftop Snipers",
+            "category": "Arcade",
+            "url": "https://h52304.github.io/s/rooftop-snipers/",
+            "art": "ROOFTOPSN",
+            "tint": "pink",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Glass City",
+            "category": "Arcade",
+            "url": "https://rpc.lol/games/projects/glass-city/index.html",
+            "art": "GLASSCITY",
+            "tint": "pink",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Hacker Typer",
+            "category": "Arcade",
+            "url": "https://hackertyper.com/",
+            "art": "HACKERTYP",
+            "tint": "green",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Idle Shark Game",
+            "category": "Arcade",
+            "url": "https://alpha.shark.tobot.dev/",
+            "art": "IDLESHARK",
+            "tint": "block",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Interactive Buddy",
+            "category": "Arcade",
+            "url": "https://1kh0.github.io/projects/interactivebuddy/index.html",
+            "art": "INTERACTI",
+            "tint": "lime",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Just One Boss",
+            "category": "Arcade",
+            "url": "https://www.coolmathgames.com/0-just-one-boss/play",
+            "art": "JUSTONEBO",
+            "tint": "pink",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Portal Mario",
+            "category": "Arcade",
+            "url": "https://tannerrogalsky.com/mari0/",
+            "art": "PORTALMAR",
+            "tint": "wood",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Eaglercraft v1.8",
+            "category": "Multiplayer",
+            "url": "https://mcv18.netlify.app/",
+            "art": "EAGLERCRA",
+            "tint": "blue",
+            "detail": "Play with other players online."
+        },
+        {
+            "title": "Eaglercraft v1.5.2",
+            "category": "Multiplayer",
+            "url": "https://mcv152.netlify.app/",
+            "art": "EAGLERCRA",
+            "tint": "lime",
+            "detail": "Play with other players online."
+        },
+        {
+            "title": "n-gon",
+            "category": "Arcade",
+            "url": "https://landgreen.github.io/n-gon/",
+            "art": "NGON",
+            "tint": "wood",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Paper.io",
+            "category": "Multiplayer",
+            "url": "https://paper-io.com/",
+            "art": "PAPERIO",
+            "tint": "violet",
+            "detail": "Play with other players online."
+        },
+        {
+            "title": "Portal Flash",
+            "category": "Emulator",
+            "url": "https://1kh0.github.io/projects/portalflash/index.html",
+            "art": "PORTALFLA",
+            "tint": "wood",
+            "detail": "A retro game experience in your browser."
+        },
+        {
+            "title": "Retro Bowl",
+            "category": "Arcade",
+            "url": "https://1kh0.github.io/projects/retro-bowl/index.html",
+            "art": "RETROBOWL",
+            "tint": "purple",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Slope",
+            "category": "Racing",
+            "url": "https://1kh0.github.io/projects/slope/index.html",
+            "art": "SLOPE",
+            "tint": "red",
+            "detail": "Race a ball down a neon 3D course."
+        },
+        {
+            "title": "Sandspiel",
+            "category": "Arcade",
+            "url": "https://sandspiel.club/",
+            "art": "SANDSPIEL",
+            "tint": "felt",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Cryzen",
+            "category": "Arcade",
+            "url": "https://cryzen.io/play",
+            "art": "CRYZEN",
+            "tint": "red",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Deeeep.io",
+            "category": "Multiplayer",
+            "url": "https://beta.deeeep.io/",
+            "art": "DEEEEPIO",
+            "tint": "cyan",
+            "detail": "Play with other players online."
+        },
+        {
+            "title": "diep.io",
+            "category": "Multiplayer",
+            "url": "https://diep.io/",
+            "art": "DIEPIO",
+            "tint": "cyan",
+            "detail": "Play with other players online."
+        },
+        {
+            "title": "Dreader",
+            "category": "Horror",
+            "url": "https://donitz.itch.io/dreader",
+            "art": "DREADER",
+            "tint": "lime",
+            "detail": "A spooky browser game."
+        },
+        {
+            "title": "Drift Hunters",
+            "category": "Arcade",
+            "url": "https://webglmath.github.io/drift-hunters/",
+            "art": "DRIFTHUNT",
+            "tint": "blue",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "OvO",
+            "category": "Arcade",
+            "url": "https://www.coolmathgames.com/0-ovo/play",
+            "art": "OVO",
+            "tint": "felt",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Rainbow Tower",
+            "category": "Arcade",
+            "url": "https://www.mathplayground.com/mobile_rainbow_tower/index.html",
+            "art": "RAINBOWTO",
+            "tint": "yellow",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Gunspin",
+            "category": "Arcade",
+            "url": "https://static.playunblocked.com/2019/11/gunspin/",
+            "art": "GUNSPIN",
+            "tint": "mint",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Territorial.io",
+            "category": "Arcade",
+            "url": "https://territorial.io/",
+            "art": "TERRITORI",
+            "tint": "blue",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Madness: Haphazard",
+            "category": "Arcade",
+            "url": "https://f.silvergames.com/ruffle/player.php?id=3404",
+            "art": "MADNESSHA",
+            "tint": "mint",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Space Plan",
+            "category": "Arcade",
+            "url": "http://www.jhollands.co.uk/spaceplan/",
+            "art": "SPACEPLAN",
+            "tint": "violet",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "thisissand",
+            "category": "Arcade",
+            "url": "https://thisissand.com/",
+            "art": "THISISSAND",
+            "tint": "blue",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Shell Shockers",
+            "category": "Multiplayer",
+            "url": "https://shellshock.io/",
+            "art": "SHELLSHOC",
+            "tint": "violet",
+            "detail": "Play with other players online."
+        },
+        {
+            "title": "Rooftop Snipers 2",
+            "category": "Arcade",
+            "url": "https://h52304.github.io/s6/rooftop-snipers-2/",
+            "art": "ROOFTOPSN",
+            "tint": "wood",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Temple of Boom",
+            "category": "Arcade",
+            "url": "https://temple-of-boom.github.io/file/",
+            "art": "TEMPLEOFB",
+            "tint": "amber",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Earn to Die 2012 P.2",
+            "category": "Arcade",
+            "url": "https://games-online.io/game/EarnToDie/index.html",
+            "art": "EARNTODIE",
+            "tint": "cyan",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "FNAF 2",
+            "category": "Horror",
+            "url": "https://sussygamedeveloper.github.io/FNAF2/",
+            "art": "FNAF2",
+            "tint": "purple",
+            "detail": "A spooky browser game."
+        },
+        {
+            "title": "FNAF 3",
+            "category": "Horror",
+            "url": "https://sussygamedeveloper.github.io/fnaf3/",
+            "art": "FNAF3",
+            "tint": "yellow",
+            "detail": "A spooky browser game."
+        },
+        {
+            "title": "Time Shooter 2",
+            "category": "Arcade",
+            "url": "https://html5.gamedistribution.com/62a72f2da7cb4b609579a47653546e6a/",
+            "art": "TIMESHOOT",
+            "tint": "pink",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Haunt the House",
+            "category": "Arcade",
+            "url": "https://w8.snokido.com/games/flash/ruffle.html?g=haunt-the-house&v=231027",
+            "art": "HAUNTTHEH",
+            "tint": "blue",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Strike Force Heros",
+            "category": "Arcade",
+            "url": "https://f.silvergames.com/ruffle/player.php?id=2194",
+            "art": "STRIKEFOR",
+            "tint": "violet",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Armed with Wings 3",
+            "category": "Arcade",
+            "url": "https://www.silvergames.com/en/armed-with-wings-3/gameframe",
+            "art": "ARMEDWITH",
+            "tint": "block",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Amazing Strange Rope Police",
+            "category": "Arcade",
+            "url": "https://www.gamearter.com/game/amazing-strange-rope-police-vice-spider-vegas/",
+            "art": "AMAZINGST",
+            "tint": "red",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "N-Game",
+            "category": "Arcade",
+            "url": "https://www.numuki.com/gameframe/n-game",
+            "art": "NGAME",
+            "tint": "green",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Gun Mayhem 2",
+            "category": "Arcade",
+            "url": "https://www.silvergames.com/en/gun-mayhem-2/gameframe",
+            "art": "GUNMAYHEM2",
+            "tint": "wood",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Bullet Force",
+            "category": "Multiplayer",
+            "url": "https://games.crazygames.com/en_US/bullet-force-multiplayer/index.html",
+            "art": "BULLETFOR",
+            "tint": "felt",
+            "detail": "Play with other players online."
+        },
+        {
+            "title": "People Playground",
+            "category": "Arcade",
+            "url": "https://html5.gamedistribution.com/rvvASMiM/4eacf9fb9012479194568af9a7e0417c/index.html?gdpr-targeting=1&gd_sdk_referrer_url=https%3A%2F%2Fwww.silvergames.com%2Fen%2Fpeople-playground&gd_zone_config=eyJwYXJlbnRVUkwiOiJodHRwczovL3d3dy5zaWx2ZXJnYW1lcy5jb20vZW4vcGVvcGxlLXBsYXlncm91bmQiLCJwYXJlbnREb21haW4iOiJzaWx2ZXJnYW1lcy5jb20iLCJ0b3BEb21haW4iOiJzaWx2ZXJnYW1lcy5jb20iLCJoYXNJbXByZXNzaW9uIjp0cnVlLCJsb2FkZXJFbmFibGVkIjp0cnVlLCJob3N0IjoiaHRtbDUuZ2FtZWRpc3RyaWJ1dGlvbi5jb20iLCJ2ZXJzaW9uIjoiMS41LjE3In0%253D",
+            "art": "PEOPLEPLA",
+            "tint": "purple",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Hole.io",
+            "category": "Multiplayer",
+            "url": "https://hole-io.com/",
+            "art": "HOLEIO",
+            "tint": "blue",
+            "detail": "Play with other players online."
+        },
+        {
+            "title": "Color Tunnel",
+            "category": "Arcade",
+            "url": "https://f3.silvergames.com/html5/color-tunnel/",
+            "art": "COLORTUNN",
+            "tint": "slate",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Slice it all",
+            "category": "Arcade",
+            "url": "https://html5.gamedistribution.com/rvvASMiM/efa941135635400f94bdb0b7430a92f4/index.html?gdpr-targeting=1&gd_sdk_referrer_url=https%3A%2F%2Fwww.silvergames.com%2Fen%2Fslice-it-all&gd_zone_config=eyJwYXJlbnRVUkwiOiJodHRwczovL3d3dy5zaWx2ZXJnYW1lcy5jb20vZW4vc2xpY2UtaXQtYWxsIiwicGFyZW50RG9tYWluIjoic2lsdmVyZ2FtZXMuY29tIiwidG9wRG9tYWluIjoic2lsdmVyZ2FtZXMuY29tIiwiaGFzSW1wcmVzc2lvbiI6dHJ1ZSwibG9hZGVyRW5hYmxlZCI6dHJ1ZSwiaG9zdCI6Imh0bWw1LmdhbWVkaXN0cmlidXRpb24uY29tIiwidmVyc2lvbiI6IjEuNS4xNyJ9",
+            "art": "SLICEITALL",
+            "tint": "yellow",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Granny",
+            "category": "Horror",
+            "url": "https://html5.gamemonetize.co/pm5wjn3np4xl59y8ie3a85xqs1m1nyma/",
+            "art": "GRANNY",
+            "tint": "felt",
+            "detail": "A spooky browser game."
+        },
+        {
+            "title": "Piano Tiles",
+            "category": "Arcade",
+            "url": "https://h5.4j.com/games/Piano-Tiles-2-Online/index.html?pubid=silvergames&v=1503580918",
+            "art": "PIANOTILES",
+            "tint": "slate",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Raze",
+            "category": "Arcade",
+            "url": "https://f.silvergames.com/ruffle/player.php?id=4195",
+            "art": "RAZE",
+            "tint": "red",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Intrusion",
+            "category": "Arcade",
+            "url": "https://f.silvergames.com/ruffle/player.php?id=2278",
+            "art": "INTRUSION",
+            "tint": "red",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "10 Minutes till Dawn",
+            "category": "Arcade",
+            "url": "https://abinbins.github.io/a7/10-minutes-till-dawn/",
+            "art": "10MINUTES",
+            "tint": "green",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Bitlife",
+            "category": "Arcade",
+            "url": "https://ubg365.github.io/bitlife-life-simulator/play.html",
+            "art": "BITLIFE",
+            "tint": "wood",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Death Run 3D",
+            "category": "Arcade",
+            "url": "https://mathgames66.github.io/games/html5/deathrun3d/",
+            "art": "DEATHRUN3D",
+            "tint": "red",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Vex 3",
+            "category": "Arcade",
+            "url": "https://html5.gamedistribution.com/762c932b4db74c6da0c1d101b2da8be6/?timestamp=1713731401&countryCode=en&siteLocale=en&locale=en&gd_sdk_referrer_url=https%3A%2F%2Fkizi.com%2Fgames%2Fvex-3",
+            "art": "VEX3",
+            "tint": "lime",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Vex 4",
+            "category": "Arcade",
+            "url": "https://html5.gamedistribution.com/80e6a5ae477f4d4fbcd1ea293d10087d/?timestamp=1713731551&countryCode=en&siteLocale=en&locale=en&gd_sdk_referrer_url=https%3A%2F%2Fkizi.com%2Fgames%2Fvex-4",
+            "art": "VEX4",
+            "tint": "slate",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Vex 5",
+            "category": "Arcade",
+            "url": "https://html5.gamedistribution.com/f120262ab72743039fbce88c1f370df8/?timestamp=1713731604&countryCode=en&siteLocale=en&locale=en&gd_sdk_referrer_url=https%3A%2F%2Fkizi.com%2Fgames%2Fvex-5",
+            "art": "VEX5",
+            "tint": "felt",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Vex 6",
+            "category": "Arcade",
+            "url": "https://html5.gamedistribution.com/4925e12574364121a48c61c35f649c36/?timestamp=1713731635&countryCode=en&siteLocale=en&locale=en&gd_sdk_referrer_url=https%3A%2F%2Fkizi.com%2Fgames%2Fvex-6",
+            "art": "VEX6",
+            "tint": "yellow",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Vex 7",
+            "category": "Arcade",
+            "url": "https://html5.gamedistribution.com/0c454c9562d249d28ba3a2b50564042c/?timestamp=1713731659&countryCode=en&siteLocale=en&locale=en&gd_sdk_referrer_url=https%3A%2F%2Fkizi.com%2Fgames%2Fvex-7",
+            "art": "VEX7",
+            "tint": "mint",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Backrooms",
+            "category": "Horror",
+            "url": "https://backroomsgame.io/game/backrooms/",
+            "art": "BACKROOMS",
+            "tint": "slate",
+            "detail": "A spooky browser game."
+        },
+        {
+            "title": "Cookie Clicker",
+            "category": "Idle",
+            "url": "https://orteil.dashnet.org/cookieclicker/",
+            "art": "COOKIE",
+            "tint": "amber",
+            "detail": "Build an increasingly sweet empire."
+        },
+        {
+            "title": "Toss the Turle",
+            "category": "Arcade",
+            "url": "https://kdata1.com/RS/game.php?r=https://kdata1.com/2024/02/tosstheturtle_0.swf&w=900&h=563&warnsupport=true",
+            "art": "TOSSTHETU",
+            "tint": "lime",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Binding of Issac",
+            "category": "Arcade",
+            "url": "https://f.kbhgames.com/RS/game.php?r=//f.kbhgames.com/2011/10/binding-of-issac.swf&w=800&h=600&warnsupport=true",
+            "art": "BINDINGOF",
+            "tint": "lime",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Ultimate Car Driving Simulator",
+            "category": "Arcade",
+            "url": "https://app-258100.games.s3.yandex.net/258100/tjl3zpx5pqgflpnp9trchxb110lsyvvz/index.html?is-united-page=1&skip-guard=1&header=no&clid=2818308&flags=%7B%22adv_sticky_banner_disabled%22%3Atrue%7D&sdk=%2Fsdk%2F_%2Fv2.40602063910d0212bbe3.js#origin=https%3A%2F%2Fyandex.com&app-id=258100&device-type=desktop",
+            "art": "ULTIMATEC",
+            "tint": "blue",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Madalin Cars Multiplayer",
+            "category": "Arcade",
+            "url": "https://f.kbhgames.com/2018/03/madalin-cars-multiplayer/",
+            "art": "MADALINCA",
+            "tint": "cyan",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Deadshot.io",
+            "category": "Arcade",
+            "url": "https://deadshot.io/",
+            "art": "DEADSHOTIO",
+            "tint": "red",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Stick Slasher",
+            "category": "Arcade",
+            "url": "https://kdata1.com/2023/03/stickslasher/",
+            "art": "STICKSLAS",
+            "tint": "slate",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Basketbros.io",
+            "category": "Arcade",
+            "url": "https://kdata1.com/2023/03/stickslasher/",
+            "art": "BASKETBRO",
+            "tint": "purple",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Fancy Pants Adventure: World 2",
+            "category": "Arcade",
+            "url": "https://kdata1.com/2022/12/fancy-pants-adventure-3/?kbhgames",
+            "art": "FANCYPANT",
+            "tint": "lime",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Fancy Pants Adventure: World 1",
+            "category": "Arcade",
+            "url": "https://kbhgames.com/game/fancy-pants-adventures",
+            "art": "FANCYPANT",
+            "tint": "yellow",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Jetpack Joyride",
+            "category": "Arcade",
+            "url": "https://kdata1.com/2024/02/jetpack-joyride/",
+            "art": "JETPACKJO",
+            "tint": "block",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Station Meltdown",
+            "category": "Arcade",
+            "url": "https://kdata1.com/2022/03/station-meltdown/",
+            "art": "STATIONME",
+            "tint": "pink",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "What Remains",
+            "category": "Arcade",
+            "url": "https://kdata1.com/2021/07/3911393/",
+            "art": "WHATREMAI",
+            "tint": "green",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Plazma Burst",
+            "category": "Arcade",
+            "url": "https://f.kbhgames.com/RS/game.php?r=//f.kbhgames.com/2018/swf/plazma-burst.swf&w=1000&h=500&warnsupport=true",
+            "art": "PLAZMABUR",
+            "tint": "lime",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Count Secure Operations 2",
+            "category": "Arcade",
+            "url": "https://app-256471.games.s3.yandex.net/256471/gctqmljj6yn6nvurax636mu4hme5gsqz/index.html?is-united-page=1&skip-guard=1&header=no&clid=2818308&flags=%7B%22adv_sticky_banner_disabled%22%3Atrue%7D&sdk=%2Fsdk%2F_%2Fv2.40602063910d0212bbe3.js#origin=https%3A%2F%2Fyandex.com&app-id=256471&device-type=desktop",
+            "art": "COUNTSECU",
+            "tint": "slate",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "10-103",
+            "category": "Arcade",
+            "url": "https://kdata1.com/2020/12/3100528/",
+            "art": "10103",
+            "tint": "mint",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "10-103: Null Kevin",
+            "category": "Arcade",
+            "url": "https://kdata1.com/2021/06/4056473/",
+            "art": "10103NULL",
+            "tint": "blue",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Last Hope",
+            "category": "Arcade",
+            "url": "https://kdata1.com/2021/09/LastHope/",
+            "art": "LASTHOPE",
+            "tint": "slate",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Make sure it's closed",
+            "category": "Horror",
+            "url": "https://kdata1.com/2019/04/MSIC-WEBGL/",
+            "art": "MAKESUREI",
+            "tint": "blue",
+            "detail": "A spooky browser game."
+        },
+        {
+            "title": "Gun Knight",
+            "category": "Arcade",
+            "url": "https://stepford.itch.io/gun-knight",
+            "art": "GUNKNIGHT",
+            "tint": "cyan",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Mob Inc",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/1796576/index.html?v=1577643878",
+            "art": "MOBINC",
+            "tint": "cyan",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Black Resin",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/6957140/BR_WEBGL_NO_WRONG_DRONG/index.html",
+            "art": "BLACKRESIN",
+            "tint": "lime",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Feedvid Live",
+            "category": "Horror",
+            "url": "https://html-classic.itch.zone/html/4941980-683813/index.html",
+            "art": "FEEDVIDLI",
+            "tint": "purple",
+            "detail": "A spooky browser game."
+        },
+        {
+            "title": "FNAF 1 (Scratch)",
+            "category": "Horror",
+            "url": "https://run3.io/popgame/fnaf/fnaf1/",
+            "art": "FNAF1SCRA",
+            "tint": "green",
+            "detail": "A spooky browser game."
+        },
+        {
+            "title": "FNAF 4 (Scratch)",
+            "category": "Horror",
+            "url": "https://ubg98.github.io/FNAF4/",
+            "art": "FNAF4SCRA",
+            "tint": "yellow",
+            "detail": "A spooky browser game."
+        },
+        {
+            "title": "Stumble Guys",
+            "category": "Arcade",
+            "url": "https://www.stumbleguys.com/play",
+            "art": "STUMBLEGU",
+            "tint": "purple",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Crossy Road",
+            "category": "Arcade",
+            "url": "https://h52304.github.io/s77/crossy-road/",
+            "art": "CROSSYROAD",
+            "tint": "violet",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Survivor.io",
+            "category": "Arcade",
+            "url": "https://html5.gamedistribution.com/rvvASMiM/f1c451e586c04b4c8cba01b0c50d9090/index.html",
+            "art": "SURVIVORIO",
+            "tint": "blue",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Super Mario 64",
+            "category": "Arcade",
+            "url": "https://probablykam.github.io/Mario64webgl/",
+            "art": "SUPERMARI",
+            "tint": "blue",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Pokemon Emerald",
+            "category": "Emulator",
+            "url": "https://f.kbhgames.com/emujs/play.php?c=gba&f=pokemon-emerald.gba",
+            "art": "POKEMONEM",
+            "tint": "violet",
+            "detail": "A retro game experience in your browser."
+        },
+        {
+            "title": "Vex 8",
+            "category": "Arcade",
+            "url": "https://html5.gamedistribution.com/rvvASMiM/949009d40a2846f89f887de2285d6c28/index.html?gd_sdk_referrer_url=https%3A%2F%2Farcadespot.com%2Fgame%2Fvex-8&gd_zone_config=eyJwYXJlbnRVUkwiOiJodHRwczovL2FyY2FkZXNwb3QuY29tL2dhbWUvdmV4LTgiLCJwYXJlbnREb21haW4iOiJhcmNhZGVzcG90LmNvbSIsInRvcERvbWFpbiI6ImFyY2FkZXNwb3QuY29tIiwiaGFzSW1wcmVzc2lvbiI6dHJ1ZSwibG9hZGVyRW5hYmxlZCI6dHJ1ZSwiaG9zdCI6Imh0bWw1LmdhbWVkaXN0cmlidXRpb24uY29tIiwidmVyc2lvbiI6IjEuNS4xNyJ9",
+            "art": "VEX8",
+            "tint": "green",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Precision Client",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/7086310/PrecisionClient-Static-main/index.html",
+            "art": "PRECISION",
+            "tint": "green",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Idle Breakout",
+            "category": "Arcade",
+            "url": "https://www.coolmathgames.com/0-idle-breakout/play",
+            "art": "IDLEBREAK",
+            "tint": "felt",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Burrito Bison",
+            "category": "Arcade",
+            "url": "https://f.silvergames.com/awayfl/index.html?swf=burrito-bison.swf",
+            "art": "BURRITOBI",
+            "tint": "blue",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Twitch Tetris",
+            "category": "Arcade",
+            "url": "https://www.rossipotti.de/ausgabe28/tetris/index.html",
+            "art": "TWITCHTET",
+            "tint": "block",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Mario Kart 64",
+            "category": "Emulator",
+            "url": "https://f.kbhgames.com/r/n64/game.php?file=mario-kart-64.zip",
+            "art": "MARIOKART",
+            "tint": "felt",
+            "detail": "A retro game experience in your browser."
+        },
+        {
+            "title": "Pizza Tower",
+            "category": "Arcade",
+            "url": "https://kdata1.com/2021/03/3527391/2.1/",
+            "art": "PIZZATOWER",
+            "tint": "mint",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Shuttle.lol",
+            "category": "Arcade",
+            "url": "https://shuttle.lol",
+            "art": "SHUTTLELOL",
+            "tint": "slate",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Subway Surfers",
+            "category": "Arcade",
+            "url": "https://subwaysurfersonlinegame.github.io/file/",
+            "art": "SUBWAYSUR",
+            "tint": "pink",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Ragdoll Archers",
+            "category": "Arcade",
+            "url": "https://ragdoll-archers.game-files.crazygames.com/ragdoll-archers/30/index.html",
+            "art": "RAGDOLLAR",
+            "tint": "purple",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Stick Archers Battle",
+            "category": "Arcade",
+            "url": "https://html5.gamedistribution.com/rvvASMiM/a2eafb6bfed84d56a10d6c57e1e72417/index.html?gd_sdk_referrer_url=https%3A%2F%2Fwww.twoplayergames.org%2Fgame%2Fstick-archers-battle&gd_zone_config=eyJwYXJlbnRVUkwiOiJodHRwczovL3d3dy50d29wbGF5ZXJnYW1lcy5vcmcvZ2FtZS9zdGljay1hcmNoZXJzLWJhdHRsZSIsInBhcmVudERvbWFpbiI6InR3b3BsYXllcmdhbWVzLm9yZyIsInRvcERvbWFpbiI6InR3b3BsYXllcmdhbWVzLm9yZyIsImhhc0ltcHJlc3Npb24iOmZhbHNlLCJsb2FkZXJFbmFibGVkIjp0cnVlLCJob3N0IjoiaHRtbDUuZ2FtZWRpc3RyaWJ1dGlvbi5jb20iLCJ2ZXJzaW9uIjoiMS41LjE3In0%253D",
+            "art": "STICKARCH",
+            "tint": "blue",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Funny Shooter 2",
+            "category": "Arcade",
+            "url": "https://html5.gamedistribution.com/rvvASMiM/a1b7ac4025214a5cb0bd01a4f675513a/index.html?gd_zone_config=eyJwYXJlbnRVUkwiOiJodHRwczovL2Z1bm55c2hvb3RlcjIuY29tLyIsInBhcmVudERvbWFpbiI6ImZ1bm55c2hvb3RlcjIuY29tIiwidG9wRG9tYWluIjoiZnVubnlzaG9vdGVyMi5jb20iLCJoYXNJbXByZXNzaW9uIjpmYWxzZSwibG9hZGVyRW5hYmxlZCI6dHJ1ZSwiaG9zdCI6Imh0bWw1LmdhbWVkaXN0cmlidXRpb24uY29tIiwidmVyc2lvbiI6IjEuNS4xNyJ9",
+            "art": "FUNNYSHOO",
+            "tint": "yellow",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Tomb of the Mask",
+            "category": "Arcade",
+            "url": "https://tombofthemask.github.io/g8/tomb-of-the-mask/",
+            "art": "TOMBOFTHE",
+            "tint": "pink",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Exit Path",
+            "category": "Arcade",
+            "url": "https://f.silvergames.com/ruffle/player.php?id=606",
+            "art": "EXITPATH",
+            "tint": "lime",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Awesome Planes",
+            "category": "Emulator",
+            "url": "https://f.silvergames.com/ruffle/player.php?id=2017",
+            "art": "AWESOMEPL",
+            "tint": "yellow",
+            "detail": "A retro game experience in your browser."
+        },
+        {
+            "title": "OvO 2",
+            "category": "Arcade",
+            "url": "https://dedragames.com/games/ovo2/0.2alpha/",
+            "art": "OVO2",
+            "tint": "felt",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "60 Seconds",
+            "category": "Arcade",
+            "url": "https://www.puzzlegame.com/games/60-Seconds-Atomic-Adventure/index.html?yad",
+            "art": "60SECONDS",
+            "tint": "felt",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "BuildNow GG",
+            "category": "Multiplayer",
+            "url": "https://games.crazygames.com/en_US/buildnow-gg/index.html?v=1.282",
+            "art": "BUILDNOWGG",
+            "tint": "purple",
+            "detail": "Play with other players online."
+        },
+        {
+            "title": "Sans Fight",
+            "category": "Emulator",
+            "url": "https://jcw87.github.io/c2-sans-fight/",
+            "art": "SANSFIGHT",
+            "tint": "purple",
+            "detail": "A retro game experience in your browser."
+        },
+        {
+            "title": "Super Mario Bros",
+            "category": "Emulator",
+            "url": "https://jcw87.github.io/c2-smb1/",
+            "art": "SUPERMARI",
+            "tint": "lime",
+            "detail": "A retro game experience in your browser."
+        },
+        {
+            "title": "Friday night Funkin",
+            "category": "Arcade",
+            "url": "https://uploads.ungrounded.net/alternate/1528000/1528775_alternate_113347_r112.zip/?NewgroundsAPI_PublisherID=1&NewgroundsAPI_SandboxID=6636730d4b7cd&NewgroundsAPI_SessionID=&NewgroundsAPI_UserName=%26lt%3Bdeleted%26gt%3B&NewgroundsAPI_UserID=0&ng_username=%26lt%3Bdeleted%26gt%3B",
+            "art": "FRIDAYNIG",
+            "tint": "mint",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Baldis Basics",
+            "category": "Horror",
+            "url": "https://en.gameslol.net/data/baldis-basics/index.html",
+            "art": "BALDISBAS",
+            "tint": "pink",
+            "detail": "A spooky browser game."
+        },
+        {
+            "title": "Assessment Examination",
+            "category": "Horror",
+            "url": "https://html-classic.itch.zone/html/5392404/Web5/index.html",
+            "art": "ASSESSMEN",
+            "tint": "mint",
+            "detail": "A spooky browser game."
+        },
+        {
+            "title": "Dome Romantik",
+            "category": "Arcade",
+            "url": "https://bippinbits.itch.io/dome-romantik",
+            "art": "DOMEROMAN",
+            "tint": "violet",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Nightclub Showdown",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/3198875/index.html",
+            "art": "NIGHTCLUB",
+            "tint": "lime",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Goodnight Meowmie",
+            "category": "Horror",
+            "url": "https://ddrkirbyisq.itch.io/goodnight-meowmie",
+            "art": "GOODNIGHT",
+            "tint": "green",
+            "detail": "A spooky browser game."
+        },
+        {
+            "title": "Blastronaut",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/2758024/index.html",
+            "art": "BLASTRONA",
+            "tint": "blue",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "UZG (COD Zombies)",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/5713982/UZG_webgl/index.html",
+            "art": "UZGCODZOM",
+            "tint": "red",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Commonweal",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/10287783/index.html",
+            "art": "COMMONWEAL",
+            "tint": "blue",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Holonomy",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/7959084/Holonomy%20Web/index.html",
+            "art": "HOLONOMY",
+            "tint": "yellow",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Enchain Classic",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/793359/Enchain%20WebGL/index.html?v=1542781876",
+            "art": "ENCHAINCL",
+            "tint": "red",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Hollow Knight Demake",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/4103396/web/index.html",
+            "art": "HOLLOWKNI",
+            "tint": "violet",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Dustsim",
+            "category": "Arcade",
+            "url": "https://kodub.itch.io/dustsim",
+            "art": "DUSTSIM",
+            "tint": "blue",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Canabalt",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/9680307/index.html",
+            "art": "CANABALT",
+            "tint": "pink",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Home Alone",
+            "category": "Horror",
+            "url": "https://html-classic.itch.zone/html/8471641/BGJ%202022.2%20-%20Home%20Alone%20WebGL/index.html",
+            "art": "HOMEALONE",
+            "tint": "slate",
+            "detail": "A spooky browser game."
+        },
+        {
+            "title": "78 Hour Rain",
+            "category": "Horror",
+            "url": "https://html-classic.itch.zone/html/2937814/78HourRain_Webv1/index.html",
+            "art": "78HOURRAIN",
+            "tint": "red",
+            "detail": "A spooky browser game."
+        },
+        {
+            "title": "Closing Doors",
+            "category": "Horror",
+            "url": "https://collarpill.itch.io/closing-doors",
+            "art": "CLOSINGDO",
+            "tint": "cyan",
+            "detail": "A spooky browser game."
+        },
+        {
+            "title": "Backrooms 2D",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/8485327/index.html",
+            "art": "BACKROOMS",
+            "tint": "slate",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Silhouette Showdown",
+            "category": "Multiplayer",
+            "url": "https://html-classic.itch.zone/html/7362417/SilhouetteShowdown080_HTML/index.html",
+            "art": "SILHOUETT",
+            "tint": "purple",
+            "detail": "Play with other players online."
+        },
+        {
+            "title": "Commando",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/1824008/www/index.html?v=1577643784",
+            "art": "COMMANDO",
+            "tint": "block",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Hollow Knight (Silksong Demake)",
+            "category": "Emulator",
+            "url": "https://html-classic.itch.zone/html/4927768/web/index.html",
+            "art": "HOLLOWKNI",
+            "tint": "violet",
+            "detail": "A retro game experience in your browser."
+        },
+        {
+            "title": "Nip for speed",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/9641909/index.html",
+            "art": "NIPFORSPE",
+            "tint": "lime",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Vacant",
+            "category": "Horror",
+            "url": "https://html-classic.itch.zone/html/5747771-565757/html/index.html",
+            "art": "VACANT",
+            "tint": "mint",
+            "detail": "A spooky browser game."
+        },
+        {
+            "title": "Deep",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/3316252/index.html",
+            "art": "DEEP",
+            "tint": "green",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Darkness in Spaceship",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/9272800/index.html",
+            "art": "DARKNESSI",
+            "tint": "yellow",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Station 141",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/3793918/index.html",
+            "art": "STATION141",
+            "tint": "violet",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Pew Pew Live",
+            "category": "Arcade",
+            "url": "https://pewpew.live/webasm/pewpew.html",
+            "art": "PEWPEWLIVE",
+            "tint": "violet",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Marble Race Generator",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/2029874/WebV2/index.html?v=1591302253",
+            "art": "MARBLERAC",
+            "tint": "pink",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Cats Cradle",
+            "category": "Multiplayer",
+            "url": "https://georgioklironomos.itch.io/cats-cradle",
+            "art": "CATSCRADLE",
+            "tint": "block",
+            "detail": "Play with other players online."
+        },
+        {
+            "title": "Blackbox",
+            "category": "Horror",
+            "url": "https://html-classic.itch.zone/html/3475546/index.html",
+            "art": "BLACKBOX",
+            "tint": "red",
+            "detail": "A spooky browser game."
+        },
+        {
+            "title": "This is your life now",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/1398515/index.html?v=1574335650",
+            "art": "THISISYOU",
+            "tint": "pink",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Hinoken",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/3435599/hinoken_web_1/index.html",
+            "art": "HINOKEN",
+            "tint": "green",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Necrobomb",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/3433821/index.html",
+            "art": "NECROBOMB",
+            "tint": "red",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Rocket League 2D",
+            "category": "Multiplayer",
+            "url": "https://html-classic.itch.zone/html/3325334/index.html",
+            "art": "ROCKETLEA",
+            "tint": "blue",
+            "detail": "Play with other players online."
+        },
+        {
+            "title": "dud",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/10158091/index.html",
+            "art": "DUD",
+            "tint": "slate",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Crater",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/3300759/CraterWeb/index.html",
+            "art": "CRATER",
+            "tint": "red",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Monolith",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/473205/index.html?v=1542781942  ",
+            "art": "MONOLITH",
+            "tint": "pink",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "D.A-V.E",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/9967430/index.html",
+            "art": "DAVE",
+            "tint": "felt",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Bright Lancer",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/3228468/Bright%20Lancer%20Web%20Experimental/index.html",
+            "art": "BRIGHTLAN",
+            "tint": "mint",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "VSCS-I",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/7627512/index.html",
+            "art": "VSCSI",
+            "tint": "block",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Take out the trash",
+            "category": "Horror",
+            "url": "https://html-classic.itch.zone/html/10334699/takeOutTheTrash/index.html",
+            "art": "TAKEOUTTH",
+            "tint": "red",
+            "detail": "A spooky browser game."
+        },
+        {
+            "title": "Examination of Fear",
+            "category": "Horror",
+            "url": "https://html-classic.itch.zone/html/7312990/index.html",
+            "art": "EXAMINATI",
+            "tint": "purple",
+            "detail": "A spooky browser game."
+        },
+        {
+            "title": "I am not what remains",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/2479198/index.html",
+            "art": "IAMNOTWHA",
+            "tint": "block",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Last train home",
+            "category": "Horror",
+            "url": "https://html-classic.itch.zone/html/3300759/CraterWeb/index.html",
+            "art": "LASTTRAIN",
+            "tint": "amber",
+            "detail": "A spooky browser game."
+        },
+        {
+            "title": "Dodge & Slash",
+            "category": "Arcade",
+            "url": "https://kindanice.itch.io/dodge-and-slash",
+            "art": "DODGESLASH",
+            "tint": "felt",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Like Them",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/2367352/Like%20Them%20Demo%20HTML/index.html",
+            "art": "LIKETHEM",
+            "tint": "block",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Agent Pyxel",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/4491958/index.html",
+            "art": "AGENTPYXEL",
+            "tint": "amber",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "A Day in the Office",
+            "category": "Horror",
+            "url": "https://html-classic.itch.zone/html/4268519/index.html",
+            "art": "ADAYINTHE",
+            "tint": "felt",
+            "detail": "A spooky browser game."
+        },
+        {
+            "title": "Station Saturn",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/7537780/index.html",
+            "art": "STATIONSA",
+            "tint": "mint",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "DriftR",
+            "category": "Arcade",
+            "url": "https://example.com",
+            "art": "DRIFTR",
+            "tint": "green",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Synesthesia",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/6726608/browser/index.html",
+            "art": "SYNESTHES",
+            "tint": "red",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Spectral Slash",
+            "category": "Arcade",
+            "url": "https://kdata1.com/2023/07/spectral-slash/",
+            "art": "SPECTRALS",
+            "tint": "amber",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Rogue Fable III",
+            "category": "Arcade",
+            "url": "https://cache.armorgames.com/files/games/rogue-fable-iii-18602/index.html?v=1550624919",
+            "art": "ROGUEFABL",
+            "tint": "cyan",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Human or Not?",
+            "category": "Arcade",
+            "url": "https://humanornot.so/",
+            "art": "HUMANORNOT",
+            "tint": "mint",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "OVO Modded",
+            "category": "Arcade",
+            "url": "https://ovo-5yu.pages.dev/",
+            "art": "OVOMODDED",
+            "tint": "pink",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "We Become What We Behold",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/300364/index.html?v=1542781840",
+            "art": "WEBECOMEW",
+            "tint": "block",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Buckshot Roulette",
+            "category": "Arcade",
+            "url": "https://buckshotroulette.online/game/v13/",
+            "art": "BUCKSHOTR",
+            "tint": "red",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Smash Karts.io",
+            "category": "Arcade",
+            "url": "https://smashkarts.io/",
+            "art": "SMASHKART",
+            "tint": "block",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Cat Mario",
+            "category": "Arcade",
+            "url": "https://kdata1.com/2022/04/cat-marioo/",
+            "art": "CATMARIO",
+            "tint": "slate",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Rocket Bot Royale",
+            "category": "Arcade",
+            "url": "https://rocketbotroyale.winterpixel.io/",
+            "art": "ROCKETBOT",
+            "tint": "block",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "CSGO Clicker",
+            "category": "Arcade",
+            "url": "https://mtsl.dk/csgo/",
+            "art": "CSGOCLICK",
+            "tint": "red",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Arsonate",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/10985323/ARSONATE%20-%20WEBGL_DEMO%20-%2020240722%20-%20RELEASE/index.html",
+            "art": "ARSONATE",
+            "tint": "violet",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Moon",
+            "category": "Arcade",
+            "url": "https://html.itch.zone/html/10993820/Moon/index.html",
+            "art": "MOON",
+            "tint": "slate",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Bullet Bunny",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/8618172/Bullet%20Bunny/index.html",
+            "art": "BULLETBUN",
+            "tint": "amber",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "V.R.G.",
+            "category": "Arcade",
+            "url": "https://html.itch.zone/html/10999062/index.html",
+            "art": "VRG",
+            "tint": "mint",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Everybody Must Die",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/4263236/index.html",
+            "art": "EVERYBODY",
+            "tint": "purple",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Don't Let Her In",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/10594372/index.html",
+            "art": "DONTLETHE",
+            "tint": "amber",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Monster Battlegrounds",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/10505998/Monster%20Battlegrounds%20(v0_3_0)%20html/index.html",
+            "art": "MONSTERBA",
+            "tint": "wood",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Cuckoo Castle",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/2315059/CuckooCastle/index.html?v=1591301542",
+            "art": "CUCKOOCAS",
+            "tint": "felt",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "The Lesser Evil",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/4604027/TheLesserEvil_Web/index.html",
+            "art": "THELESSER",
+            "tint": "mint",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Flooded Caves",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/5535808/index.html",
+            "art": "FLOODEDCA",
+            "tint": "violet",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Subject 26",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/196978/index.html?v=1542782131",
+            "art": "SUBJECT26",
+            "tint": "wood",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Proctor",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/4833194-484298/index.html",
+            "art": "PROCTOR",
+            "tint": "violet",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Morphology",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/2174003/index.html?v=1591301905",
+            "art": "MORPHOLOGY",
+            "tint": "cyan",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Torchure",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/3473461/Builds/index.html",
+            "art": "TORCHURE",
+            "tint": "mint",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Hyper Jump",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/6364027/index.html",
+            "art": "HYPERJUMP",
+            "tint": "violet",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Void Golf",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/1669372/Void%20Golf%20Web/index.html?v=1574334979",
+            "art": "VOIDGOLF",
+            "tint": "red",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Arena",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/7053230/index.html",
+            "art": "ARENA",
+            "tint": "felt",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "8 Ball Pool",
+            "category": "Arcade",
+            "url": "https://8ballpool.com/en/game",
+            "art": "8BALLPOOL",
+            "tint": "pink",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Drift Boss",
+            "category": "Arcade",
+            "url": "https://www.hoodamath.com/mobile/games/drift-boss/game.html",
+            "art": "DRIFTBOSS",
+            "tint": "violet",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Google Snake Modded",
+            "category": "Arcade",
+            "url": "https://googlesnakemods.com/v/current/",
+            "art": "GOOGLESNA",
+            "tint": "mint",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Helix Jump",
+            "category": "Arcade",
+            "url": "https://helixjumponline.com/",
+            "art": "HELIXJUMP",
+            "tint": "pink",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Mutilate-a-doll 2",
+            "category": "Arcade",
+            "url": "https://f.silvergames.com/ruffle/player.php?id=4638",
+            "art": "MUTILATEA",
+            "tint": "yellow",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Superfighers 2",
+            "category": "Arcade",
+            "url": "https://f.silvergames.com/ruffle/player.php?id=6456",
+            "art": "SUPERFIGH",
+            "tint": "mint",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Superhot",
+            "category": "Arcade",
+            "url": "https://f3.silvergames.com/html5/super-hot/",
+            "art": "SUPERHOT",
+            "tint": "wood",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Pandemic Simulator",
+            "category": "Arcade",
+            "url": "https://html5.gamedistribution.com/rvvASMiM/f2a015a45b6443358238a54f8f4a557f/index.html?gdpr-targeting=1&gd_sdk_referrer_url=https%3A%2F%2Fwww.silvergames.com%2Fen%2Fpandemic-simulator&gd_zone_config=eyJwYXJlbnRVUkwiOiJodHRwczovL3d3dy5zaWx2ZXJnYW1lcy5jb20vZW4vcGFuZGVtaWMtc2ltdWxhdG9yIiwicGFyZW50RG9tYWluIjoic2lsdmVyZ2FtZXMuY29tIiwidG9wRG9tYWluIjoic2lsdmVyZ2FtZXMuY29tIiwiaGFzSW1wcmVzc2lvbiI6ZmFsc2UsImxvYWRlckVuYWJsZWQiOnRydWUsImhvc3QiOiJodG1sNS5nYW1lZGlzdHJpYnV0aW9uLmNvbSIsInZlcnNpb24iOiIxLjUuMTcifQ%253D%253D",
+            "art": "PANDEMICS",
+            "tint": "block",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Raze 2",
+            "category": "Arcade",
+            "url": "https://f.silvergames.com/ruffle/player.php?id=1594",
+            "art": "RAZE2",
+            "tint": "pink",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Strike Force Heros 2",
+            "category": "Arcade",
+            "url": "https://f.silvergames.com/ruffle/player.php?id=2879",
+            "art": "STRIKEFOR",
+            "tint": "mint",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Strike Force Heros 3",
+            "category": "Arcade",
+            "url": "https://f.silvergames.com/ruffle/player.php?id=5067",
+            "art": "STRIKEFOR",
+            "tint": "red",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Sift Heads World",
+            "category": "Arcade",
+            "url": "https://f.silvergames.com/ruffle/player.php?id=8950",
+            "art": "SIFTHEADS",
+            "tint": "violet",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Stickman Dismount",
+            "category": "Arcade",
+            "url": "https://cdn.gamemonetize.com/d2pe3o8rrt57q6mro0vjkor7q0xequ04/",
+            "art": "STICKMAND",
+            "tint": "blue",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Sift Heads Cartels",
+            "category": "Arcade",
+            "url": "https://f.silvergames.com/ruffle/player.php?id=3199",
+            "art": "SIFTHEADS",
+            "tint": "violet",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Cut the Rope",
+            "category": "Arcade",
+            "url": "https://games.cdn.famobi.com/html5games/c/cut-the-rope/v070/?fg_domain=play.famobi.com&fg_aid=A-SILVERGAMES&fg_uid=4531b37c-a8e0-4a67-9ebd-e8d3190b6277&fg_pid=8a24e5f2-94a8-4593-b4e5-81cc68f524c8&fg_beat=969&original_ref=https%3A%2F%2Fwww.silvergames.com%2F",
+            "art": "CUTTHEROPE",
+            "tint": "slate",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Give Up 2",
+            "category": "Arcade",
+            "url": "https://f.silvergames.com/ruffle/player.php?id=4717",
+            "art": "GIVEUP2",
+            "tint": "pink",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Draw Climber",
+            "category": "Arcade",
+            "url": "https://f3.silvergames.com/m/draw-cube/",
+            "art": "DRAWCLIMB",
+            "tint": "mint",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "N-Game 2",
+            "category": "Arcade",
+            "url": "https://f.silvergames.com/ruffle/player.php?id=2987",
+            "art": "NGAME2",
+            "tint": "lime",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Stickman Ragdoll Playground",
+            "category": "Arcade",
+            "url": "https://html5.gamedistribution.com/rvvASMiM/1c0a1c13e443454a9a029c155b957778/index.html?gdpr-targeting=1&gd_sdk_referrer_url=https%3A%2F%2Fwww.silvergames.com%2Fen%2Fstickman-ragdoll-playground&gd_zone_config=eyJwYXJlbnRVUkwiOiJodHRwczovL3d3dy5zaWx2ZXJnYW1lcy5jb20vZW4vc3RpY2ttYW4tcmFnZG9sbC1wbGF5Z3JvdW5kIiwicGFyZW50RG9tYWluIjoic2lsdmVyZ2FtZXMuY29tIiwidG9wRG9tYWluIjoic2lsdmVyZ2FtZXMuY29tIiwiaGFzSW1wcmVzc2lvbiI6ZmFsc2UsImxvYWRlckVuYWJsZWQiOnRydWUsImhvc3QiOiJodG1sNS5nYW1lZGlzdHJpYnV0aW9uLmNvbSIsInZlcnNpb24iOiIxLjUuMTcifQ%253D%253D",
+            "art": "STICKMANR",
+            "tint": "purple",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Stealth Hunter 2",
+            "category": "Arcade",
+            "url": "https://f.silvergames.com/ruffle/player.php?id=1965",
+            "art": "STEALTHHU",
+            "tint": "violet",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Castel Wars",
+            "category": "Arcade",
+            "url": "https://files.twoplayergames.org/files/games/o1/Castel_Wars/index.html",
+            "art": "CASTELWARS",
+            "tint": "felt",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Castel Wars Modern",
+            "category": "Arcade",
+            "url": "https://files.twoplayergames.org/files/games/o1/Castel_Wars_Modern/index.html",
+            "art": "CASTELWAR",
+            "tint": "lime",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Castel Wars New Era",
+            "category": "Arcade",
+            "url": "https://files.twoplayergames.org/files/games/o1/Castel_Wars_New_Era/index.html",
+            "art": "CASTELWAR",
+            "tint": "felt",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Uno Online",
+            "category": "Arcade",
+            "url": "https://html5.gamedistribution.com/rvvASMiM/f2520bae00624e93a4f4614732fa259e/index.html?gd_sdk_referrer_url=https%3A%2F%2Fwww.twoplayergames.org%2Fgame%2Funo-online&gd_zone_config=eyJwYXJlbnRVUkwiOiJodHRwczovL3d3dy50d29wbGF5ZXJnYW1lcy5vcmcvZ2FtZS91bm8tb25saW5lIiwicGFyZW50RG9tYWluIjoidHdvcGxheWVyZ2FtZXMub3JnIiwidG9wRG9tYWluIjoidHdvcGxheWVyZ2FtZXMub3JnIiwiaGFzSW1wcmVzc2lvbiI6ZmFsc2UsImxvYWRlckVuYWJsZWQiOnRydWUsImhvc3QiOiJodG1sNS5nYW1lZGlzdHJpYnV0aW9uLmNvbSIsInZlcnNpb24iOiIxLjUuMTcifQ%253D%253D",
+            "art": "UNOONLINE",
+            "tint": "blue",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Stick Duel Battle Hero",
+            "category": "Arcade",
+            "url": "https://files.twoplayergames.org/files/games/o1/Stick_Duel_Battle_Hero/index.html",
+            "art": "STICKDUEL",
+            "tint": "block",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "House of Hazards",
+            "category": "Arcade",
+            "url": "https://www.twoplayergames.org/gameframe/house-of-hazards",
+            "art": "HOUSEOFHA",
+            "tint": "violet",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Tennis Physics",
+            "category": "Arcade",
+            "url": "https://files.twoplayergames.org/files/games/o1/Tennis_Physics/index.html",
+            "art": "TENNISPHY",
+            "tint": "green",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Pixel Smash Duel",
+            "category": "Arcade",
+            "url": "https://html5.gamedistribution.com/81c5e3e4cae448a5876b1c2e424fd96b/?gd_sdk_referrer_url=https%3A%2F%2Fwww.twoplayergames.org%2Fgame%2Fpixel-smash-duel",
+            "art": "PIXELSMAS",
+            "tint": "violet",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Volley Random",
+            "category": "Arcade",
+            "url": "https://files.twoplayergames.org/files/games/o1/Volley_random/index.html",
+            "art": "VOLLEYRAN",
+            "tint": "red",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Fancy Snowboarding",
+            "category": "Arcade",
+            "url": "https://f.silvergames.com/ruffle/player.php?id=10106",
+            "art": "FANCYSNOW",
+            "tint": "amber",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Line Rider",
+            "category": "Arcade",
+            "url": "https://www.linerider.com/",
+            "art": "LINERIDER",
+            "tint": "mint",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Leap of Life",
+            "category": "Arcade",
+            "url": "https://html5.gamedistribution.com/rvvASMiM/a3cddb497804491ca590c34ee5fa7339/index.html?gdpr-targeting=1&gd_sdk_referrer_url=https%3A%2F%2Fwww.silvergames.com%2Fen%2Fleap-of-life&gd_zone_config=eyJwYXJlbnRVUkwiOiJodHRwczovL3d3dy5zaWx2ZXJnYW1lcy5jb20vZW4vbGVhcC1vZi1saWZlIiwicGFyZW50RG9tYWluIjoic2lsdmVyZ2FtZXMuY29tIiwidG9wRG9tYWluIjoic2lsdmVyZ2FtZXMuY29tIiwiaGFzSW1wcmVzc2lvbiI6ZmFsc2UsImxvYWRlckVuYWJsZWQiOnRydWUsImhvc3QiOiJodG1sNS5nYW1lZGlzdHJpYnV0aW9uLmNvbSIsInZlcnNpb24iOiIxLjUuMTcifQ%253D%253D",
+            "art": "LEAPOFLIFE",
+            "tint": "block",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Geometry Neon Dash Subzero",
+            "category": "Arcade",
+            "url": "https://html5.gamedistribution.com/1f37997f4c6845519807e0a335ed1c75/",
+            "art": "GEOMETRYN",
+            "tint": "cyan",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Space Waves",
+            "category": "Arcade",
+            "url": "https://games.crazygames.com/en_US/space-waves/index.html",
+            "art": "SPACEWAVES",
+            "tint": "purple",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Worlds Hardest Game 3",
+            "category": "Arcade",
+            "url": "https://www.coolmathgames.com/0-worlds-hardest-game-3/play",
+            "art": "WORLDSHAR",
+            "tint": "block",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Bad Dolls 2",
+            "category": "Arcade",
+            "url": "https://f3.silvergames.com/m/bad-dolls_v2/",
+            "art": "BADDOLLS2",
+            "tint": "amber",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Fire Circle",
+            "category": "Arcade",
+            "url": "https://f3.silvergames.com/m/fire-circle/",
+            "art": "FIRECIRCLE",
+            "tint": "slate",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Grandpas Minigun",
+            "category": "Arcade",
+            "url": "https://uploads.ungrounded.net/alternate/1773000/1773956_alternate_160158_r103.zip/?NewgroundsAPI_PublisherID=1&NewgroundsAPI_SandboxID=66a97942d14be&NewgroundsAPI_SessionID=&NewgroundsAPI_UserName=%26lt%3Bdeleted%26gt%3B&NewgroundsAPI_UserID=0&ng_username=%26lt%3Bdeleted%26gt%3B",
+            "art": "GRANDPASM",
+            "tint": "violet",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Seeking Peace Zombeez",
+            "category": "Arcade",
+            "url": "https://uploads.ungrounded.net/alternate/5903000/5903058_alternate_273533_r1.zip/?NewgroundsAPI_PublisherID=1&NewgroundsAPI_SandboxID=66a979cdd610c&NewgroundsAPI_SessionID=&NewgroundsAPI_UserName=%26lt%3Bdeleted%26gt%3B&NewgroundsAPI_UserID=0&ng_username=%26lt%3Bdeleted%26gt%3B",
+            "art": "SEEKINGPE",
+            "tint": "amber",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Stealth Optional",
+            "category": "Arcade",
+            "url": "https://uploads.ungrounded.net/alternate/5775000/5775059_alternate_266950_r2.zip/?NewgroundsAPI_PublisherID=1&NewgroundsAPI_SandboxID=66a987bbcbbc4&NewgroundsAPI_SessionID=&NewgroundsAPI_UserName=%26lt%3Bdeleted%26gt%3B&NewgroundsAPI_UserID=0&ng_username=%26lt%3Bdeleted%26gt%3B",
+            "art": "STEALTHOP",
+            "tint": "block",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Fruity Tower",
+            "category": "Arcade",
+            "url": "https://uploads.ungrounded.net/alternate/4622000/4622142_alternate_215472_r10.zip/?NewgroundsAPI_PublisherID=1&NewgroundsAPI_SandboxID=66a98ce60a9a3&NewgroundsAPI_SessionID=&NewgroundsAPI_UserName=%26lt%3Bdeleted%26gt%3B&NewgroundsAPI_UserID=0&ng_username=%26lt%3Bdeleted%26gt%3B",
+            "art": "FRUITYTOW",
+            "tint": "slate",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Armed with Wings Culmination",
+            "category": "Arcade",
+            "url": "https://uploads.ungrounded.net/ruffle_wrapper/ruffleembed.html?v=1.0.67&browsermode=default&props=%7B%22ruffle%22%3A%22%2Fruffle_wrapper%2Flib%2Fruffle.js%3F1722140126%22%2C%22public_path%22%3A%22%2Fruffle_wrapper%2Flib%2F%22%2C%22swf%22%3A%22https%3A%2F%2Fuploads.ungrounded.net%2F584000%2F584398_Culmination_coolbuddy_v2.swf%3F1691321603%22%2C%22vars%22%3A%7B%22NewgroundsAPI_PublisherID%22%3A1%2C%22NewgroundsAPI_SandboxID%22%3A%2266a98da258f08%22%2C%22NewgroundsAPI_SessionID%22%3A%22%22%2C%22NewgroundsAPI_UserName%22%3A%22%26lt%3Bdeleted%26gt%3B%22%2C%22NewgroundsAPI_UserID%22%3A0%2C%22ng_username%22%3A%22%26lt%3Bdeleted%26gt%3B%22%7D%2C%22width%22%3A800%2C%22height%22%3A480%2C%22icon%22%3A%22https%3A%2F%2Fpicon.ngfiles.com%2F584000%2Fflash_584398_card.webp%3Ff1679409096%22%2C%22warnOnUnsupportedContent%22%3Afalse%7D",
+            "art": "ARMEDWITH",
+            "tint": "mint",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Armed with Wings Ashbelt",
+            "category": "Arcade",
+            "url": "https://uploads.ungrounded.net/ruffle_wrapper/ruffleembed.html?v=1.0.67&browsermode=default&props=%7B%22ruffle%22%3A%22%2Fruffle_wrapper%2Flib%2Fruffle.js%3F1722140126%22%2C%22public_path%22%3A%22%2Fruffle_wrapper%2Flib%2F%22%2C%22swf%22%3A%22https%3A%2F%2Fuploads.ungrounded.net%2F782000%2F782748_game.swf%3F1616075212%22%2C%22vars%22%3A%7B%22NewgroundsAPI_PublisherID%22%3A1%2C%22NewgroundsAPI_SandboxID%22%3A%2266a98e02c7e2c%22%2C%22NewgroundsAPI_SessionID%22%3A%22%22%2C%22NewgroundsAPI_UserName%22%3A%22%26lt%3Bdeleted%26gt%3B%22%2C%22NewgroundsAPI_UserID%22%3A0%2C%22ng_username%22%3A%22%26lt%3Bdeleted%26gt%3B%22%7D%2C%22width%22%3A1280%2C%22height%22%3A720%2C%22icon%22%3A%22https%3A%2F%2Fpicon.ngfiles.com%2F782000%2Fflash_782748_card.png%3Ff1614591642%22%2C%22warnOnUnsupportedContent%22%3Afalse%7D",
+            "art": "ARMEDWITH",
+            "tint": "slate",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "The I of It",
+            "category": "Arcade",
+            "url": "https://uploads.ungrounded.net/ruffle_wrapper/ruffleembed.html?v=1.0.67&browsermode=default&props=%7B%22ruffle%22%3A%22%2Fruffle_wrapper%2Flib%2Fruffle.js%3F1722140126%22%2C%22public_path%22%3A%22%2Fruffle_wrapper%2Flib%2F%22%2C%22swf%22%3A%22https%3A%2F%2Fuploads.ungrounded.net%2F570000%2F570709_theIofIt_640x400.swf%3F1306330288%22%2C%22vars%22%3A%7B%22NewgroundsAPI_PublisherID%22%3A1%2C%22NewgroundsAPI_SandboxID%22%3A%2266a98e3dc2710%22%2C%22NewgroundsAPI_SessionID%22%3A%22%22%2C%22NewgroundsAPI_UserName%22%3A%22%26lt%3Bdeleted%26gt%3B%22%2C%22NewgroundsAPI_UserID%22%3A0%2C%22ng_username%22%3A%22%26lt%3Bdeleted%26gt%3B%22%7D%2C%22width%22%3A640%2C%22height%22%3A400%2C%22icon%22%3A%22https%3A%2F%2Fpicon.ngfiles.com%2F570000%2Fflash_570709_card.png%3Ff1664325606%22%2C%22warnOnUnsupportedContent%22%3Afalse%7D",
+            "art": "THEIOFIT",
+            "tint": "wood",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Armed with Wings Rearmed Trials",
+            "category": "Arcade",
+            "url": "https://uploads.ungrounded.net/ruffle_wrapper/ruffleembed.html?v=1.0.67&browsermode=default&props=%7B%22ruffle%22%3A%22%2Fruffle_wrapper%2Flib%2Fruffle.js%3F1722140126%22%2C%22public_path%22%3A%22%2Fruffle_wrapper%2Flib%2F%22%2C%22swf%22%3A%22https%3A%2F%2Fuploads.ungrounded.net%2F682000%2F682880_rearmed-survival.swf%3F1477582558%22%2C%22vars%22%3A%7B%22NewgroundsAPI_PublisherID%22%3A1%2C%22NewgroundsAPI_SandboxID%22%3A%2266a991c001117%22%2C%22NewgroundsAPI_SessionID%22%3A%22%22%2C%22NewgroundsAPI_UserName%22%3A%22%26lt%3Bdeleted%26gt%3B%22%2C%22NewgroundsAPI_UserID%22%3A0%2C%22ng_username%22%3A%22%26lt%3Bdeleted%26gt%3B%22%7D%2C%22width%22%3A960%2C%22height%22%3A540%2C%22icon%22%3A%22https%3A%2F%2Fpicon.ngfiles.com%2F682000%2Fflash_682880_card.png%3Ff1691322341%22%2C%22warnOnUnsupportedContent%22%3Afalse%7D",
+            "art": "ARMEDWITH",
+            "tint": "slate",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Bunny Bun",
+            "category": "Arcade",
+            "url": "https://uploads.ungrounded.net/alternate/1524000/1524514_alternate_251347_r26.zip/?NewgroundsAPI_PublisherID=1&NewgroundsAPI_SandboxID=66a994378fd7d&NewgroundsAPI_SessionID=&NewgroundsAPI_UserName=%26lt%3Bdeleted%26gt%3B&NewgroundsAPI_UserID=0&ng_username=%26lt%3Bdeleted%26gt%3B",
+            "art": "BUNNYBUN",
+            "tint": "amber",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Dark Sword: Light of Ainn",
+            "category": "Arcade",
+            "url": "https://uploads.ungrounded.net/alternate/5580000/5580932_alternate_257601_r8.zip/?NewgroundsAPI_PublisherID=1&NewgroundsAPI_SandboxID=66a9951709f9b&NewgroundsAPI_SessionID=&NewgroundsAPI_UserName=%26lt%3Bdeleted%26gt%3B&NewgroundsAPI_UserID=0&ng_username=%26lt%3Bdeleted%26gt%3B",
+            "art": "DARKSWORD",
+            "tint": "block",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Dark Sword",
+            "category": "Arcade",
+            "url": "https://uploads.ungrounded.net/alternate/4465000/4465067_alternate_208055_r41.zip/?NewgroundsAPI_PublisherID=1&NewgroundsAPI_SandboxID=66a9965971fd6&NewgroundsAPI_SessionID=&NewgroundsAPI_UserName=%26lt%3Bdeleted%26gt%3B&NewgroundsAPI_UserID=0&ng_username=%26lt%3Bdeleted%26gt%3B",
+            "art": "DARKSWORD",
+            "tint": "wood",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Parking Ticket Mayhem",
+            "category": "Arcade",
+            "url": "https://uploads.ungrounded.net/alternate/5144000/5144516_alternate_238037_r1.zip/?NewgroundsAPI_PublisherID=1&NewgroundsAPI_SandboxID=66a9959e79ce0&NewgroundsAPI_SessionID=&NewgroundsAPI_UserName=%26lt%3Bdeleted%26gt%3B&NewgroundsAPI_UserID=0&ng_username=%26lt%3Bdeleted%26gt%3B",
+            "art": "PARKINGTI",
+            "tint": "blue",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Sans Last Breath",
+            "category": "Arcade",
+            "url": "https://mario1d240.github.io/undertale-last-breath-remake-bad-time-simulator",
+            "art": "SANSLASTB",
+            "tint": "red",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Burger & Frights",
+            "category": "Arcade",
+            "url": "https://html-classic.itch.zone/html/5033568/index.html",
+            "art": "BURGERFRI",
+            "tint": "cyan",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Falling Art Ragdoll Simulator",
+            "category": "Arcade",
+            "url": "https://games.crazygames.com/en_US/falling-art-ragdoll-simulator/index.html",
+            "art": "FALLINGAR",
+            "tint": "green",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Zombie Survival v2",
+            "category": "Arcade",
+            "url": "https://f3.silvergames.com/html5/zombie-survival_v2/",
+            "art": "ZOMBIESUR",
+            "tint": "slate",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Lonewolf",
+            "category": "Arcade",
+            "url": "https://f.silvergames.com/ruffle/player.php?id=5668",
+            "art": "LONEWOLF",
+            "tint": "green",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Evo-F4",
+            "category": "Arcade",
+            "url": "https://www.gamearter.com/game/evo-f4/",
+            "art": "EVOF4",
+            "tint": "lime",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Pixel Warfare",
+            "category": "Arcade",
+            "url": "https://games.crazygames.com/en_US/pixel-warfare/index.html?v=1.295",
+            "art": "PIXELWARF",
+            "tint": "block",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Mine Shooter - Save your world",
+            "category": "Arcade",
+            "url": "https://games.crazygames.com/en_US/mine-shooter---save-your-world/index.html?v=1.295",
+            "art": "MINESHOOT",
+            "tint": "red",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Bodycamera Shooter",
+            "category": "Arcade",
+            "url": "https://games.crazygames.com/en_US/bodycamera-shooter/index.html?v=1.295",
+            "art": "BODYCAMER",
+            "tint": "block",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Bank Robbery 3",
+            "category": "Arcade",
+            "url": "https://games.crazygames.com/en_US/bank-robbery-3/index.html?v=1.295",
+            "art": "BANKROBBE",
+            "tint": "wood",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Sniper Shot - Bullet Time",
+            "category": "Arcade",
+            "url": "https://games.crazygames.com/en_US/sniper-shot-bullet-time/index.html?v=1.295",
+            "art": "SNIPERSHO",
+            "tint": "blue",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Spy Highway",
+            "category": "Arcade",
+            "url": "https://games.crazygames.com/en_US/shotgun-highway/index.html?v=1.295",
+            "art": "SPYHIGHWAY",
+            "tint": "mint",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Save the Hostages",
+            "category": "Arcade",
+            "url": "https://games.crazygames.com/en_US/save-the-hostages/index.html?v=1.295",
+            "art": "SAVETHEHO",
+            "tint": "violet",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Zombie Shooter: Part 2",
+            "category": "Arcade",
+            "url": "https://games.crazygames.com/en_US/zombies-shooter-part-2/index.html?v=1.295",
+            "art": "ZOMBIESHO",
+            "tint": "mint",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Sandbox City",
+            "category": "Arcade",
+            "url": "https://games.crazygames.com/en_US/sandbox-city---cars-zombies-ragdolls/index.html?v=1.295",
+            "art": "SANDBOXCI",
+            "tint": "yellow",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Resident Zombies: Horror Shooter",
+            "category": "Arcade",
+            "url": "https://games.crazygames.com/en_US/resident-zombies---horror-shooter/index.html?v=1.295",
+            "art": "RESIDENTZ",
+            "tint": "block",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Stickman Zombie Annihilation",
+            "category": "Arcade",
+            "url": "https://games.crazygames.com/en_US/stickman-zombie-annihilation/index.html?v=1.295",
+            "art": "STICKMANZ",
+            "tint": "wood",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Deadly Red Spikes",
+            "category": "Arcade",
+            "url": "https://games.crazygames.com/en_US/deadly-red-spikes/index.html?v=1.295",
+            "art": "DEADLYRED",
+            "tint": "violet",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Crazy Stunt Cars Multiplayer",
+            "category": "Arcade",
+            "url": "https://games.crazygames.com/en_US/crazy-stunt-cars-multiplayer/index.html?v=1.295",
+            "art": "CRAZYSTUN",
+            "tint": "red",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Supreme Bomb Tag",
+            "category": "Arcade",
+            "url": "https://games.crazygames.com/en_US/supreme-bomb-tag/index.html?v=1.295",
+            "art": "SUPREMEBO",
+            "tint": "red",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Mini-Caps: Arena",
+            "category": "Arcade",
+            "url": "https://games.crazygames.com/en_US/mini-caps-arena/index.html?v=1.295",
+            "art": "MINICAPSA",
+            "tint": "cyan",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Mini-Caps: Bombs",
+            "category": "Arcade",
+            "url": "https://games.crazygames.com/en_US/mini-caps-bombs/index.html?v=1.295",
+            "art": "MINICAPSB",
+            "tint": "block",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Stickman Zombie Annihilation 2",
+            "category": "Arcade",
+            "url": "https://games.crazygames.com/en_US/stickman-annihilation-2/index.html?v=1.295",
+            "art": "STICKMANZ",
+            "tint": "pink",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Derby Crash 5",
+            "category": "Arcade",
+            "url": "https://games.crazygames.com/en_US/derby-crash-5/index.html?v=1.295",
+            "art": "DERBYCRAS",
+            "tint": "blue",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Night City Racing",
+            "category": "Arcade",
+            "url": "https://games.crazygames.com/en_US/night-city-racing/index.html?v=1.295",
+            "art": "NIGHTCITY",
+            "tint": "slate",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "Crazy for Speed",
+            "category": "Arcade",
+            "url": "https://games.crazygames.com/en_US/crazy-for-speed/index.html?v=1.295",
+            "art": "CRAZYFORS",
+            "tint": "lime",
+            "detail": "Open this browser game and start playing."
+        },
+        {
+            "title": "HexGL",
+            "category": "Racing",
+            "url": "https://hexgl.bkcore.com/",
+            "art": "HEX",
+            "tint": "blue",
+            "detail": "High-speed anti-gravity racing."
+        },
+        {
+            "title": "Wordle",
+            "category": "Puzzle",
+            "url": "https://www.nytimes.com/games/wordle/index.html",
+            "art": "WORD",
+            "tint": "green",
+            "detail": "A new word puzzle every day."
+        },
+        {
+            "title": "Little Alchemy 2",
+            "category": "Discovery",
+            "url": "https://littlealchemy2.com/",
+            "art": "ALCHEMY",
+            "tint": "violet",
+            "detail": "Combine elements and discover more."
+        },
+        {
+            "title": "Neal.fun",
+            "category": "Arcade",
+            "url": "https://neal.fun/",
+            "art": "FUN",
+            "tint": "pink",
+            "detail": "A collection of playful web experiments."
+        },
+        {
+            "title": "Tetris",
+            "category": "Puzzle",
+            "url": "https://tetris.com/play-tetris",
+            "art": "TETRIS",
+            "tint": "cyan",
+            "detail": "Stack, clear lines, and chase a high score."
+        },
+        {
+            "title": "Slither.io",
+            "category": "Arcade",
+            "url": "https://slither.io/",
+            "art": "SLITHER",
+            "tint": "lime",
+            "detail": "Grow your snake and outmaneuver rivals."
+        },
+        {
+            "title": "Agar.io",
+            "category": "Arcade",
+            "url": "https://agar.io/",
+            "art": "AGAR",
+            "tint": "blue",
+            "detail": "Grow your cell in a colorful arena."
+        },
+        {
+            "title": "Lichess",
+            "category": "Board",
+            "url": "https://lichess.org/",
+            "art": "CHESS",
+            "tint": "wood",
+            "detail": "Play chess puzzles and matches online."
+        },
+        {
+            "title": "Minesweeper",
+            "category": "Puzzle",
+            "url": "https://minesweeper.online/",
+            "art": "MINE",
+            "tint": "slate",
+            "detail": "Clear the field without hitting a mine."
+        },
+        {
+            "title": "Snake",
+            "category": "Arcade",
+            "url": "https://playsnake.org/",
+            "art": "SNAKE",
+            "tint": "green",
+            "detail": "A classic arcade snake game."
+        },
+        {
+            "title": "Minecraft Classic",
+            "category": "Sandbox",
+            "url": "https://classic.minecraft.net/",
+            "art": "CRAFT",
+            "tint": "block",
+            "detail": "Build in the original creative sandbox."
+        },
+        {
+            "title": "Solitaire",
+            "category": "Card",
+            "url": "https://cardgames.io/solitaire/",
+            "art": "♠",
+            "tint": "felt",
+            "detail": "A relaxing round of classic solitaire."
+        },
+        {
+            "title": "Jstris",
+            "category": "Puzzle",
+            "url": "https://jstris.jezevec10.com/",
+            "art": "JSTRIS",
+            "tint": "purple",
+            "detail": "Fast competitive falling-block puzzles."
+        },
+        {
+            "title": "Pac-Man",
+            "category": "Arcade",
+            "url": "https://www.google.com/logos/2010/pacman10-i.html",
+            "art": "PAC-MAN",
+            "tint": "yellow",
+            "detail": "Chomp dots and dodge the ghosts."
+        },
+        {
+            "title": "Chess.com",
+            "category": "Board",
+            "url": "https://www.chess.com/play/computer",
+            "art": "♞",
+            "tint": "wood",
+            "detail": "Play a quick game against the computer."
+        }
+    ],
+    "hubs": [
+        {
+            "title": "Poki",
+            "url": "https://poki.com/",
+            "art": "POKI",
+            "tint": "blue",
+            "detail": "A huge collection of free online games."
+        },
+        {
+            "title": "CrazyGames",
+            "url": "https://www.crazygames.com/",
+            "art": "CRAZY",
+            "tint": "red",
+            "detail": "Discover new browser games and popular hits."
+        }
+    ]
+}

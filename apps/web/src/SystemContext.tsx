@@ -1,6 +1,7 @@
 import { createContext, useContext } from "react";
 import type { Controller } from "@mercuryworkshop/scramjet-controller";
 import type { ProxySettings } from "@repo/proxy";
+import type { CloakOption } from "./lib/cloak";
 
 export type DesktopTheme = "midnight" | "light" | "ocean";
 export type SearchEngine = "google" | "duckduckgo" | "bing" | "brave";
@@ -35,6 +36,8 @@ export interface SystemContextValue {
   openGame: (game: GameLaunch) => void;
   searchEngine: SearchEngine;
   setSearchEngine: (engine: SearchEngine) => void;
+  cloak: CloakOption;
+  setCloak: (option: CloakOption) => void;
 }
 
 export const SystemContext = createContext<SystemContextValue | null>(null);

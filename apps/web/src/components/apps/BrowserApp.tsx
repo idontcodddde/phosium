@@ -1,31 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { FormEvent } from "react";
+import type { FormEvent, KeyboardEvent as ReactKeyboardEvent } from "react";
 import { Phosphorus } from "phosphorous";
 import type { Frame } from "@mercuryworkshop/scramjet-controller";
 import { proxyConfig } from "@repo/proxy";
-import { applyPhosiumExtensionStates, registerPhosiumExtensions } from "./phosphorousExtensions";
-import { encodeRammerheadUrl } from "./rammerheadClient";
-import { useSystem } from "./SystemContext";
-import type { SearchEngine } from "./SystemContext";
-
-interface BrowserTab {
-  id: string;
-  title: string;
-  url: string;
-  draft: string;
-}
-
-interface BrowserBookmark {
-  title: string;
-  url: string;
-}
-
-interface BrowserHistoryEntry {
-  id: string;
-  title: string;
-  url: string;
-  visitedAt: number;
-}
+import { applyPhosiumExtensionStates, registerPhosiumExtensions } from "../../extensions/phosphorousExtensions";
+import { resolveAddress } from "../../lib/browser/address";
+import {
+  decodeRammerheadUrl,
+  encodeRammerheadUrl,
+  isRammerheadProxyUrl,
+} from "../../lib/proxy/rammerheadClient";
+import { useSystem } from "../../SystemContext";
+import type { SearchEngine } from "../../SystemContext";
+import type { BrowserBookmark, BrowserHistoryEntry, BrowserTab } from "../../types/browser";
 
 let tabSequence = 0;
 let historySequence = 0;
@@ -112,39 +99,10 @@ function BrowserFrame({ tab, active, onFrameChange, onFrameLoad }: BrowserFrameP
         if (iframeRef.current) onFrameLoad(tab.id, iframeRef.current);
       }}
       ref={iframeRef}
-      style={{ display: active ? "block" : "none" }}
+      style={{ display: active && tab.url ? "block" : "none" }}
       title={tab.title}
     />
   );
-}
-
-const searchUrl: Record<SearchEngine, (query: string) => string> = {
-  google: (query) => `https://www.google.com/search?q=${encodeURIComponent(query)}`,
-  duckduckgo: (query) => `https://duckduckgo.com/?q=${encodeURIComponent(query)}`,
-  bing: (query) => `https://www.bing.com/search?q=${encodeURIComponent(query)}`,
-  brave: (query) => `https://search.brave.com/search?q=${encodeURIComponent(query)}`,
-};
-
-function resolveAddress(input: string, engine: SearchEngine): string {
-  const trimmed = input.trim();
-  if (!trimmed) throw new TypeError("Enter a web address.");
-  if (/^[a-z][a-z\d+.-]*:\/\//i.test(trimmed)) {
-    const explicitUrl = new URL(trimmed);
-    if (explicitUrl.protocol !== "http:" && explicitUrl.protocol !== "https:") {
-      throw new TypeError("Only HTTP and HTTPS addresses are supported.");
-    }
-    return explicitUrl.href;
-  }
-
-  const hostPattern = /^(?:localhost(?::\d+)?|(?:[\da-f:.]+)(?::\d+)?|(?:[a-z\d](?:[a-z\d-]*[a-z\d])?\.)+[a-z]{2,}(?::\d+)?)(?:[/?#][^\s]*)?$/i;
-  if (!hostPattern.test(trimmed)) return searchUrl[engine](trimmed);
-
-  const value = `https://${trimmed}`;
-  const target = new URL(value);
-  if (target.protocol !== "http:" && target.protocol !== "https:") {
-    throw new TypeError("Only HTTP and HTTPS addresses are supported.");
-  }
-  return target.href;
 }
 
 export function BrowserApp() {
@@ -160,6 +118,7 @@ export function BrowserApp() {
     setBrowserAdBlockerEnabled,
     browserRequest,
     searchEngine,
+    setSearchEngine,
   } = useSystem();
   const [firstTab] = useState(() => createTab());
   const [tabs, setTabs] = useState<BrowserTab[]>([firstTab]);
@@ -167,6 +126,7 @@ export function BrowserApp() {
   const [navigationError, setNavigationError] = useState("");
   const [bookmarks, setBookmarks] = useState<BrowserBookmark[]>(loadBookmarks);
   const [history, setHistory] = useState<BrowserHistoryEntry[]>(loadHistory);
+  const historyRef = useRef(history);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historySearch, setHistorySearch] = useState("");
   const [historyError, setHistoryError] = useState("");
@@ -220,6 +180,7 @@ export function BrowserApp() {
 
   const saveHistory = useCallback((nextHistory: BrowserHistoryEntry[]) => {
     const boundedHistory = nextHistory.slice(0, browserHistoryLimit);
+    historyRef.current = boundedHistory;
     setHistory(boundedHistory);
     try {
       localStorage.setItem(browserHistoryKey, JSON.stringify(boundedHistory));
@@ -261,7 +222,7 @@ export function BrowserApp() {
         title: new URL(targetUrl).hostname,
         url: targetUrl,
         visitedAt,
-      }, ...history]);
+      }, ...historyRef.current]);
       setHistoryOpen(false);
       setTabs((current) => current.map((tab) => tab.id === tabId
         ? { ...tab, url: targetUrl, draft: targetUrl, title: new URL(targetUrl).hostname }
@@ -269,7 +230,7 @@ export function BrowserApp() {
     } catch (error) {
       setNavigationError(error instanceof Error ? error.message : String(error));
     }
-  }, [activeTabId, history, saveHistory, searchEngine]);
+  }, [activeTabId, saveHistory, searchEngine]);
 
   const openLinkInTab = useCallback((url: string) => {
     const tab = createTab(url);
@@ -318,8 +279,17 @@ export function BrowserApp() {
             };
           };
         }) | null;
-        const proxyUrl = frameWindow?.["%hammerhead%"]?.utils?.url?.parseProxyUrl?.(targetUrl);
-        if (proxyUrl?.destUrl) targetUrl = proxyUrl.destUrl;
+        const urlUtils = frameWindow?.["%hammerhead%"]?.utils?.url;
+        const decodedUrl = decodeRammerheadUrl(
+          targetUrl,
+          urlUtils?.parseProxyUrl,
+          urlUtils,
+        );
+        if (decodedUrl) {
+          targetUrl = decodedUrl;
+        } else if (isRammerheadProxyUrl(targetUrl)) {
+          return null;
+        }
       }
 
       const destination = new URL(targetUrl, iframe.contentWindow?.location.href);
@@ -372,13 +342,12 @@ export function BrowserApp() {
       title,
       url: destination,
       visitedAt,
-    }, ...history]);
+    }, ...historyRef.current]);
     setTabs((current) => current.map((item) => item.id === tabId
       ? { ...item, url: destination, draft: destination, title }
       : item));
   }, [
     getOriginalUrl,
-    history,
     proxySettings.enabled,
     proxySettings.engine,
     proxySettings.transport,
@@ -601,6 +570,12 @@ export function BrowserApp() {
     navigate(address);
   };
 
+  const handleAddressKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    navigate(event.currentTarget.value);
+  };
+
   const addTab = () => {
     const tab = createTab();
     setTabs((current) => [...current, tab]);
@@ -637,6 +612,22 @@ export function BrowserApp() {
     setTabs(remaining);
   };
 
+  const goHome = () => {
+    navigatedKeys.current.delete(activeTabId);
+    const iframe = iframeRefs.current.get(activeTabId);
+    if (iframe) iframe.src = "about:blank";
+    setTabs((current) => current.map((tab) => tab.id === activeTabId
+      ? { ...tab, title: "New tab", url: "", draft: "" }
+      : tab));
+    setNavigationError("");
+  };
+
+  const cycleSearchEngine = () => {
+    const engines: SearchEngine[] = ["google", "duckduckgo", "bing", "brave"];
+    const nextIndex = (engines.indexOf(searchEngine) + 1) % engines.length;
+    setSearchEngine(engines[nextIndex]);
+  };
+
   const reload = () => {
     const iframe = iframeRefs.current.get(activeTabId);
     if (!activeTab?.url || !iframe) return;
@@ -665,7 +656,15 @@ export function BrowserApp() {
 
   return (
     <div className="chrome-browser" ref={browserRef}>
-      <div className="chrome-tab-strip">
+      <div
+        className="chrome-tab-strip"
+        onWheel={(event) => {
+          const tabStrip = event.currentTarget;
+          if (tabStrip.scrollWidth <= tabStrip.clientWidth || event.deltaY === 0) return;
+          event.preventDefault();
+          tabStrip.scrollLeft += event.deltaY || event.deltaX;
+        }}
+      >
         {tabs.map((tab) => (
           <div
             aria-current={tab.id === activeTabId ? "page" : undefined}
@@ -697,16 +696,31 @@ export function BrowserApp() {
         <button aria-label="Go back" className="chrome-icon-button" onClick={goBack} type="button">‹</button>
         <button aria-label="Go forward" className="chrome-icon-button" onClick={goForward} type="button">›</button>
         <button aria-label="Reload page" className="chrome-icon-button" onClick={reload} type="button">↻</button>
-        <form className="chrome-address-form" onSubmit={handleSubmit}>
+        <button aria-label="Home" className="chrome-icon-button chrome-home-button" onClick={goHome} type="button">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1V10Z" /></svg>
+        </button>
+        <form className={`chrome-address-form search-engine-${searchEngine}`} onSubmit={handleSubmit}>
+          <button
+            aria-label={`Change search engine (currently ${searchEngine === "brave" ? "Brave Search" : searchEngine === "duckduckgo" ? "DuckDuckGo" : searchEngine[0].toUpperCase() + searchEngine.slice(1)})`}
+            className="chrome-search-engine"
+            onClick={cycleSearchEngine}
+            title="Click to change search engine"
+            type="button"
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8" /><path d="m16 16 5 5" /></svg>
+            <span aria-hidden="true">{searchEngine === "google" ? "GGL" : searchEngine === "duckduckgo" ? "DDG" : searchEngine === "bing" ? "BING" : "BRV"}</span>
+          </button>
           <span className="chrome-site-indicator">{proxySettings.enabled ? "●" : "○"}</span>
           <input
             aria-label="Address and search bar"
             onChange={(event) => setTabs((current) => current.map((tab) => tab.id === activeTabId
               ? { ...tab, draft: event.target.value }
               : tab))}
+            onKeyDown={handleAddressKeyDown}
             placeholder={`Search with ${searchEngine === "duckduckgo" ? "DuckDuckGo" : searchEngine === "brave" ? "Brave" : searchEngine[0].toUpperCase() + searchEngine.slice(1)} or enter a URL`}
             value={address}
           />
+          <button aria-label="Go to address" className="chrome-address-submit" type="submit">↵</button>
           <button
             aria-label={bookmarks.some((bookmark) => bookmark.url === activeTab?.url) ? "Remove bookmark" : "Bookmark page"}
             aria-pressed={bookmarks.some((bookmark) => bookmark.url === activeTab?.url)}

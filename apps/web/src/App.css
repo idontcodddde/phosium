@@ -306,13 +306,38 @@
 
 .os-taskbar-apps {
   position: absolute;
-  left: 50%;
+  top: 0;
+  bottom: 0;
+  right: 72px;
+  left: 72px;
   display: flex;
+  align-items: center;
+  justify-content: safe center;
   gap: 5px;
-  transform: translateX(-50%);
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-color: color-mix(in srgb, var(--accent) 55%, transparent) transparent;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.os-taskbar-apps::-webkit-scrollbar {
+  height: 4px;
+}
+
+.os-taskbar-apps::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+  border-radius: 4px;
+}
+
+.os-taskbar-apps::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .os-taskbar-app {
+  position: relative;
+  flex: 0 0 auto;
   gap: 8px;
   min-width: 42px;
   padding: 0 10px;
@@ -517,11 +542,31 @@
   align-items: flex-end;
   gap: 6px;
   padding: 6px 9px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
   background: #e7e9ef;
+  overscroll-behavior-x: contain;
+  scrollbar-color: #aeb5c1 transparent;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.chrome-tab-strip::-webkit-scrollbar {
+  height: 4px;
+}
+
+.chrome-tab-strip::-webkit-scrollbar-thumb {
+  background: #aeb5c1;
+  border-radius: 4px;
+}
+
+.chrome-tab-strip::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .chrome-tab {
   display: flex;
+  flex: 0 0 min(250px, 36vw);
   align-items: center;
   gap: 8px;
   width: min(250px, 36vw);
@@ -576,6 +621,7 @@
 }
 
 .chrome-new-tab {
+  flex: 0 0 27px;
   width: 27px;
   height: 27px;
   margin-bottom: 3px;
@@ -598,26 +644,89 @@
   font-size: 22px;
 }
 
+.chrome-home-button svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
 .chrome-address-form {
+  --search-engine-color: #72809a;
   display: flex;
   flex: 1;
   align-items: center;
   height: 34px;
   margin: 0 4px;
-  padding: 0 7px 0 13px;
+  padding: 0 7px 0 8px;
   background: #edf0f5;
-  border: 1px solid transparent;
+  border: 1px solid var(--search-engine-color);
   border-radius: 20px;
+}
+
+.chrome-address-form.search-engine-google {
+  --search-engine-color: #4285f4;
+}
+
+.chrome-address-form.search-engine-duckduckgo {
+  --search-engine-color: #de5833;
+}
+
+.chrome-address-form.search-engine-bing {
+  --search-engine-color: #008373;
+}
+
+.chrome-address-form.search-engine-brave {
+  --search-engine-color: #fb542b;
 }
 
 .chrome-address-form:focus-within {
   background: white;
-  border-color: #d7dce6;
+  border-color: var(--search-engine-color);
   box-shadow: 0 1px 3px rgb(60 64 67 / 13%);
 }
 
-.chrome-site-indicator {
+.chrome-search-engine {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+  height: 24px;
   margin-right: 9px;
+  padding: 0 10px 0 4px;
+  color: var(--search-engine-color);
+  background: transparent;
+  border: 0;
+  border-right: 1px solid #c6cad3;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.chrome-search-engine:hover {
+  filter: brightness(.82);
+}
+
+.chrome-search-engine:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid var(--search-engine-color);
+  outline-offset: 1px;
+}
+
+.chrome-search-engine svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+
+.chrome-site-indicator {
+  margin-right: 7px;
   color: #16a765;
   font-size: 10px;
 }
@@ -642,6 +751,25 @@
   width: 26px;
   height: 26px;
   font-size: 19px;
+}
+
+.chrome-address-submit {
+  display: grid;
+  flex: 0 0 26px;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  color: #5f6368;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.chrome-address-submit:hover {
+  background: rgb(60 64 67 / 11%);
 }
 
 .chrome-toolbar-action {
@@ -1329,6 +1457,53 @@
   font-size: 9px;
 }
 
+.settings-control-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.settings-control-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-control-row select {
+  flex: 1;
+}
+
+.settings-reset-button {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 0 10px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.settings-reset-button:hover {
+  color: var(--text-primary);
+  background: var(--surface-hover);
+}
+
+.settings-reset-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.settings-reset-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
 .switch {
   position: relative;
   display: inline-flex;
@@ -1479,10 +1654,6 @@
 
   .os-desktop-icons {
     display: none;
-  }
-
-  .os-taskbar-apps {
-    left: 50%;
   }
 
   .os-taskbar-app-title,

@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Phosphorus } from "phosphorous";
 import type { Frame } from "@mercuryworkshop/scramjet-controller";
 import { proxyConfig } from "@repo/proxy";
-import { applyPhosiumExtensionStates, registerPhosiumExtensions } from "./phosphorousExtensions";
-import { encodeRammerheadUrl } from "./rammerheadClient";
-import { useSystem } from "./SystemContext";
+import { applyPhosiumExtensionStates, registerPhosiumExtensions } from "../../extensions/phosphorousExtensions";
+import { encodeRammerheadUrl } from "../../lib/proxy/rammerheadClient";
+import { useSystem } from "../../SystemContext";
 
 interface GamePlayerAppProps {
   title: string;
