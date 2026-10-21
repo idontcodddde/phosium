@@ -5,6 +5,7 @@ import type { CloakOption } from "./lib/cloak";
 
 export type DesktopTheme = "midnight" | "light" | "ocean";
 export type SearchEngine = "google" | "duckduckgo" | "bing" | "brave";
+export type AutoLaunchMode = "none" | "about-blank" | "blob";
 
 export interface GameLaunch {
   title: string;
@@ -38,6 +39,8 @@ export interface SystemContextValue {
   setSearchEngine: (engine: SearchEngine) => void;
   cloak: CloakOption;
   setCloak: (option: CloakOption) => void;
+  autoLaunchMode: AutoLaunchMode;
+  setAutoLaunchMode: (mode: AutoLaunchMode) => void;
 }
 
 export const SystemContext = createContext<SystemContextValue | null>(null);

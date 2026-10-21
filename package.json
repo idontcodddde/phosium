@@ -1,11 +1,11 @@
 {
-  "name": "phosium",
-  "private": true,
-  "packageManager": "pnpm@12.11.2",
-  "scripts": {
-    "dev": "pnpm --filter web dev",
-    "dev:proxy": "pnpm --filter @repo/proxy dev",
-    "build": "pnpm --recursive build",
-    "start": "node packages/proxy/dist/server.js"
-  }
+    "name": "phosium",
+    "private": true,
+    "packageManager": "pnpm@12.11.2",
+    "scripts": {
+        "dev": "pnpm --parallel --filter web --filter @repo/proxy run dev",
+        "dev:proxy": "pnpm --filter @repo/proxy dev",
+        "build": "pnpm --recursive build",
+        "start": "pnpm --filter @repo/proxy start"
+    }
 }

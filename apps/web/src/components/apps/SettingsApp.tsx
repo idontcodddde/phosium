@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import type { ProxyEngineType, ProxyTransportType } from "@repo/proxy";
 import type { DesktopTheme } from "../../SystemContext";
-import { CLOAK_OPTIONS } from "../../lib/cloak";
+import { CLOAK_OPTIONS, launchAboutBlank, launchBlob } from "../../lib/cloak";
 import { useSystem } from "../../SystemContext";
 
 function ResetButton({ setting, onReset }: { setting: string; onReset: () => void }) {
@@ -46,6 +46,8 @@ export function SettingsApp() {
     setSearchEngine,
     cloak,
     setCloak,
+    autoLaunchMode,
+    setAutoLaunchMode,
   } = useSystem();
   const [wispUrl, setWispUrl] = useState(proxySettings.wispUrl);
   const [wispError, setWispError] = useState("");
@@ -333,7 +335,7 @@ export function SettingsApp() {
           <div className="settings-eyebrow">PERSONALIZATION</div>
           <h1>Cloaking</h1>
           <p className="settings-description">
-            Choose the title and icon shown in the browser tab. This does not change the address or page content.
+            Choose the browser tab appearance and launch options. Automatic launch may require allowing pop-ups for this site.
           </p>
           <div className="settings-card settings-form-card">
             <div className="settings-field">
@@ -354,6 +356,36 @@ export function SettingsApp() {
                 <ResetButton setting="cloaking" onReset={() => setCloak("none")} />
               </div>
             </div>
+            <div className="settings-field">
+              <span>Automatically launch on site open</span>
+              <div className="settings-control-row">
+                <select
+                  aria-label="Automatically launch on site open"
+                  onChange={(event) => {
+                    const mode = event.target.value;
+                    if (mode === "none" || mode === "about-blank" || mode === "blob") {
+                      setAutoLaunchMode(mode);
+                    }
+                  }}
+                  value={autoLaunchMode}
+                >
+                  <option value="none">Disabled</option>
+                  <option value="about-blank">About:blank</option>
+                  <option value="blob">Blob</option>
+                </select>
+                <ResetButton setting="automatic launch" onReset={() => setAutoLaunchMode("none")} />
+              </div>
+            </div>
+          </div>
+          <div className="settings-card cloak-launch-grid" aria-label="Launch options">
+            <button className="cloak-launch-button" onClick={() => void launchAboutBlank(cloak)} type="button">
+              <strong>Launch about:blank</strong>
+              <span>Open Phosium in a blank-page window.</span>
+            </button>
+            <button className="cloak-launch-button" onClick={() => void launchBlob(cloak)} type="button">
+              <strong>Launch blob</strong>
+              <span>Open Phosium in a blob-backed window.</span>
+            </button>
           </div>
         </section>
       </div>

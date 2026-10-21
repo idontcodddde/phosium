@@ -28,11 +28,7 @@ pnpm install
 
 ## Development
 
-Run the proxy backend and web app in separate terminals. From the repository root:
-
-```sh
-pnpm dev:proxy
-```
+Run both the proxy backend and web app from the repository root:
 
 ```sh
 pnpm dev
@@ -54,7 +50,7 @@ Start the production server:
 pnpm start
 ```
 
-The server serves the built frontend from `apps/web/dist` alongside the proxy endpoints. It listens on port `8080` by default; set `PORT` to use another port.
+The proxy server serves the built frontend from `apps/web/dist` alongside its proxy endpoints, so both are available through the single production server. It listens on port `8080` by default; set `PORT` to use another port.
 
 ## Deploying a hosted instance
 

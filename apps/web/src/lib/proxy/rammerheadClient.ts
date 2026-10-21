@@ -30,8 +30,7 @@ export function isRammerheadProxyUrl(rawUrl: string): boolean {
   try {
     const { pathname } = new URL(rawUrl, window.location.href);
     return /^\/[a-f\d]{32}(?:!|\/)/i.test(pathname)
-      && pathname.includes("/_rhsm")
-      && pathname.includes("://");
+      && /\/_rhs[^/]*:\/\//.test(pathname);
   } catch {
     return false;
   }

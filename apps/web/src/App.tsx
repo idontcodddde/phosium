@@ -13,8 +13,8 @@ import { GameApp } from "./components/apps/GameApp";
 import { GamePlayerApp } from "./components/apps/GamePlayerApp";
 import { SettingsApp } from "./components/apps/SettingsApp";
 import { SystemContext } from "./SystemContext";
-import type { DesktopTheme, SearchEngine } from "./SystemContext";
-import { applyCloak, isCloakOption } from "./lib/cloak";
+import type { AutoLaunchMode, DesktopTheme, SearchEngine } from "./SystemContext";
+import { applyCloak, isCloakOption, launchAboutBlank, launchBlob } from "./lib/cloak";
 import type { CloakOption } from "./lib/cloak";
 import { createBareMuxCompatibleTransport } from "./lib/proxy/bareMuxTransport";
 import { createTransport, registerSystemWorker } from "./lib/proxy/runtime";
@@ -37,11 +37,18 @@ function getSavedCloak(): CloakOption {
   return isCloakOption(saved) ? saved : "none";
 }
 
+function getSavedAutoLaunchMode(): AutoLaunchMode {
+  if (typeof window === "undefined") return "none";
+  const saved = localStorage.getItem("phosium_auto_launch");
+  return saved === "about-blank" || saved === "blob" ? saved : "none";
+}
+
 export default function App() {
   const [proxySettings, setProxySettings] = useState(() => proxyManager.getSettings());
   const [theme, setThemeState] = useState<DesktopTheme>(getSavedTheme);
   const [searchEngine, setSearchEngineState] = useState<SearchEngine>(getSavedSearchEngine);
   const [cloak, setCloakState] = useState<CloakOption>(getSavedCloak);
+  const [autoLaunchMode, setAutoLaunchModeState] = useState<AutoLaunchMode>(getSavedAutoLaunchMode);
   const [proxyStatus, setProxyStatus] = useState(() =>
     typeof navigator !== "undefined" && "serviceWorker" in navigator
       ? "Starting system services..."
@@ -83,6 +90,8 @@ export default function App() {
   const syncRevisionRef = useRef(0);
   const browserRequestIdRef = useRef(0);
   const gameWindowIdRef = useRef(0);
+  const startupLaunchRef = useRef({ mode: autoLaunchMode, cloak });
+  const didAutoLaunchRef = useRef(false);
 
   const updateProxySettings = useCallback((update: Partial<ProxySettings>) => {
     proxyManager.setSettings(update);
@@ -102,6 +111,11 @@ export default function App() {
   const setCloak = useCallback((option: CloakOption) => {
     localStorage.setItem("phosium_cloak", option);
     setCloakState(option);
+  }, []);
+
+  const setAutoLaunchMode = useCallback((mode: AutoLaunchMode) => {
+    localStorage.setItem("phosium_auto_launch", mode);
+    setAutoLaunchModeState(mode);
   }, []);
 
   const setBrowserEnhancementsEnabled = useCallback((enabled: boolean) => {
@@ -192,6 +206,16 @@ export default function App() {
   useEffect(() => {
     applyCloak(cloak);
   }, [cloak]);
+
+  useEffect(() => {
+    if (window.self !== window.top) return;
+    if (didAutoLaunchRef.current) return;
+    didAutoLaunchRef.current = true;
+
+    const { mode, cloak: startupCloak } = startupLaunchRef.current;
+    if (mode === "about-blank") void launchAboutBlank(startupCloak);
+    if (mode === "blob") void launchBlob(startupCloak);
+  }, []);
 
   useEffect(() => {
     const revision = ++syncRevisionRef.current;
@@ -342,6 +366,8 @@ export default function App() {
       setSearchEngine,
       cloak,
       setCloak,
+      autoLaunchMode,
+      setAutoLaunchMode,
     }}>
       <div className="phosium-root">
         <Desktop initialWindows={initialWindows} />
