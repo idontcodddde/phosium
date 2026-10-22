@@ -188,6 +188,30 @@
   transform: none;
 }
 
+.os-desktop.is-app-fullscreen .os-topbar,
+.os-desktop.is-app-fullscreen .os-desktop-icons,
+.os-desktop.is-app-fullscreen .os-taskbar,
+.os-desktop.is-app-fullscreen .os-start-menu,
+.os-desktop.is-app-fullscreen .os-window:not(.is-app-fullscreen) {
+  display: none;
+}
+
+.os-window.is-app-fullscreen {
+  inset: 0;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  animation: none;
+}
+
+.os-window.is-app-fullscreen .os-window-titlebar {
+  display: none;
+}
+
 @keyframes os-window-open {
   from { opacity: 0; translate: 0 8px; scale: .985; }
   to { opacity: 1; translate: 0; scale: 1; }

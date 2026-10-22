@@ -13,7 +13,9 @@ export const Desktop: React.FC<DesktopProps> = ({ initialWindows = [] }) => {
     const highestZ = useRef(10);
     const nextWindowId = useRef(0);
     const [startMenuOpen, setStartMenuOpen] = useState(false);
+    const [fullscreenWindowId, setFullscreenWindowId] = useState<string | null>(null);
     const desktopRef = useRef<HTMLDivElement>(null);
+    const fullscreenRestoreRef = useRef<{ id: string; wasMaximized: boolean } | null>(null);
 
     const focusWindow = (id: string) => {
         highestZ.current += 1;
@@ -52,11 +54,35 @@ export const Desktop: React.FC<DesktopProps> = ({ initialWindows = [] }) => {
     };
 
     const handleClose = (id: string) => {
-        setWindows((current) => current.map((w) => w.id === id ? { ...w, isOpen: false } : w));
+        const restore = fullscreenRestoreRef.current;
+        setWindows((current) => current.map((w) => w.id === id
+            ? {
+                ...w,
+                isOpen: false,
+                ...(restore?.id === id ? { isMaximized: restore.wasMaximized } : {}),
+            }
+            : w));
+        setFullscreenWindowId((current) => {
+            if (current !== id) return current;
+            fullscreenRestoreRef.current = null;
+            return null;
+        });
     };
 
     const handleMinimize = (id: string) => {
-        setWindows((current) => current.map((w) => w.id === id ? { ...w, isMinimized: true } : w));
+        const restore = fullscreenRestoreRef.current;
+        setWindows((current) => current.map((w) => w.id === id
+            ? {
+                ...w,
+                isMinimized: true,
+                ...(restore?.id === id ? { isMaximized: restore.wasMaximized } : {}),
+            }
+            : w));
+        setFullscreenWindowId((current) => {
+            if (current !== id) return current;
+            fullscreenRestoreRef.current = null;
+            return null;
+        });
     };
 
     const handleMaximize = (id: string) => {
@@ -66,6 +92,41 @@ export const Desktop: React.FC<DesktopProps> = ({ initialWindows = [] }) => {
     const handleToggleWindow = (id: string) => {
         focusWindow(id);
     };
+
+    useEffect(() => {
+        const handleFullscreenShortcut = (event: KeyboardEvent) => {
+            if (!event.altKey || event.ctrlKey || event.metaKey || event.key.toLowerCase() !== 'j') return;
+            event.preventDefault();
+            if (fullscreenWindowId) {
+                const restore = fullscreenRestoreRef.current;
+                if (restore) {
+                    setWindows((current) => current.map((appWindow) => appWindow.id === restore.id
+                        ? { ...appWindow, isMaximized: restore.wasMaximized }
+                        : appWindow));
+                }
+                fullscreenRestoreRef.current = null;
+                setFullscreenWindowId(null);
+                return;
+            }
+
+            const activeWindow = windows
+                .filter((appWindow) => appWindow.isOpen && !appWindow.isMinimized)
+                .reduce<WindowState | undefined>((active, appWindow) =>
+                    !active || appWindow.zIndex > active.zIndex ? appWindow : active, undefined);
+            if (!activeWindow) return;
+
+            fullscreenRestoreRef.current = {
+                id: activeWindow.id,
+                wasMaximized: activeWindow.isMaximized,
+            };
+            setWindows((current) => current.map((appWindow) => appWindow.id === activeWindow.id
+                ? { ...appWindow, isMaximized: true }
+                : appWindow));
+            setFullscreenWindowId(activeWindow.id);
+        };
+        window.addEventListener('keydown', handleFullscreenShortcut);
+        return () => window.removeEventListener('keydown', handleFullscreenShortcut);
+    }, [fullscreenWindowId, windows]);
 
     useEffect(() => {
         const handleOpenWindow = (event: Event) => {
@@ -101,7 +162,7 @@ export const Desktop: React.FC<DesktopProps> = ({ initialWindows = [] }) => {
     }, []);
 
     return (
-        <div className="os-desktop" ref={desktopRef}>
+        <div className={`os-desktop${fullscreenWindowId ? ' is-app-fullscreen' : ''}`} ref={desktopRef}>
             <header className="os-topbar">
                 <span className="os-brand">PHOSIUM</span>
                 <span className="os-topbar-center">Workspace</span>
@@ -118,6 +179,7 @@ export const Desktop: React.FC<DesktopProps> = ({ initialWindows = [] }) => {
                 <Window
                     key={win.id}
                     window={win}
+                    isAppFullscreen={win.id === fullscreenWindowId}
                     onClose={handleClose}
                     onMinimize={handleMinimize}
                     onMaximize={handleMaximize}

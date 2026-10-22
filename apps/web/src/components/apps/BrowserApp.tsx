@@ -417,7 +417,7 @@ export function BrowserApp() {
 
   useEffect(() => {
     const handleHistoryShortcut = (event: KeyboardEvent) => {
-      if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "h") return;
+      if (!event.altKey || event.ctrlKey || event.metaKey || event.key.toLowerCase() !== "h") return;
       event.preventDefault();
       setHistoryOpen((open) => !open);
       setMenuOpen(false);
@@ -729,72 +729,72 @@ export function BrowserApp() {
             onClick={toggleBookmark}
             type="button"
           >{bookmarks.some((bookmark) => bookmark.url === activeTab?.url) ? "★" : "☆"}</button>
-          </form>
-          <div className="chrome-toolbar-action">
-            <button
-              aria-expanded={extensionsOpen}
-              aria-label="Extensions"
-              className="chrome-extensions-button"
-              onClick={() => {
-                setExtensionsOpen((open) => !open);
-                setMenuOpen(false);
-              }}
-              type="button"
-            ><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M9 3a3 3 0 1 1 6 0v2h3a2 2 0 0 1 2 2v3h-2a3 3 0 1 0 0 6h2v3a2 2 0 0 1-2 2h-3v-2a3 3 0 1 0-6 0v2H6a2 2 0 0 1-2-2v-3h2a3 3 0 1 0 0-6H4V7a2 2 0 0 1 2-2h3V3Z" /></svg></button>
-            {extensionsOpen && (
-              <div aria-label="Extensions" className="chrome-extension-popup" role="dialog">
-                <div className="chrome-popup-heading"><strong>Extensions</strong><span>PHOSIUM</span></div>
-                <label className="chrome-extension-item">
-                  <span className="extension-glyph extension-glyph-page">✦</span>
-                  <span><strong>Page enhancements</strong><small>Browser tabs only · scrollbar styling</small></span>
-                  <input aria-label="Browser page enhancements extension" checked={browserEnhancementsEnabled} onChange={(event) => toggleExtension("page", event.target.checked)} type="checkbox" />
-                </label>
-                <label className="chrome-extension-item">
-                  <span className="extension-glyph extension-glyph-game">◷</span>
-                  <span><strong>Gaming tools</strong><small>Browser tabs only · timer, splits and notes</small></span>
-                  <input aria-label="Browser gaming tools extension" checked={browserGamingToolsEnabled} onChange={(event) => toggleExtension("gaming", event.target.checked)} type="checkbox" />
-                </label>
-                <label className="chrome-extension-item">
-                  <span className="extension-glyph extension-glyph-page">⊘</span>
-                  <span><strong>Ad blocker</strong><small>Browser tabs only · common ad domains</small></span>
-                  <input aria-label="Browser ad blocker extension" checked={browserAdBlockerEnabled} onChange={(event) => toggleExtension("adblock", event.target.checked)} type="checkbox" />
-                </label>
-                <p className="chrome-popup-note">Extensions run only in proxied browser tabs.</p>
-              </div>
-            )}
-          </div>
-          <div className="chrome-toolbar-action">
-            <button
-              aria-expanded={menuOpen}
-              aria-label="Browser menu"
-              className="chrome-menu"
-              onClick={() => {
-                setMenuOpen((open) => !open);
-                setExtensionsOpen(false);
-              }}
-              type="button"
-            >⋮</button>
-            {menuOpen && (
-              <div aria-label="Browser menu" className="chrome-menu-popup" role="menu">
-                <button onClick={() => { setMenuOpen(false); addTab(); }} role="menuitem" type="button">New tab <kbd>Ctrl+T</kbd></button>
-                <button onClick={() => { setMenuOpen(false); setHistoryOpen(true); setHistorySearch(""); }} role="menuitem" type="button">History <kbd>Ctrl+H</kbd></button>
-                <button onClick={toggleBookmarksBar} role="menuitem" type="button">{showBookmarksBar ? "Hide" : "Show"} bookmarks bar</button>
-                <button onClick={() => { setMenuOpen(false); setExtensionsOpen(true); }} role="menuitem" type="button">Manage extensions</button>
-                <button onClick={() => { setMenuOpen(false); window.dispatchEvent(new CustomEvent("phosium:focus-window", { detail: "settings" })); }} role="menuitem" type="button">Settings</button>
-              </div>
-            )}
-          </div>
+        </form>
+        <div className="chrome-toolbar-action">
+          <button
+            aria-expanded={extensionsOpen}
+            aria-label="Extensions"
+            className="chrome-extensions-button"
+            onClick={() => {
+              setExtensionsOpen((open) => !open);
+              setMenuOpen(false);
+            }}
+            type="button"
+          ><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M9 3a3 3 0 1 1 6 0v2h3a2 2 0 0 1 2 2v3h-2a3 3 0 1 0 0 6h2v3a2 2 0 0 1-2 2h-3v-2a3 3 0 1 0-6 0v2H6a2 2 0 0 1-2-2v-3h2a3 3 0 1 0 0-6H4V7a2 2 0 0 1 2-2h3V3Z" /></svg></button>
+          {extensionsOpen && (
+            <div aria-label="Extensions" className="chrome-extension-popup" role="dialog">
+              <div className="chrome-popup-heading"><strong>Extensions</strong><span>PHOSIUM</span></div>
+              <label className="chrome-extension-item">
+                <span className="extension-glyph extension-glyph-page">✦</span>
+                <span><strong>Page enhancements</strong><small>Browser tabs only · scrollbar styling</small></span>
+                <input aria-label="Browser page enhancements extension" checked={browserEnhancementsEnabled} onChange={(event) => toggleExtension("page", event.target.checked)} type="checkbox" />
+              </label>
+              <label className="chrome-extension-item">
+                <span className="extension-glyph extension-glyph-game">◷</span>
+                <span><strong>Gaming tools</strong><small>Browser tabs only · timer, splits and notes</small></span>
+                <input aria-label="Browser gaming tools extension" checked={browserGamingToolsEnabled} onChange={(event) => toggleExtension("gaming", event.target.checked)} type="checkbox" />
+              </label>
+              <label className="chrome-extension-item">
+                <span className="extension-glyph extension-glyph-page">⊘</span>
+                <span><strong>Ad blocker</strong><small>Browser tabs only · common ad domains</small></span>
+                <input aria-label="Browser ad blocker extension" checked={browserAdBlockerEnabled} onChange={(event) => toggleExtension("adblock", event.target.checked)} type="checkbox" />
+              </label>
+              <p className="chrome-popup-note">Extensions run only in proxied browser tabs.</p>
+            </div>
+          )}
+        </div>
+        <div className="chrome-toolbar-action">
+          <button
+            aria-expanded={menuOpen}
+            aria-label="Browser menu"
+            className="chrome-menu"
+            onClick={() => {
+              setMenuOpen((open) => !open);
+              setExtensionsOpen(false);
+            }}
+            type="button"
+          >⋮</button>
+          {menuOpen && (
+            <div aria-label="Browser menu" className="chrome-menu-popup" role="menu">
+              <button onClick={() => { setMenuOpen(false); addTab(); }} role="menuitem" type="button">New tab <kbd>Ctrl+T</kbd></button>
+              <button onClick={() => { setMenuOpen(false); setHistoryOpen(true); setHistorySearch(""); }} role="menuitem" type="button">History <kbd>Ctrl+H</kbd></button>
+              <button onClick={toggleBookmarksBar} role="menuitem" type="button">{showBookmarksBar ? "Hide" : "Show"} bookmarks bar</button>
+              <button onClick={() => { setMenuOpen(false); setExtensionsOpen(true); }} role="menuitem" type="button">Manage extensions</button>
+              <button onClick={() => { setMenuOpen(false); window.dispatchEvent(new CustomEvent("phosium:focus-window", { detail: "settings" })); }} role="menuitem" type="button">Settings</button>
+            </div>
+          )}
+        </div>
       </div>
       {showBookmarksBar && (
-          <div aria-label="Bookmarks bar" className="chrome-bookmarks-bar">
-            {bookmarks.map((bookmark) => (
-              <button key={bookmark.url} onClick={() => navigate(bookmark.url)} title={bookmark.url} type="button">
-                <span>◆</span>{bookmark.title}
-              </button>
-            ))}
-            {bookmarks.length === 0 && <span className="chrome-bookmarks-empty">Bookmarks you add will appear here</span>}
-            {bookmarkError && <span className="chrome-bookmark-error" role="alert">{bookmarkError}</span>}
-          </div>
+        <div aria-label="Bookmarks bar" className="chrome-bookmarks-bar">
+          {bookmarks.map((bookmark) => (
+            <button key={bookmark.url} onClick={() => navigate(bookmark.url)} title={bookmark.url} type="button">
+              <span>◆</span>{bookmark.title}
+            </button>
+          ))}
+          {bookmarks.length === 0 && <span className="chrome-bookmarks-empty">Bookmarks you add will appear here</span>}
+          {bookmarkError && <span className="chrome-bookmark-error" role="alert">{bookmarkError}</span>}
+        </div>
       )}
       {navigationError && <div className="chrome-error" role="alert">{navigationError}</div>}
       <div className="chrome-page">

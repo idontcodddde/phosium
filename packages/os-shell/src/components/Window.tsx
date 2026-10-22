@@ -3,6 +3,7 @@ import type { WindowState } from '../types.js';
 
 interface WindowProps {
     window: WindowState;
+    isAppFullscreen?: boolean;
     onClose: (id: string) => void;
     onMinimize: (id: string) => void;
     onMaximize: (id: string) => void;
@@ -10,7 +11,15 @@ interface WindowProps {
     onMove: (id: string, x: number, y: number, width: number, height: number) => void;
 }
 
-export const Window: React.FC<WindowProps> = ({ window, onClose, onMinimize, onMaximize, onFocus, onMove }) => {
+export const Window: React.FC<WindowProps> = ({
+    window,
+    isAppFullscreen = false,
+    onClose,
+    onMinimize,
+    onMaximize,
+    onFocus,
+    onMove,
+}) => {
     if (!window.isOpen || window.isMinimized) return null;
 
     const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -46,7 +55,7 @@ export const Window: React.FC<WindowProps> = ({ window, onClose, onMinimize, onM
 
     return (
         <div
-            className={`os-window${window.isMaximized ? ' is-maximized' : ''}`}
+            className={`os-window${window.isMaximized ? ' is-maximized' : ''}${isAppFullscreen ? ' is-app-fullscreen' : ''}`}
             data-window-id={window.id}
             onClick={() => onFocus(window.id)}
             style={{
