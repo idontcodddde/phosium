@@ -20,6 +20,8 @@ export interface SystemContextValue {
   proxyStatus: string;
   controller: Controller | null;
   serviceWorker: ServiceWorker | null;
+  phosphorousEnabled: boolean;
+  setPhosphorousEnabled: (enabled: boolean) => void;
   browserEnhancementsEnabled: boolean;
   setBrowserEnhancementsEnabled: (enabled: boolean) => void;
   browserGamingToolsEnabled: boolean;

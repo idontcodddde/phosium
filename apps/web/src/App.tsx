@@ -56,6 +56,9 @@ export default function App() {
   );
   const [controller, setController] = useState<Controller | null>(null);
   const [serviceWorker, setServiceWorker] = useState<ServiceWorker | null>(null);
+  const [phosphorousEnabled, setPhosphorousEnabledState] = useState(
+    () => typeof window === "undefined" || localStorage.getItem("phosium_phosphorous_enabled") !== "false"
+  );
   const [browserEnhancementsEnabled, setBrowserEnhancementsEnabledState] = useState(
     () => typeof window === "undefined" || localStorage.getItem("phosium_enhancements") !== "false"
   );
@@ -116,6 +119,11 @@ export default function App() {
   const setAutoLaunchMode = useCallback((mode: AutoLaunchMode) => {
     localStorage.setItem("phosium_auto_launch", mode);
     setAutoLaunchModeState(mode);
+  }, []);
+
+  const setPhosphorousEnabled = useCallback((enabled: boolean) => {
+    localStorage.setItem("phosium_phosphorous_enabled", String(enabled));
+    setPhosphorousEnabledState(enabled);
   }, []);
 
   const setBrowserEnhancementsEnabled = useCallback((enabled: boolean) => {
@@ -347,6 +355,8 @@ export default function App() {
       proxyStatus: proxySettings.enabled ? proxyStatus : "System-wide proxy is off.",
       controller,
       serviceWorker,
+      phosphorousEnabled,
+      setPhosphorousEnabled,
       browserEnhancementsEnabled,
       setBrowserEnhancementsEnabled,
       browserGamingToolsEnabled,

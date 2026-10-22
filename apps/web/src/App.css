@@ -2393,3 +2393,217 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+.chrome-quick-access-container {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: 650px;
+}
+
+.chrome-quick-access-grid {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.chrome-quick-access-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.chrome-quick-access-item {
+  background: transparent;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  padding: 4px;
+  width: 76px;
+}
+
+.chrome-quick-access-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  transition: background 0.2s, transform 0.2s, border-color 0.2s;
+}
+
+.chrome-quick-access-icon img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.chrome-quick-access-item:hover .chrome-quick-access-icon {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.chrome-quick-access-add .chrome-quick-access-icon {
+  border: 1px dashed rgba(0, 0, 0, 0.2);
+}
+
+.chrome-qa-plus-icon {
+  width: 20px;
+  height: 20px;
+  color: currentColor;
+  opacity: 0.75;
+}
+
+.chrome-quick-access-label {
+  margin-top: 8px;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  color: #666;
+  text-align: center;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Three dots menu button on each tile */
+.chrome-qa-menu-btn {
+  position: absolute;
+  top: 4px;
+  right: 2px;
+  background: rgba(0, 0, 0, 0.1);
+  border: none;
+  color: #555;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s, background 0.2s;
+}
+
+.chrome-quick-access-wrapper:hover .chrome-qa-menu-btn {
+  opacity: 1;
+}
+
+.chrome-qa-menu-btn:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Context menu popup */
+.chrome-qa-context-menu {
+  position: absolute;
+  top: 30px;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  z-index: 50;
+  padding: 4px;
+  width: 85px;
+}
+
+.chrome-qa-context-menu button {
+  width: 100%;
+  background: transparent;
+  border: none;
+  text-align: left;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: #e11d48;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.chrome-qa-context-menu button:hover {
+  background: rgba(225, 29, 72, 0.1);
+}
+
+/* Modal styling matching standard browser light/neutral menus */
+.chrome-qa-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(1px);
+}
+
+.chrome-qa-modal {
+  background: #ffffff;
+  border: 1px solid #dcdcdc;
+  padding: 20px;
+  border-radius: 8px;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.chrome-qa-modal h3 {
+  margin: 0 0 2px 0;
+  font-size: 15px;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.chrome-qa-modal input {
+  background: #f9fafb;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: #1f2937;
+  font-size: 13px;
+  outline: none;
+}
+
+.chrome-qa-modal input:focus {
+  border-color: #3b82f6;
+  background: #fff;
+}
+
+.chrome-qa-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.chrome-qa-modal-actions button {
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  color: #374151;
+  padding: 6px 14px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.chrome-qa-modal-actions button.primary {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+.chrome-qa-modal-actions button:hover {
+  opacity: 0.9;
+}

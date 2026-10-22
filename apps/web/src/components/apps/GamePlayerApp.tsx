@@ -17,6 +17,7 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
     gameEnhancementsEnabled,
     gameGamingToolsEnabled,
     gameAdBlockerEnabled,
+    phosphorousEnabled,
     setGameEnhancementsEnabled,
     setGameGamingToolsEnabled,
     setGameAdBlockerEnabled,
@@ -26,8 +27,9 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const phosphorusRef = useRef<Phosphorus | null>(null);
   const frameRef = useRef<Frame | null>(null);
-  const routeKeyRef = useRef("");
+  const routeRevisionRef = useRef(0);
   const extensionStateRef = useRef({
+    phosphorousEnabled,
     enhancementsEnabled: gameEnhancementsEnabled,
     gamingToolsEnabled: gameGamingToolsEnabled,
     adBlockerEnabled: gameAdBlockerEnabled,
@@ -38,101 +40,93 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
     ? "Rammerhead ready"
     : `${proxySettings.engine === "scramjet" ? "Scramjet" : "Ultraviolet"} ready · ${proxySettings.transport}`;
 
-  const refreshGame = useCallback(() => {
-    try {
-      if (proxySettings.enabled && proxySettings.engine === "scramjet") {
-        frameRef.current?.reload();
-      } else if (proxySettings.enabled) {
-        iframeRef.current?.contentWindow?.location.reload();
-      } else if (iframeRef.current) {
-        iframeRef.current.src = url;
-      }
-    } catch (error) {
-      console.error(`Could not refresh ${title}.`, error);
-    }
-  }, [proxySettings.enabled, proxySettings.engine, title, url]);
-
   useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe) return;
 
     const phosphorus = new Phosphorus();
     registerPhosiumExtensions(phosphorus);
+    const initialStates = extensionStateRef.current;
+    applyPhosiumExtensionStates(phosphorus, {
+      enhancementsEnabled: initialStates.phosphorousEnabled && initialStates.enhancementsEnabled,
+      gamingToolsEnabled: initialStates.phosphorousEnabled && initialStates.gamingToolsEnabled,
+      adBlockerEnabled: initialStates.phosphorousEnabled && initialStates.adBlockerEnabled,
+    });
     phosphorusRef.current = phosphorus;
     const detach = phosphorus.attachToIframe(iframe);
 
     return () => {
       detach();
       phosphorusRef.current = null;
-      frameRef.current = null;
     };
   }, []);
 
-  useEffect(() => {
+  const routeGame = useCallback(async () => {
     const iframe = iframeRef.current;
     if (!iframe) return;
 
+    const revision = ++routeRevisionRef.current;
     if (proxySettings.enabled && proxyStatus !== readyStatus) return;
-    const routeKey = `${proxySettings.enabled}:${proxySettings.engine}:${proxySettings.transport}:${proxySettings.wispUrl}:${url}`;
-    if (routeKeyRef.current === routeKey) return;
-
     if (proxySettings.enabled && proxySettings.engine === "scramjet" && !controller) return;
-    routeKeyRef.current = routeKey;
-    void (async () => {
-      try {
-        if (!proxySettings.enabled) {
-          iframe.src = url;
-        } else if (proxySettings.engine === "scramjet") {
-          frameRef.current ??= controller!.createFrame(iframe);
-          frameRef.current.go(proxyConfig.getProxiedUrl(url, "scramjet"));
-        } else if (proxySettings.engine === "ultraviolet") {
-          iframe.src = proxyConfig.getProxiedUrl(url, "ultraviolet");
-        } else {
-          const rammerheadUrl = await encodeRammerheadUrl(url);
-          if (routeKeyRef.current !== routeKey) return;
-          iframe.src = rammerheadUrl;
-        }
-        if (routeKeyRef.current === routeKey) {
-          // Clear a previous routing error after a successful route.
-          // oxlint-disable-next-line react/set-state-in-effect
-          setRouteError("");
-        }
-      } catch (error) {
-        if (routeKeyRef.current !== routeKey) return;
-        console.error(`Could not open ${title} through the configured proxy.`, error);
-        // Report routing failures from the proxy/controller effect.
-        // oxlint-disable-next-line react/set-state-in-effect
-        setRouteError(error instanceof Error ? error.message : String(error));
+    try {
+      if (!proxySettings.enabled) {
+        iframe.src = url;
+      } else if (proxySettings.engine === "scramjet") {
+        frameRef.current ??= controller!.createFrame(iframe);
+        frameRef.current.go(proxyConfig.getProxiedUrl(url, "scramjet"));
+      } else if (proxySettings.engine === "ultraviolet") {
+        iframe.src = proxyConfig.getProxiedUrl(url, "ultraviolet");
+      } else {
+        const rammerheadUrl = await encodeRammerheadUrl(url);
+        if (routeRevisionRef.current !== revision) return;
+        iframe.src = rammerheadUrl;
       }
-    })();
+      if (routeRevisionRef.current === revision) {
+        // Clear the prior route error after the async proxy navigation succeeds.
+        // oxlint-disable-next-line react/set-state-in-effect
+        setRouteError("");
+      }
+    } catch (error) {
+      if (routeRevisionRef.current !== revision) return;
+      console.error(`Could not open ${title} through the configured proxy.`, error);
+      setRouteError(error instanceof Error ? error.message : String(error));
+    }
   }, [controller, proxySettings, proxyStatus, readyStatus, title, url]);
+
+  const refreshGame = useCallback(() => {
+    void routeGame();
+  }, [routeGame]);
+
+  useEffect(() => {
+    // Re-route the external game after its Phosphorous settings change.
+    // oxlint-disable-next-line react/set-state-in-effect
+    void routeGame();
+  }, [routeGame]);
 
   useEffect(() => {
     if (phosphorusRef.current) {
       applyPhosiumExtensionStates(phosphorusRef.current, {
-        enhancementsEnabled: gameEnhancementsEnabled,
-        gamingToolsEnabled: gameGamingToolsEnabled,
-        adBlockerEnabled: gameAdBlockerEnabled,
+        enhancementsEnabled: phosphorousEnabled && gameEnhancementsEnabled,
+        gamingToolsEnabled: phosphorousEnabled && gameGamingToolsEnabled,
+        adBlockerEnabled: phosphorousEnabled && gameAdBlockerEnabled,
       });
     }
     const previous = extensionStateRef.current;
-    const changed = previous.enhancementsEnabled !== gameEnhancementsEnabled
+    const changed = previous.phosphorousEnabled !== phosphorousEnabled
+      || previous.enhancementsEnabled !== gameEnhancementsEnabled
       || previous.gamingToolsEnabled !== gameGamingToolsEnabled
       || previous.adBlockerEnabled !== gameAdBlockerEnabled;
     extensionStateRef.current = {
+      phosphorousEnabled,
       enhancementsEnabled: gameEnhancementsEnabled,
       gamingToolsEnabled: gameGamingToolsEnabled,
       adBlockerEnabled: gameAdBlockerEnabled,
     };
     const iframe = iframeRef.current;
     if (changed && iframe) {
-      try {
-        refreshGame();
-      } catch (error) {
-        console.error(`Could not reload ${title} after changing Phosphorous extensions.`, error);
-      }
+      refreshGame();
     }
-  }, [gameEnhancementsEnabled, gameGamingToolsEnabled, gameAdBlockerEnabled, refreshGame, title]);
+  }, [phosphorousEnabled, gameEnhancementsEnabled, gameGamingToolsEnabled, gameAdBlockerEnabled, refreshGame, title]);
 
   return (
     <div className="game-player">
@@ -152,17 +146,17 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
                 <strong>Game extensions</strong>
                 <label>
                   <span>Page enhancements</span>
-                  <input aria-label="Game page enhancements" checked={gameEnhancementsEnabled} onChange={(event) => setGameEnhancementsEnabled(event.target.checked)} type="checkbox" />
+                  <input aria-label="Game page enhancements" checked={gameEnhancementsEnabled} disabled={!phosphorousEnabled} onChange={(event) => setGameEnhancementsEnabled(event.target.checked)} type="checkbox" />
                 </label>
                 <label>
                   <span>Gaming tools</span>
-                  <input aria-label="Game gaming tools" checked={gameGamingToolsEnabled} onChange={(event) => setGameGamingToolsEnabled(event.target.checked)} type="checkbox" />
+                  <input aria-label="Game gaming tools" checked={gameGamingToolsEnabled} disabled={!phosphorousEnabled} onChange={(event) => setGameGamingToolsEnabled(event.target.checked)} type="checkbox" />
                 </label>
                 <label>
                   <span>Ad blocker</span>
-                  <input aria-label="Game ad blocker" checked={gameAdBlockerEnabled} onChange={(event) => setGameAdBlockerEnabled(event.target.checked)} type="checkbox" />
+                  <input aria-label="Game ad blocker" checked={gameAdBlockerEnabled} disabled={!phosphorousEnabled} onChange={(event) => setGameAdBlockerEnabled(event.target.checked)} type="checkbox" />
                 </label>
-                <small>These settings only affect game windows.</small>
+                <small>{phosphorousEnabled ? "These settings only affect game windows." : "Phosphorous is turned off in Settings."}</small>
               </div>
             )}
           </div>

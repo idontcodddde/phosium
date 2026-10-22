@@ -18,6 +18,44 @@ let tabSequence = 0;
 let historySequence = 0;
 const browserHistoryKey = "phosium_browser_history";
 const browserHistoryLimit = 500;
+const quickAccessKey = "phosium_quick_access_sites";
+
+interface QuickAccessSite {
+  id: string;
+  title: string;
+  url: string;
+}
+
+const defaultQuickAccessSites: QuickAccessSite[] = [
+  { id: "qa-youtube", title: "YOUTUBE", url: "https://www.youtube.com" },
+  { id: "qa-discord", title: "DISCORD", url: "https://discord.com/app" },
+  { id: "qa-instagram", title: "INSTAGRAM", url: "https://www.instagram.com" },
+  { id: "qa-tiktok", title: "TIKTOK", url: "https://www.tiktok.com" },
+  { id: "qa-spotify", title: "SPOTIFY", url: "https://open.spotify.com" },
+  { id: "qa-twitch", title: "TWITCH", url: "https://www.twitch.tv" },
+];
+
+function loadQuickAccessSites(): QuickAccessSite[] {
+  try {
+    const stored = localStorage.getItem(quickAccessKey);
+    if (!stored) return defaultQuickAccessSites;
+    const parsed: unknown = JSON.parse(stored);
+    if (!Array.isArray(parsed)) return defaultQuickAccessSites;
+    return parsed.filter((item): item is QuickAccessSite =>
+      typeof item === "object" &&
+      item !== null &&
+      "id" in item &&
+      typeof item.id === "string" &&
+      "title" in item &&
+      typeof item.title === "string" &&
+      "url" in item &&
+      typeof item.url === "string"
+    );
+  } catch (error) {
+    console.error("Could not load quick access sites.", error);
+    return defaultQuickAccessSites;
+  }
+}
 
 function createTab(url = ""): BrowserTab {
   return {
@@ -110,6 +148,7 @@ export function BrowserApp() {
     proxySettings,
     controller,
     proxyStatus,
+    phosphorousEnabled,
     browserEnhancementsEnabled,
     browserGamingToolsEnabled,
     browserAdBlockerEnabled,
@@ -125,6 +164,11 @@ export function BrowserApp() {
   const [activeTabId, setActiveTabId] = useState(firstTab.id);
   const [navigationError, setNavigationError] = useState("");
   const [bookmarks, setBookmarks] = useState<BrowserBookmark[]>(loadBookmarks);
+  const [quickAccessSites, setQuickAccessSites] = useState<QuickAccessSite[]>(loadQuickAccessSites);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [newQaTitle, setNewQaTitle] = useState("");
+  const [newQaUrl, setNewQaUrl] = useState("");
+  const [activeMenuSiteId, setActiveMenuSiteId] = useState<string | null>(null);
   const [history, setHistory] = useState<BrowserHistoryEntry[]>(loadHistory);
   const historyRef = useRef(history);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -141,6 +185,7 @@ export function BrowserApp() {
   const frameRefs = useRef(new Map<string, Frame>());
   const phosphorusRef = useRef<Phosphorus | null>(null);
   const extensionStateRef = useRef({
+    phosphorousEnabled,
     enhancementsEnabled: browserEnhancementsEnabled,
     gamingToolsEnabled: browserGamingToolsEnabled,
     adBlockerEnabled: browserAdBlockerEnabled,
@@ -177,6 +222,43 @@ export function BrowserApp() {
       setBookmarkError("Could not save bookmarks in this browser.");
     }
   }, []);
+
+  const saveQuickAccess = useCallback((nextSites: QuickAccessSite[]) => {
+    try {
+      localStorage.setItem(quickAccessKey, JSON.stringify(nextSites));
+      setQuickAccessSites(nextSites);
+    } catch (error) {
+      console.error("Could not save quick access sites.", error);
+    }
+  }, []);
+
+  const handleAddQuickAccess = (e: FormEvent) => {
+    e.preventDefault();
+    if (!newQaUrl.trim()) return;
+    const formattedUrl = resolveAddress(newQaUrl, searchEngine);
+    let title = newQaTitle.trim();
+    if (!title) {
+      try {
+        title = new URL(formattedUrl).hostname.toUpperCase();
+      } catch {
+        title = "SITE";
+      }
+    }
+    const newSite: QuickAccessSite = {
+      id: `qa-${Date.now()}`,
+      title,
+      url: formattedUrl,
+    };
+    saveQuickAccess([...quickAccessSites, newSite]);
+    setNewQaTitle("");
+    setNewQaUrl("");
+    setIsAddModalOpen(false);
+  };
+
+  const deleteQuickAccessSite = (id: string) => {
+    saveQuickAccess(quickAccessSites.filter((site) => site.id !== id));
+    setActiveMenuSiteId(null);
+  };
 
   const saveHistory = useCallback((nextHistory: BrowserHistoryEntry[]) => {
     const boundedHistory = nextHistory.slice(0, browserHistoryLimit);
@@ -400,6 +482,8 @@ export function BrowserApp() {
   }, [syncFrameNavigation]);
 
   useEffect(() => {
+    if (!phosphorousEnabled) return;
+
     const phosphorus = new Phosphorus();
     registerPhosiumExtensions(phosphorus);
     phosphorusRef.current = phosphorus;
@@ -412,8 +496,9 @@ export function BrowserApp() {
     return () => {
       for (const detach of detachments.values()) detach();
       detachments.clear();
+      phosphorusRef.current = null;
     };
-  }, []);
+  }, [phosphorousEnabled]);
 
   useEffect(() => {
     const handleHistoryShortcut = (event: KeyboardEvent) => {
@@ -440,10 +525,12 @@ export function BrowserApp() {
       });
     }
     const previous = extensionStateRef.current;
-    const changed = previous.enhancementsEnabled !== browserEnhancementsEnabled
+    const changed = previous.phosphorousEnabled !== phosphorousEnabled
+      || previous.enhancementsEnabled !== browserEnhancementsEnabled
       || previous.gamingToolsEnabled !== browserGamingToolsEnabled
       || previous.adBlockerEnabled !== browserAdBlockerEnabled;
     extensionStateRef.current = {
+      phosphorousEnabled,
       enhancementsEnabled: browserEnhancementsEnabled,
       gamingToolsEnabled: browserGamingToolsEnabled,
       adBlockerEnabled: browserAdBlockerEnabled,
@@ -468,6 +555,7 @@ export function BrowserApp() {
       }
     }
   }, [
+    phosphorousEnabled,
     browserEnhancementsEnabled,
     browserGamingToolsEnabled,
     browserAdBlockerEnabled,
@@ -481,6 +569,7 @@ export function BrowserApp() {
       if (event.target instanceof Node && !browserRef.current?.contains(event.target)) {
         setExtensionsOpen(false);
         setMenuOpen(false);
+        setActiveMenuSiteId(null);
       }
     };
     document.addEventListener("pointerdown", handlePointerDown);
@@ -747,19 +836,19 @@ export function BrowserApp() {
               <label className="chrome-extension-item">
                 <span className="extension-glyph extension-glyph-page">✦</span>
                 <span><strong>Page enhancements</strong><small>Browser tabs only · scrollbar styling</small></span>
-                <input aria-label="Browser page enhancements extension" checked={browserEnhancementsEnabled} onChange={(event) => toggleExtension("page", event.target.checked)} type="checkbox" />
+                <input aria-label="Browser page enhancements extension" checked={browserEnhancementsEnabled} disabled={!phosphorousEnabled} onChange={(event) => toggleExtension("page", event.target.checked)} type="checkbox" />
               </label>
               <label className="chrome-extension-item">
                 <span className="extension-glyph extension-glyph-game">◷</span>
                 <span><strong>Gaming tools</strong><small>Browser tabs only · timer, splits and notes</small></span>
-                <input aria-label="Browser gaming tools extension" checked={browserGamingToolsEnabled} onChange={(event) => toggleExtension("gaming", event.target.checked)} type="checkbox" />
+                <input aria-label="Browser gaming tools extension" checked={browserGamingToolsEnabled} disabled={!phosphorousEnabled} onChange={(event) => toggleExtension("gaming", event.target.checked)} type="checkbox" />
               </label>
               <label className="chrome-extension-item">
                 <span className="extension-glyph extension-glyph-page">⊘</span>
                 <span><strong>Ad blocker</strong><small>Browser tabs only · common ad domains</small></span>
-                <input aria-label="Browser ad blocker extension" checked={browserAdBlockerEnabled} onChange={(event) => toggleExtension("adblock", event.target.checked)} type="checkbox" />
+                <input aria-label="Browser ad blocker extension" checked={browserAdBlockerEnabled} disabled={!phosphorousEnabled} onChange={(event) => toggleExtension("adblock", event.target.checked)} type="checkbox" />
               </label>
-              <p className="chrome-popup-note">Extensions run only in proxied browser tabs.</p>
+              <p className="chrome-popup-note">{phosphorousEnabled ? "Extensions run only in proxied browser tabs." : "Phosphorous is turned off in Settings."}</p>
             </div>
           )}
         </div>
@@ -864,6 +953,111 @@ export function BrowserApp() {
                   />
                   <button aria-label="Search" type="submit">↵</button>
                 </form>
+
+                {/* Quick Access Sites Grid */}
+                <div className="chrome-quick-access-container">
+                  <div className="chrome-quick-access-grid">
+                    {quickAccessSites.map((site) => {
+                      let domain = "";
+                      try {
+                        domain = new URL(site.url).hostname;
+                      } catch {
+                        domain = site.url;
+                      }
+                      const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+
+                      return (
+                        <div key={site.id} className="chrome-quick-access-wrapper">
+                          <button
+                            className="chrome-quick-access-item"
+                            onClick={() => navigate(site.url)}
+                            type="button"
+                          >
+                            <div className="chrome-quick-access-icon">
+                              <img
+                                src={faviconUrl}
+                                alt=""
+                                onError={(e) => {
+                                  e.currentTarget.style.display = "none";
+                                  const parent = e.currentTarget.parentElement;
+                                  if (parent && !parent.querySelector(".qa-fallback")) {
+                                    const span = document.createElement("span");
+                                    span.className = "qa-fallback";
+                                    span.textContent = site.title.charAt(0);
+                                    parent.appendChild(span);
+                                  }
+                                }}
+                              />
+                            </div>
+                            <span className="chrome-quick-access-label">{site.title}</span>
+                          </button>
+                          <button
+                            className="chrome-qa-menu-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveMenuSiteId(activeMenuSiteId === site.id ? null : site.id);
+                            }}
+                            type="button"
+                            aria-label="Options"
+                          >
+                            ⋮
+                          </button>
+                          {activeMenuSiteId === site.id && (
+                            <div className="chrome-qa-context-menu">
+                              <button
+                                onClick={() => deleteQuickAccessSite(site.id)}
+                                type="button"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                    <div className="chrome-quick-access-wrapper">
+                      <button
+                        className="chrome-quick-access-item chrome-quick-access-add"
+                        onClick={() => setIsAddModalOpen(true)}
+                        type="button"
+                        title="Add quick access site"
+                      >
+                        <div className="chrome-quick-access-icon">
+                          <svg className="chrome-qa-plus-icon" viewBox="0 0 24 24" width="24" height="24">
+                            <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                          </svg>
+                        </div>
+                        <span className="chrome-quick-access-label">ADD</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {isAddModalOpen && (
+                  <div className="chrome-qa-modal-overlay">
+                    <form className="chrome-qa-modal" onSubmit={handleAddQuickAccess}>
+                      <h3>Add Quick Access Site</h3>
+                      <input
+                        type="text"
+                        placeholder="Site Title (e.g. YouTube)"
+                        value={newQaTitle}
+                        onChange={(e) => setNewQaTitle(e.target.value)}
+                      />
+                      <input
+                        type="text"
+                        placeholder="URL (e.g. https://youtube.com)"
+                        value={newQaUrl}
+                        onChange={(e) => setNewQaUrl(e.target.value)}
+                        required
+                      />
+                      <div className="chrome-qa-modal-actions">
+                        <button type="button" onClick={() => setIsAddModalOpen(false)}>Cancel</button>
+                        <button type="submit" className="primary">Add</button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
                 <div className="chrome-new-tab-hint">
                   {proxySettings.enabled
                     ? proxyStatus
@@ -876,7 +1070,7 @@ export function BrowserApp() {
       </div>
       <div className="chrome-statusbar">
         <span>{proxySettings.enabled ? `Protected by ${proxySettings.engine}` : "Direct connection"}</span>
-        <span>{browserGamingToolsEnabled ? "Gaming tools enabled" : browserEnhancementsEnabled ? "Phosphorous enabled" : "Phosphorous disabled"}</span>
+        <span>{phosphorousEnabled ? "Phosphorous enabled" : "Phosphorous disabled"}</span>
       </div>
     </div>
   );

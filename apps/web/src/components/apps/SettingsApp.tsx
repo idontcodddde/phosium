@@ -30,6 +30,8 @@ export function SettingsApp() {
     theme,
     setTheme,
     proxyStatus,
+    phosphorousEnabled,
+    setPhosphorousEnabled,
     browserEnhancementsEnabled,
     setBrowserEnhancementsEnabled,
     browserGamingToolsEnabled,
@@ -196,7 +198,25 @@ export function SettingsApp() {
         <section className="settings-section" id="enhancements">
           <div className="settings-eyebrow">PHOSPHOROUS</div>
           <h1>Extension settings</h1>
-          <p className="settings-description">Manage extensions separately for browser tabs and game windows.</p>
+          <p className="settings-description">Enable or disable Phosphorous, then manage its extensions separately for browser tabs and game windows.</p>
+          <div className="settings-card settings-toggle-row">
+            <div>
+              <strong>Phosphorous</strong>
+              <p>Master switch for all Phosphorous extensions in browser tabs and game windows.</p>
+            </div>
+            <div className="settings-control-actions">
+              <label className="switch">
+                <input
+                  aria-label="Phosphorous"
+                  checked={phosphorousEnabled}
+                  onChange={(event) => setPhosphorousEnabled(event.target.checked)}
+                  type="checkbox"
+                />
+                <span />
+              </label>
+              <ResetButton setting="Phosphorous" onReset={() => setPhosphorousEnabled(true)} />
+            </div>
+          </div>
           <h2 className="settings-subheading">Browser</h2>
           <div className="settings-card settings-toggle-row">
             <div>
@@ -208,6 +228,7 @@ export function SettingsApp() {
                 <input
                   aria-label="Browser page enhancements"
                   checked={browserEnhancementsEnabled}
+                  disabled={!phosphorousEnabled}
                   onChange={(event) => setBrowserEnhancementsEnabled(event.target.checked)}
                   type="checkbox"
                 />
@@ -226,6 +247,7 @@ export function SettingsApp() {
                 <input
                   aria-label="Browser gaming tools overlay"
                   checked={browserGamingToolsEnabled}
+                  disabled={!phosphorousEnabled}
                   onChange={(event) => setBrowserGamingToolsEnabled(event.target.checked)}
                   type="checkbox"
                 />
@@ -244,6 +266,7 @@ export function SettingsApp() {
                 <input
                   aria-label="Browser ad blocker"
                   checked={browserAdBlockerEnabled}
+                  disabled={!phosphorousEnabled}
                   onChange={(event) => setBrowserAdBlockerEnabled(event.target.checked)}
                   type="checkbox"
                 />
@@ -263,6 +286,7 @@ export function SettingsApp() {
                 <input
                   aria-label="Game page enhancements"
                   checked={gameEnhancementsEnabled}
+                  disabled={!phosphorousEnabled}
                   onChange={(event) => setGameEnhancementsEnabled(event.target.checked)}
                   type="checkbox"
                 />
@@ -281,6 +305,7 @@ export function SettingsApp() {
                 <input
                   aria-label="Game ad blocker"
                   checked={gameAdBlockerEnabled}
+                  disabled={!phosphorousEnabled}
                   onChange={(event) => setGameAdBlockerEnabled(event.target.checked)}
                   type="checkbox"
                 />
@@ -299,6 +324,7 @@ export function SettingsApp() {
                 <input
                   aria-label="Game gaming tools overlay"
                   checked={gameGamingToolsEnabled}
+                  disabled={!phosphorousEnabled}
                   onChange={(event) => setGameGamingToolsEnabled(event.target.checked)}
                   type="checkbox"
                 />
