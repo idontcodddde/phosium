@@ -1,4 +1,3 @@
-self.skipWaiting();
 importScripts(
   '/controller/controller.sw.js',
   '/uv/uv.bundle.js',
