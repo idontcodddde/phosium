@@ -8,10 +8,14 @@ import { Desktop } from "@repo/os-shell";
 import type { WindowState } from "@repo/os-shell";
 import { proxyManager } from "@repo/proxy";
 import type { ProxySettings } from "@repo/proxy";
+import { AboutApp } from "./components/apps/AboutApp";
 import { BrowserApp } from "./components/apps/BrowserApp";
+import { CalculatorApp } from "./components/apps/CalculatorApp";
 import { GameApp } from "./components/apps/GameApp";
 import { GamePlayerApp } from "./components/apps/GamePlayerApp";
 import { SettingsApp } from "./components/apps/SettingsApp";
+import { TextEditorApp } from "./components/apps/TextEditorApp";
+import { FilesApp } from "./components/apps/FilesApp";
 import { SystemContext } from "./SystemContext";
 import type { AutoLaunchMode, DesktopTheme, SearchEngine } from "./SystemContext";
 import { applyCloak, isCloakOption, launchAboutBlank, launchBlob } from "./lib/cloak";
@@ -71,19 +75,19 @@ export default function App() {
   const [gameEnhancementsEnabled, setGameEnhancementsEnabledState] = useState(
     () => typeof window === "undefined" || (
       localStorage.getItem("phosium_game_enhancements")
-        ?? localStorage.getItem("phosium_enhancements")
+      ?? localStorage.getItem("phosium_enhancements")
     ) !== "false"
   );
   const [gameGamingToolsEnabled, setGameGamingToolsEnabledState] = useState(
     () => typeof window === "undefined" || (
       localStorage.getItem("phosium_game_gaming_tools")
-        ?? localStorage.getItem("phosium_gaming_tools")
+      ?? localStorage.getItem("phosium_gaming_tools")
     ) !== "false"
   );
   const [gameAdBlockerEnabled, setGameAdBlockerEnabledState] = useState(
     () => typeof window === "undefined" || (
       localStorage.getItem("phosium_game_ad_blocker")
-        ?? localStorage.getItem("phosium_ad_blocker")
+      ?? localStorage.getItem("phosium_ad_blocker")
     ) !== "false"
   );
   const [browserRequest, setBrowserRequest] = useState<{ id: number; url: string } | null>(null);
@@ -321,6 +325,18 @@ export default function App() {
       component: <BrowserApp />,
     },
     {
+      id: "files",
+      title: "File Explorer",
+      icon: "📁",
+      description: "Browse virtual file system records",
+      isOpen: false,
+      isMinimized: false,
+      isMaximized: false,
+      zIndex: 14,
+      position: { x: 305, y: 228 },
+      component: <FilesApp />,
+    },
+    {
       id: "games",
       title: "Games",
       icon: "G",
@@ -331,6 +347,42 @@ export default function App() {
       zIndex: 8,
       position: { x: 130, y: 78 },
       component: <GameApp />,
+    },
+    {
+      id: "text-editor",
+      title: "Text Editor",
+      icon: "📄",
+      description: "Create and save documents to VFS",
+      isOpen: false,
+      isMinimized: false,
+      isMaximized: false,
+      zIndex: 11,
+      position: { x: 200, y: 138 },
+      component: <TextEditorApp />,
+    },
+    {
+      id: "calculator",
+      title: "Calculator",
+      icon: "🔢",
+      description: "Perform quick calculations",
+      isOpen: false,
+      isMinimized: false,
+      isMaximized: false,
+      zIndex: 12,
+      position: { x: 235, y: 168 },
+      component: <CalculatorApp />,
+    },
+    {
+      id: "about",
+      title: "About",
+      icon: "ℹ",
+      description: "System details and versions",
+      isOpen: false,
+      isMinimized: false,
+      isMaximized: false,
+      zIndex: 13,
+      position: { x: 270, y: 198 },
+      component: <AboutApp />,
     },
     {
       id: "settings",

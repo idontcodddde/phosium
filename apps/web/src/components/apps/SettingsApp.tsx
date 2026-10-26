@@ -1,9 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { FormEvent } from "react";
 import type { ProxyEngineType, ProxyTransportType } from "@repo/proxy";
 import type { DesktopTheme } from "../../SystemContext";
 import { CLOAK_OPTIONS, launchAboutBlank, launchBlob } from "../../lib/cloak";
 import { useSystem } from "../../SystemContext";
+
+interface WispServer {
+  id: string;
+  name: string;
+  url: string;
+  ping: number | null; // in ms, null if testing/failed
+  isCustom?: boolean;
+  isLocal?: boolean;
+}
 
 function ResetButton({ setting, onReset }: { setting: string; onReset: () => void }) {
   return (
@@ -21,6 +30,47 @@ function ResetButton({ setting, onReset }: { setting: string; onReset: () => voi
 function defaultWispUrl(): string {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   return `${protocol}//${window.location.host}/wisp/`;
+}
+
+// SVG Signal Icon component that dynamically renders 1, 2, 3, or 4 bars based on ping quality
+function SignalIcon({ ping }: { ping: number | null }) {
+  let activeBars = 1;
+  let color = "#f87171"; // red for bad/timeout
+
+  if (ping !== null && ping < 999) {
+    if (ping < 150) {
+      activeBars = 4;
+      color = "#4ade80"; // green
+    } else if (ping < 300) {
+      activeBars = 3;
+      color = "#4ade80";
+    } else if (ping < 600) {
+      activeBars = 2;
+      color = "#fbbf24"; // yellow
+    } else {
+      activeBars = 1;
+      color = "#f87171";
+    }
+  }
+
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+      <rect x="2" y="14" width="3" height="7" rx="1" fill={activeBars >= 1 ? color : "rgba(255,255,255,0.2)"} />
+      <rect x="7" y="10" width="3" height="11" rx="1" fill={activeBars >= 2 ? color : "rgba(255,255,255,0.2)"} />
+      <rect x="12" y="6" width="3" height="15" rx="1" fill={activeBars >= 3 ? color : "rgba(255,255,255,0.2)"} />
+      <rect x="17" y="2" width="3" height="19" rx="1" fill={activeBars >= 4 ? color : "rgba(255,255,255,0.2)"} />
+    </svg>
+  );
+}
+
+// Trash / Delete icon SVG
+function TrashIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    </svg>
+  );
 }
 
 export function SettingsApp() {
@@ -51,26 +101,167 @@ export function SettingsApp() {
     autoLaunchMode,
     setAutoLaunchMode,
   } = useSystem();
-  const [wispUrl, setWispUrl] = useState(proxySettings.wispUrl);
-  const [wispError, setWispError] = useState("");
 
-  const saveWispUrl = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  // Load saved servers from localStorage or initialize with local host endpoint
+  const [wispServers, setWispServers] = useState<WispServer[]>(() => {
+    if (typeof window === "undefined") return [];
+    const localUrl = defaultWispUrl();
     try {
-      const trimmed = wispUrl.trim();
-      const candidate = /^[a-z][a-z\d+.-]*:\/\//i.test(trimmed)
-        ? trimmed
-        : `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${trimmed}`;
+      const saved = localStorage.getItem("phosium_wisp_servers");
+      if (saved) {
+        const parsed: WispServer[] = JSON.parse(saved);
+        // Ensure local host entry is always present and up-to-date
+        const hasLocal = parsed.some((s) => s.isLocal);
+        if (!hasLocal) {
+          return [
+            { id: "local-host", name: "Local Host Wisp", url: localUrl, ping: null, isCustom: false, isLocal: true },
+            ...parsed,
+          ];
+        }
+        return parsed.map((s) => (s.isLocal ? { ...s, url: localUrl } : s));
+      }
+    } catch {}
+
+    return [
+      {
+        id: "local-host",
+        name: "Local Host Wisp",
+        url: localUrl,
+        ping: null,
+        isCustom: false,
+        isLocal: true,
+      },
+    ];
+  });
+
+  const [isAddingWisp, setIsAddingWisp] = useState(false);
+  const [newServerName, setNewServerName] = useState("");
+  const [newServerUrl, setNewServerUrl] = useState("");
+  const [addError, setAddError] = useState("");
+  const isTestingRef = useRef(false);
+
+  // Sync wispServers changes to localStorage whenever they update
+  useEffect(() => {
+    try {
+      localStorage.setItem("phosium_wisp_servers", JSON.stringify(wispServers));
+    } catch {}
+  }, [wispServers]);
+
+  // Function to test ping for a given wisp URL using WebSocket connection time
+  const measurePing = async (url: string): Promise<number> => {
+    return new Promise((resolve) => {
+      const startTime = performance.now();
+      try {
+        const ws = new WebSocket(url);
+        let finished = false;
+
+        const cleanup = (val: number) => {
+          if (finished) return;
+          finished = true;
+          try {
+            ws.close();
+          } catch {}
+          resolve(val);
+        };
+
+        ws.onopen = () => {
+          const duration = Math.round(performance.now() - startTime);
+          cleanup(duration);
+        };
+
+        ws.onerror = () => {
+          cleanup(999);
+        };
+
+        setTimeout(() => {
+          cleanup(999);
+        }, 3500);
+      } catch {
+        resolve(999);
+      }
+    });
+  };
+
+  // Run ping tests on mount or when servers change
+  useEffect(() => {
+    if (isTestingRef.current) return;
+    isTestingRef.current = true;
+
+    const testAll = async () => {
+      for (const server of wispServers) {
+        const latency = await measurePing(server.url);
+        setWispServers((prev) =>
+          prev.map((s) => (s.id === server.id ? { ...s, ping: latency } : s))
+        );
+      }
+      isTestingRef.current = false;
+    };
+
+    void testAll();
+  }, []);
+
+  const handleSelectWispServer = (server: WispServer) => {
+    updateProxySettings({ wispUrl: server.url });
+
+    // Update active service worker for Scramjet & Ultraviolet engines
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: "UPDATE_WISP",
+        wispUrl: server.url,
+      });
+    }
+  };
+
+  const handleAddWispSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    try {
+      const trimmedUrl = newServerUrl.trim();
+      const candidate = /^[a-z][a-z\d+.-]*:\/\//i.test(trimmedUrl)
+        ? trimmedUrl
+        : `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${trimmedUrl}`;
       const parsed = new URL(candidate);
       if (parsed.protocol !== "ws:" && parsed.protocol !== "wss:") {
         throw new TypeError("Wisp URL must use ws:// or wss://.");
       }
       if (!parsed.pathname.endsWith("/")) parsed.pathname += "/";
-      updateProxySettings({ wispUrl: parsed.href });
-      setWispUrl(parsed.href);
-      setWispError("");
-    } catch (error) {
-      setWispError(error instanceof Error ? error.message : String(error));
+
+      const newServer: WispServer = {
+        id: `custom-${Date.now()}`,
+        name: newServerName.trim() || "Custom Wisp",
+        url: parsed.href,
+        ping: null,
+        isCustom: true,
+      };
+
+      setWispServers((prev) => [...prev, newServer]);
+      setNewServerName("");
+      setNewServerUrl("");
+      setIsAddingWisp(false);
+      setAddError("");
+
+      void measurePing(parsed.href).then((latency) => {
+        setWispServers((prev) =>
+          prev.map((s) => (s.id === newServer.id ? { ...s, ping: latency } : s))
+        );
+      });
+    } catch (err) {
+      setAddError(err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  const handleDeleteServer = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (wispServers.length <= 1) return;
+
+    const serverToDelete = wispServers.find((s) => s.id === id);
+    if (!serverToDelete || serverToDelete.isLocal) return;
+
+    const updatedServers = wispServers.filter((s) => s.id !== id);
+    setWispServers(updatedServers);
+
+    if (serverToDelete.url === proxySettings.wispUrl && updatedServers.length > 0) {
+      handleSelectWispServer(updatedServers[0]);
     }
   };
 
@@ -171,26 +362,113 @@ export function SettingsApp() {
                 <ResetButton setting="Wisp transport" onReset={() => updateProxySettings({ transport: "epoxy" })} />
               </div>
             </div>}
-            {proxySettings.engine !== "rammerhead" && <form className="settings-field wisp-field" onSubmit={saveWispUrl}>
-              <span>Wisp server URL</span>
-              <div className="wisp-input-row">
-                <input
-                  aria-label="Wisp server URL"
-                  disabled={!proxySettings.enabled}
-                  onChange={(event) => setWispUrl(event.target.value)}
-                  placeholder="wss://proxy.example/wisp/"
-                  value={wispUrl}
-                />
-                <button className="settings-save-button" disabled={!proxySettings.enabled} type="submit">Apply</button>
-                <ResetButton setting="Wisp server URL" onReset={() => {
-                  const url = defaultWispUrl();
-                  updateProxySettings({ wispUrl: url });
-                  setWispUrl(url);
-                  setWispError("");
-                }} />
+            
+            {/* Wisp Servers Selector Grid */}
+            {proxySettings.engine !== "rammerhead" && (
+              <div className="settings-field">
+                <span>Wisp servers & latency</span>
+                <div className="wisp-servers-container" style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "8px" }}>
+                  {wispServers.map((server) => {
+                    const isSelected = proxySettings.wispUrl === server.url;
+                    const canDelete = !server.isLocal && wispServers.length > 1;
+
+                    return (
+                      <div
+                        key={server.id}
+                        onClick={() => handleSelectWispServer(server)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: "12px 16px",
+                          borderRadius: "10px",
+                          cursor: proxySettings.enabled ? "pointer" : "not-allowed",
+                          background: isSelected ? "rgba(40, 120, 60, 0.25)" : "rgba(255, 255, 255, 0.05)",
+                          border: isSelected ? "1px solid rgba(80, 200, 100, 0.6)" : "1px solid rgba(255, 255, 255, 0.1)",
+                          transition: "all 0.2s ease",
+                          opacity: proxySettings.enabled ? 1 : 0.6,
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                          <SignalIcon ping={server.ping} />
+                          <div>
+                            <strong style={{ display: "block", color: "#fff", fontSize: "14px" }}>{server.name}</strong>
+                            <small style={{ color: "rgba(255, 255, 255, 0.6)", fontSize: "12px", wordBreak: "break-all" }}>{server.url}</small>
+                            <span style={{ display: "block", color: server.ping !== null && server.ping < 300 ? "#4ade80" : "#f87171", fontSize: "11px", marginTop: "2px" }}>
+                              {server.ping !== null ? `${server.ping}ms` : "Measuring ping..."}
+                            </span>
+                          </div>
+                        </div>
+                        {canDelete && (
+                          <button
+                            type="button"
+                            onClick={(e) => handleDeleteServer(server.id, e)}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              color: "rgba(255, 255, 255, 0.6)",
+                              cursor: "pointer",
+                              padding: "6px",
+                              borderRadius: "6px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                            title="Delete Wisp server"
+                          >
+                            <TrashIcon />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {!isAddingWisp ? (
+                    <button
+                      type="button"
+                      disabled={!proxySettings.enabled}
+                      onClick={() => setIsAddingWisp(true)}
+                      style={{
+                        padding: "12px",
+                        borderRadius: "10px",
+                        background: "rgba(255, 255, 255, 0.08)",
+                        border: "1px dashed rgba(255, 255, 255, 0.2)",
+                        color: "#fff",
+                        fontWeight: 600,
+                        cursor: proxySettings.enabled ? "pointer" : "not-allowed",
+                        textAlign: "center",
+                      }}
+                    >
+                      + Add Wisp Server
+                    </button>
+                  ) : (
+                    <form onSubmit={handleAddWispSubmit} style={{ background: "rgba(0,0,0,0.2)", padding: "12px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.1)", display: "flex", flexDirection: "column", gap: "8px" }}>
+                      <input
+                        type="text"
+                        placeholder="Server Name (e.g. My Custom Proxy)"
+                        value={newServerName}
+                        onChange={(e) => setNewServerName(e.target.value)}
+                        style={{ padding: "8px", borderRadius: "6px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff" }}
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Wisp URL (wss://.../wisp/)"
+                        value={newServerUrl}
+                        onChange={(e) => setNewServerUrl(e.target.value)}
+                        style={{ padding: "8px", borderRadius: "6px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff" }}
+                        required
+                      />
+                      {addError && <small style={{ color: "#f87171" }}>{addError}</small>}
+                      <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+                        <button type="button" onClick={() => setIsAddingWisp(false)} style={{ padding: "6px 12px", background: "transparent", color: "#ccc", border: "none", cursor: "pointer" }}>Cancel</button>
+                        <button type="submit" style={{ padding: "6px 12px", background: "#3b82f6", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer" }}>Save Server</button>
+                      </div>
+                    </form>
+                  )}
+                </div>
               </div>
-              {wispError && <small className="settings-error" role="alert">{wispError}</small>}
-            </form>}
+            )}
           </div>
           <div className="proxy-status"><span className={proxySettings.enabled ? "status-dot is-on" : "status-dot"} />{proxyStatus}</div>
         </section>
@@ -399,7 +677,7 @@ export function SettingsApp() {
                   <option value="about-blank">About:blank</option>
                   <option value="blob">Blob</option>
                 </select>
-                <ResetButton setting="automatic launch" onReset={() => setAutoLaunchMode("none")} />
+                <ResetButton setting="automatic launch" onReset={() => autoLaunchMode} />
               </div>
             </div>
           </div>

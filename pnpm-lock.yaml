@@ -195,6 +195,9 @@ importers:
       '@repo/utils':
         specifier: workspace:*
         version: link:../../packages/utils
+      '@repo/vfs':
+        specifier: workspace:*
+        version: link:../../packages/vfs
       '@rubynetwork/rammerhead-browser':
         specifier: 1.0.9
         version: 1.0.9
@@ -235,8 +238,6 @@ importers:
       vite-plugin-static-copy:
         specifier: ^4.1.1
         version: 4.1.1(vite@8.3.4(@types/node@24.19.2)(esbuild@0.28.2)(tsx@4.23.15))
-
-  packages/games: {}
 
   packages/os-shell:
     dependencies:
@@ -302,6 +303,16 @@ importers:
       typescript:
         specifier: ^5.3.3
         version: 5.9.3
+
+  packages/vfs:
+    dependencies:
+      '@repo/utils':
+        specifier: workspace:*
+        version: link:../utils
+    devDependencies:
+      typescript:
+        specifier: latest
+        version: 7.0.2
 
 packages:
 
