@@ -59,7 +59,6 @@ export async function registerSystemWorker(): Promise<ServiceWorker> {
   const activeWorker = serviceWorker;
   if (activeWorker) {
     console.log("[Frontend] Initializing heartbeat loop...");
-    // Fires once instantly so you don't have to wait 25 seconds to verify it works
     activeWorker.postMessage({ type: "PING_WISP_HEARTBEAT" });
 
     setInterval(() => {
