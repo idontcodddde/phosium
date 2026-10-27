@@ -1,4 +1,4 @@
-import { PHOSIUM_VERSION, PHOSPHOROUS_VERSION } from '../../constants/version';
+import { PHOSIUM_VERSION, PHOSPHOROUS_VERSION, RH_VERSION, SCRAMJET_VERSION, UV_VERSION, WISP_VERSION } from '../../constants/version';
 
 export function AboutApp() {
     return (
@@ -54,10 +54,43 @@ export function AboutApp() {
                     <span style={{ color: 'var(--text-secondary, #aaaabb)' }}>Phosphorous:</span>
                     <span style={{ fontFamily: 'monospace', fontWeight: 650, color: 'var(--accent, #a99bff)' }}>{PHOSPHOROUS_VERSION}</span>
                 </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+                    <span style={{ color: 'var(--text-secondary, #aaaabb)' }}>Scramjet:</span>
+                    <span style={{ fontFamily: 'monospace', fontWeight: 650, color: 'var(--accent, #a99bff)' }}>{SCRAMJET_VERSION}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+                    <span style={{ color: 'var(--text-secondary, #aaaabb)' }}>Ultraviolet:</span>
+                    <span style={{ fontFamily: 'monospace', fontWeight: 650, color: 'var(--accent, #a99bff)' }}>{UV_VERSION}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+                    <span style={{ color: 'var(--text-secondary, #aaaabb)' }}>Rammerhead:</span>
+                    <span style={{ fontFamily: 'monospace', fontWeight: 650, color: 'var(--accent, #a99bff)' }}>{RH_VERSION}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+                    <span style={{ color: 'var(--text-secondary, #aaaabb)' }}>wisp-js:</span>
+                    <span style={{ fontFamily: 'monospace', fontWeight: 650, color: 'var(--accent, #a99bff)' }}>{WISP_VERSION}</span>
+                </div>
             </div>
 
             {/* Footer Details */}
             <div style={{ color: 'var(--text-muted, #77798c)', fontSize: '10px', lineHeight: '1.5' }}>
+                <p style={{ margin: 0 }}>
+                    Made with no love by{' '}
+                    <a
+                        href="https://github.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                            color: 'var(--accent, #a99bff)',
+                            textDecoration: 'none',
+                            fontWeight: 600
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                        onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                    >
+                        idontcodddde
+                    </a>
+                </p>
                 <p style={{ margin: '4px 0 0' }}>© {new Date().getFullYear()} Phosium Project. All rights reserved.</p>
             </div>
         </div>
