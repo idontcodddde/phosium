@@ -149,12 +149,14 @@ export function BrowserApp() {
     controller,
     proxyStatus,
     phosphorousEnabled,
+    externalExtensions,
     browserEnhancementsEnabled,
     browserGamingToolsEnabled,
     browserAdBlockerEnabled,
     setBrowserGamingToolsEnabled,
     setBrowserEnhancementsEnabled,
     setBrowserAdBlockerEnabled,
+    setExternalExtensions,
     browserRequest,
     searchEngine,
     setSearchEngine,
@@ -189,6 +191,7 @@ export function BrowserApp() {
     enhancementsEnabled: browserEnhancementsEnabled,
     gamingToolsEnabled: browserGamingToolsEnabled,
     adBlockerEnabled: browserAdBlockerEnabled,
+    externalExtensions,
   });
   const detachRefs = useRef(new Map<string, () => void>());
   const navigatedKeys = useRef(new Map<string, string>());
@@ -292,6 +295,12 @@ export function BrowserApp() {
     if (extension === "page") setBrowserEnhancementsEnabled(enabled);
     else if (extension === "gaming") setBrowserGamingToolsEnabled(enabled);
     else setBrowserAdBlockerEnabled(enabled);
+  };
+
+  const toggleExternalExtension = (id: string, enabled: boolean) => {
+    setExternalExtensions(externalExtensions.map((extension) =>
+      extension.id === id ? { ...extension, enabled } : extension,
+    ));
   };
 
   const navigate = useCallback((rawUrl: string, tabId = activeTabId) => {
@@ -485,7 +494,7 @@ export function BrowserApp() {
     if (!phosphorousEnabled) return;
 
     const phosphorus = new Phosphorus();
-    registerPhosiumExtensions(phosphorus);
+    registerPhosiumExtensions(phosphorus, externalExtensions);
     phosphorusRef.current = phosphorus;
     const detachments = detachRefs.current;
 
@@ -498,7 +507,7 @@ export function BrowserApp() {
       detachments.clear();
       phosphorusRef.current = null;
     };
-  }, [phosphorousEnabled]);
+  }, [phosphorousEnabled, externalExtensions]);
 
   useEffect(() => {
     const handleHistoryShortcut = (event: KeyboardEvent) => {
@@ -522,18 +531,22 @@ export function BrowserApp() {
         enhancementsEnabled: browserEnhancementsEnabled,
         gamingToolsEnabled: browserGamingToolsEnabled,
         adBlockerEnabled: browserAdBlockerEnabled,
+        phosphorousEnabled,
+        externalExtensions,
       });
     }
     const previous = extensionStateRef.current;
     const changed = previous.phosphorousEnabled !== phosphorousEnabled
       || previous.enhancementsEnabled !== browserEnhancementsEnabled
       || previous.gamingToolsEnabled !== browserGamingToolsEnabled
-      || previous.adBlockerEnabled !== browserAdBlockerEnabled;
+      || previous.adBlockerEnabled !== browserAdBlockerEnabled
+      || previous.externalExtensions !== externalExtensions;
     extensionStateRef.current = {
       phosphorousEnabled,
       enhancementsEnabled: browserEnhancementsEnabled,
       gamingToolsEnabled: browserGamingToolsEnabled,
       adBlockerEnabled: browserAdBlockerEnabled,
+      externalExtensions,
     };
     if (!changed) return;
 
@@ -559,6 +572,7 @@ export function BrowserApp() {
     browserEnhancementsEnabled,
     browserGamingToolsEnabled,
     browserAdBlockerEnabled,
+    externalExtensions,
     proxySettings.enabled,
     proxySettings.engine,
     tabs,
@@ -848,6 +862,27 @@ export function BrowserApp() {
                 <span><strong>Ad blocker</strong><small>Browser tabs only · common ad domains</small></span>
                 <input aria-label="Browser ad blocker extension" checked={browserAdBlockerEnabled} disabled={!phosphorousEnabled} onChange={(event) => toggleExtension("adblock", event.target.checked)} type="checkbox" />
               </label>
+              {externalExtensions.length > 0 && (
+                <>
+                  <div className="chrome-extension-section-heading">External extensions</div>
+                  {externalExtensions.map((extension) => (
+                    <label className="chrome-extension-item" key={extension.id}>
+                      <span className="extension-glyph extension-glyph-external">⌘</span>
+                      <span>
+                        <strong>{extension.name}</strong>
+                        <small>{extension.type?.toUpperCase() ?? "EXTENSION"} · {extension.id}</small>
+                      </span>
+                      <input
+                        aria-label={`Browser ${extension.name} extension`}
+                        checked={extension.enabled}
+                        disabled={!phosphorousEnabled}
+                        onChange={(event) => toggleExternalExtension(extension.id, event.target.checked)}
+                        type="checkbox"
+                      />
+                    </label>
+                  ))}
+                </>
+              )}
               <p className="chrome-popup-note">{phosphorousEnabled ? "Extensions run only in proxied browser tabs." : "Phosphorous is turned off in Settings."}</p>
             </div>
           )}

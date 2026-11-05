@@ -18,6 +18,7 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
     gameGamingToolsEnabled,
     gameAdBlockerEnabled,
     phosphorousEnabled,
+    externalExtensions,
     setGameEnhancementsEnabled,
     setGameGamingToolsEnabled,
     setGameAdBlockerEnabled,
@@ -33,6 +34,7 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
     enhancementsEnabled: gameEnhancementsEnabled,
     gamingToolsEnabled: gameGamingToolsEnabled,
     adBlockerEnabled: gameAdBlockerEnabled,
+    externalExtensions,
   });
   const [extensionsOpen, setExtensionsOpen] = useState(false);
   const [routeError, setRouteError] = useState("");
@@ -45,12 +47,14 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
     if (!iframe) return;
 
     const phosphorus = new Phosphorus();
-    registerPhosiumExtensions(phosphorus);
+    registerPhosiumExtensions(phosphorus, externalExtensions);
     const initialStates = extensionStateRef.current;
     applyPhosiumExtensionStates(phosphorus, {
       enhancementsEnabled: initialStates.phosphorousEnabled && initialStates.enhancementsEnabled,
       gamingToolsEnabled: initialStates.phosphorousEnabled && initialStates.gamingToolsEnabled,
       adBlockerEnabled: initialStates.phosphorousEnabled && initialStates.adBlockerEnabled,
+      phosphorousEnabled: initialStates.phosphorousEnabled,
+      externalExtensions: initialStates.externalExtensions,
     });
     phosphorusRef.current = phosphorus;
     const detach = phosphorus.attachToIframe(iframe);
@@ -59,7 +63,7 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
       detach();
       phosphorusRef.current = null;
     };
-  }, []);
+  }, [externalExtensions]);
 
   const routeGame = useCallback(async () => {
     const iframe = iframeRef.current;
@@ -109,24 +113,28 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
         enhancementsEnabled: phosphorousEnabled && gameEnhancementsEnabled,
         gamingToolsEnabled: phosphorousEnabled && gameGamingToolsEnabled,
         adBlockerEnabled: phosphorousEnabled && gameAdBlockerEnabled,
+        phosphorousEnabled,
+        externalExtensions,
       });
     }
     const previous = extensionStateRef.current;
     const changed = previous.phosphorousEnabled !== phosphorousEnabled
       || previous.enhancementsEnabled !== gameEnhancementsEnabled
       || previous.gamingToolsEnabled !== gameGamingToolsEnabled
-      || previous.adBlockerEnabled !== gameAdBlockerEnabled;
+      || previous.adBlockerEnabled !== gameAdBlockerEnabled
+      || previous.externalExtensions !== externalExtensions;
     extensionStateRef.current = {
       phosphorousEnabled,
       enhancementsEnabled: gameEnhancementsEnabled,
       gamingToolsEnabled: gameGamingToolsEnabled,
       adBlockerEnabled: gameAdBlockerEnabled,
+      externalExtensions,
     };
     const iframe = iframeRef.current;
     if (changed && iframe) {
       refreshGame();
     }
-  }, [phosphorousEnabled, gameEnhancementsEnabled, gameGamingToolsEnabled, gameAdBlockerEnabled, refreshGame, title]);
+  }, [phosphorousEnabled, gameEnhancementsEnabled, gameGamingToolsEnabled, gameAdBlockerEnabled, externalExtensions, refreshGame, title]);
 
   return (
     <div className="game-player">

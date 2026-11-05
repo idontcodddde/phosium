@@ -25,6 +25,10 @@ import { applyCloak, isCloakOption, launchAboutBlank, launchBlob } from "./lib/c
 import type { CloakOption } from "./lib/cloak";
 import { createBareMuxCompatibleTransport } from "./lib/proxy/bareMuxTransport";
 import { createTransport, registerSystemWorker } from "./lib/proxy/runtime";
+import {
+  parseSavedExternalPhosiumExtensions,
+} from "./extensions/phosphorousExtensions";
+import type { ExternalPhosiumExtension } from "./extensions/phosphorousExtensions";
 
 function getSavedTheme(): DesktopTheme {
   if (typeof window === "undefined") return "midnight";
@@ -99,6 +103,15 @@ export default function App() {
       ?? localStorage.getItem("phosium_ad_blocker")
     ) !== "false"
   );
+  const [externalExtensions, setExternalExtensionsState] = useState<ExternalPhosiumExtension[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      return parseSavedExternalPhosiumExtensions(localStorage.getItem("phosium_external_extensions"));
+    } catch (error) {
+      console.error("Unable to load saved external extensions:", error);
+      return [];
+    }
+  });
   const [browserRequest, setBrowserRequest] = useState<{ id: number; url: string } | null>(null);
   const workerPromiseRef = useRef<Promise<ServiceWorker> | null>(null);
   const scramjetControllerRef = useRef<Controller | null>(null);
@@ -173,6 +186,16 @@ export default function App() {
   const setGameAdBlockerEnabled = useCallback((enabled: boolean) => {
     localStorage.setItem("phosium_game_ad_blocker", String(enabled));
     setGameAdBlockerEnabledState(enabled);
+  }, []);
+
+  const setExternalExtensions = useCallback((extensions: ExternalPhosiumExtension[]) => {
+    try {
+      localStorage.setItem("phosium_external_extensions", JSON.stringify(extensions));
+      setExternalExtensionsState(extensions);
+    } catch (error) {
+      console.error("Unable to save external extensions:", error);
+      throw error;
+    }
   }, []);
 
   const openInBrowser = useCallback((url: string) => {
@@ -450,6 +473,8 @@ export default function App() {
       setGameGamingToolsEnabled,
       gameAdBlockerEnabled,
       setGameAdBlockerEnabled,
+      externalExtensions,
+      setExternalExtensions,
       browserRequest,
       openInBrowser,
       openGame,

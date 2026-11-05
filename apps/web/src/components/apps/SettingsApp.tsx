@@ -4,6 +4,7 @@ import type { ProxyEngineType, ProxyTransportType } from "@repo/proxy";
 import type { DesktopTheme } from "../../SystemContext";
 import { CLOAK_OPTIONS, launchAboutBlank, launchBlob } from "../../lib/cloak";
 import { useSystem } from "../../SystemContext";
+import { parseExternalPhosiumExtension } from "../../extensions/phosphorousExtensions";
 
 interface WispServer {
   id: string;
@@ -96,6 +97,8 @@ export function SettingsApp() {
     setGameGamingToolsEnabled,
     gameAdBlockerEnabled,
     setGameAdBlockerEnabled,
+    externalExtensions,
+    setExternalExtensions,
     searchEngine,
     setSearchEngine,
     cloak,
@@ -141,6 +144,9 @@ export function SettingsApp() {
   const [newServerUrl, setNewServerUrl] = useState("");
   const [addError, setAddError] = useState("");
   const [wallpaperError, setWallpaperError] = useState("");
+  const [externalExtensionError, setExternalExtensionError] = useState("");
+  const [externalExtensionUrl, setExternalExtensionUrl] = useState("");
+  const [isLoadingExternalExtension, setIsLoadingExternalExtension] = useState(false);
   const isTestingRef = useRef(false);
 
   // Sync wispServers changes to localStorage whenever they update
@@ -182,6 +188,51 @@ export function SettingsApp() {
       }
     };
     reader.readAsDataURL(file);
+  };
+
+  const updateExternalExtensions = (extensions: typeof externalExtensions) => {
+    try {
+      setExternalExtensions(extensions);
+      setExternalExtensionError("");
+    } catch (error) {
+      setExternalExtensionError(error instanceof Error ? error.message : String(error));
+    }
+  };
+
+  const handleExternalExtensionSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsLoadingExternalExtension(true);
+    try {
+      const input = externalExtensionUrl.trim();
+      const urlInput = /^[a-z][a-z\d+.-]*:\/\//i.test(input) || input.startsWith("/")
+        ? input
+        : `http://${input}`;
+      const url = new URL(urlInput, window.location.href);
+      if (url.protocol !== "http:" && url.protocol !== "https:") {
+        throw new TypeError("Manifest URLs must use HTTP or HTTPS.");
+      }
+
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Could not load manifest (HTTP ${response.status}).`);
+      }
+      const manifestText = await response.text();
+      if (manifestText.length > 300 * 1024) {
+        throw new TypeError("Manifest files must be 300 KB or smaller.");
+      }
+
+      const extension = parseExternalPhosiumExtension(JSON.parse(manifestText));
+      if (externalExtensions.some((installed) => installed.id === extension.id)) {
+        throw new TypeError(`An extension with id "${extension.id}" is already installed.`);
+      }
+      updateExternalExtensions([...externalExtensions, extension]);
+      setExternalExtensionUrl("");
+    } catch (error) {
+      console.error("Unable to load external extension manifest:", error);
+      setExternalExtensionError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setIsLoadingExternalExtension(false);
+    }
   };
 
   // Function to test ping for a given wisp URL using WebSocket connection time
@@ -673,6 +724,64 @@ export function SettingsApp() {
               <ResetButton setting="game gaming tools" onReset={() => setGameGamingToolsEnabled(true)} />
             </div>
           </div>
+          <h2 className="settings-subheading">External extensions</h2>
+          <p className="settings-description">
+            Enter a URL to a Phosphorous manifest JSON file. JavaScript and HTML extensions run in the matched page, so only load manifests you trust.
+          </p>
+          <div className="settings-card external-extensions-card">
+            <form className="external-extension-url-form" onSubmit={(event) => void handleExternalExtensionSubmit(event)}>
+              <input
+                aria-label="External extension manifest URL"
+                autoComplete="url"
+                inputMode="url"
+                onChange={(event) => setExternalExtensionUrl(event.target.value)}
+                placeholder="http://localhost:3000/examples/extensions/my-manifest.json"
+                required
+                type="text"
+                value={externalExtensionUrl}
+              />
+              <button className="settings-save-button" disabled={isLoadingExternalExtension} type="submit">
+                {isLoadingExternalExtension ? "Loading…" : "Load manifest"}
+              </button>
+            </form>
+            {externalExtensions.length === 0 ? (
+              <p className="external-extensions-empty">No external extensions installed.</p>
+            ) : externalExtensions.map((extension) => (
+              <div className="settings-toggle-row external-extension-row" key={extension.id}>
+                <div>
+                  <strong>{extension.name}</strong>
+                  <p>{extension.id} · {extension.type}</p>
+                </div>
+                <div className="settings-control-actions">
+                  <label className="switch">
+                    <input
+                      aria-label={`Enable ${extension.name}`}
+                      checked={extension.enabled}
+                      disabled={!phosphorousEnabled}
+                      onChange={(event) => {
+                        updateExternalExtensions(externalExtensions.map((installed) =>
+                          installed.id === extension.id
+                            ? { ...installed, enabled: event.target.checked }
+                            : installed,
+                        ));
+                      }}
+                      type="checkbox"
+                    />
+                    <span />
+                  </label>
+                  <button
+                    aria-label={`Remove ${extension.name}`}
+                    className="settings-reset-button"
+                    onClick={() => updateExternalExtensions(externalExtensions.filter((installed) => installed.id !== extension.id))}
+                    type="button"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          {externalExtensionError && <span className="settings-error" role="alert">{externalExtensionError}</span>}
         </section>
         <section className="settings-section" id="search">
           <div className="settings-eyebrow">BROWSER</div>

@@ -1,0 +1,8 @@
+{
+  "manifest_version": 1,
+  "id": "example-focus-highlight",
+  "name": "Example Focus Highlight",
+  "type": "css",
+  "match": "*://*/*",
+  "css": "*:focus-visible { outline: 3px solid #a78bfa !important; outline-offset: 3px !important; }"
+}

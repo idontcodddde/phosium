@@ -1,0 +1,9 @@
+{
+  "manifest_version": 1,
+  "id": "example-heading-count",
+  "name": "Example Heading Count",
+  "type": "javascript",
+  "match": "*://*/*",
+  "position": "body",
+  "code": "(() => { const count = document.querySelectorAll('h1,h2,h3,h4,h5,h6').length; const badge = document.createElement('div'); badge.textContent = `${count} headings`; badge.setAttribute('aria-label', `This page has ${count} headings`); badge.style.cssText = 'position:fixed;top:12px;right:12px;z-index:2147483647;padding:8px 12px;border-radius:8px;background:#282943;color:#fff;font:12px sans-serif;box-shadow:0 2px 8px #0005;'; document.body.appendChild(badge); })();"
+}

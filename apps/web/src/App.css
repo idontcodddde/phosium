@@ -446,7 +446,7 @@
 
 .phosium-desktop-widgets {
   position: absolute;
-  z-index: 10001;
+  z-index: 5;
   top: 16px;
   right: 18px;
   display: flex;
@@ -1055,7 +1055,9 @@
   z-index: 10;
   top: calc(100% + 9px);
   right: -6px;
-  width: 300px;
+  width: min(300px, calc(100vw - 32px));
+  max-height: min(70vh, 560px);
+  overflow: auto;
   padding: 10px;
   color: #202124;
   background: #fff;
@@ -1082,6 +1084,15 @@
   font-size: 8px;
   font-weight: 750;
   letter-spacing: .12em;
+}
+
+.chrome-extension-section-heading {
+  padding: 10px 6px 3px;
+  color: #777d86;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
 }
 
 .chrome-extension-item {
@@ -1112,6 +1123,11 @@
 .extension-glyph-game {
   color: #19663d;
   background: #e2f6e9;
+}
+
+.extension-glyph-external {
+  color: #245c78;
+  background: #e4f4fb;
 }
 
 .chrome-extension-item > span:nth-child(2) {
@@ -1696,6 +1712,49 @@
   margin: 4px 0 0;
   color: var(--text-muted);
   font-size: 9px;
+}
+
+.external-extensions-card {
+  padding: 10px;
+}
+
+.external-extension-row {
+  margin: 0;
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+}
+
+.external-extensions-empty {
+  margin: 2px 4px 10px;
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.external-extension-url-form {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  margin-bottom: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.external-extension-url-form input {
+  flex: 1;
+  min-width: 0;
+  height: 34px;
+  padding: 0 10px;
+  color: var(--text-primary);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font-size: 10px;
+}
+
+.external-extension-url-form .settings-save-button:disabled {
+  opacity: .5;
+  cursor: default;
 }
 
 .settings-control-actions {

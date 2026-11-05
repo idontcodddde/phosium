@@ -15,6 +15,27 @@ Phosium is an experimental browser-based desktop environment. It brings a multi-
 
 Proxy behavior depends on the selected engine, browser capabilities, and the deployment environment. The Phosphorous ad blocker is best-effort page-level filtering; it is not a browser-native network filter and cannot prevent every request.
 
+## External Phosphorous extensions
+
+Open **Settings → Extensions** and enter the HTTP(S) URL of a hosted manifest JSON file, such as `http://localhost:3000/examples/extensions/focus-highlight.json`. Manifests are fetched only when you enter their URL; examples are not automatically listed or installed. Installed manifests are saved in the current browser's local storage and are available to browser tabs and game windows. Each extension can be enabled or disabled, or removed, from the same settings page. A different origin may need to allow cross-origin requests (CORS).
+
+Manifest version 1 supports `javascript`, `html`, and `css` extensions. For example:
+
+```json
+{
+  "manifest_version": 1,
+  "id": "sample-page-style",
+  "name": "Sample page style",
+  "type": "css",
+  "match": "*://example.com/*",
+  "hook": "DOMContentLoaded",
+  "position": "head",
+  "css": "body { outline: 2px solid #8b8cf7; }"
+}
+```
+
+`match` can be a URL pattern or an array of URL patterns; `hook` defaults to `DOMContentLoaded` and `position` defaults to `head`. JavaScript in a manifest is injected into the matched page and HTML is added to its document, so extensions can access or modify that page. Only import manifests from sources you trust.
+
 ## Requirements
 
 - Node.js 20.19 or newer
