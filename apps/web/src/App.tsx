@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { BareMuxConnection } from "@mercuryworkshop/bare-mux";
 import EpoxyTransport from "@mercuryworkshop/epoxy-transport";
 import LibcurlTransport from "@mercuryworkshop/libcurl-transport";
@@ -16,6 +17,8 @@ import { GamePlayerApp } from "./components/apps/GamePlayerApp";
 import { SettingsApp } from "./components/apps/SettingsApp";
 import { TextEditorApp } from "./components/apps/TextEditorApp";
 import { FilesApp } from "./components/apps/FilesApp";
+import { TaskManagerApp } from "./components/apps/TaskManagerApp";
+import { DesktopWidgets } from "./components/DesktopWidgets";
 import { SystemContext } from "./SystemContext";
 import type { AutoLaunchMode, DesktopTheme, SearchEngine } from "./SystemContext";
 import { applyCloak, isCloakOption, launchAboutBlank, launchBlob } from "./lib/cloak";
@@ -27,6 +30,11 @@ function getSavedTheme(): DesktopTheme {
   if (typeof window === "undefined") return "midnight";
   const theme = localStorage.getItem("phosium_theme");
   return theme === "light" || theme === "ocean" ? theme : "midnight";
+}
+
+function getSavedWallpaper(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("phosium_wallpaper");
 }
 
 function getSavedSearchEngine(): SearchEngine {
@@ -50,6 +58,7 @@ function getSavedAutoLaunchMode(): AutoLaunchMode {
 export default function App() {
   const [proxySettings, setProxySettings] = useState(() => proxyManager.getSettings());
   const [theme, setThemeState] = useState<DesktopTheme>(getSavedTheme);
+  const [wallpaper, setWallpaperState] = useState<string | null>(getSavedWallpaper);
   const [searchEngine, setSearchEngineState] = useState<SearchEngine>(getSavedSearchEngine);
   const [cloak, setCloakState] = useState<CloakOption>(getSavedCloak);
   const [autoLaunchMode, setAutoLaunchModeState] = useState<AutoLaunchMode>(getSavedAutoLaunchMode);
@@ -108,6 +117,12 @@ export default function App() {
   const setTheme = useCallback((nextTheme: DesktopTheme) => {
     localStorage.setItem("phosium_theme", nextTheme);
     setThemeState(nextTheme);
+  }, []);
+
+  const setWallpaper = useCallback((image: string | null) => {
+    if (image === null) localStorage.removeItem("phosium_wallpaper");
+    else localStorage.setItem("phosium_wallpaper", image);
+    setWallpaperState(image);
   }, []);
 
   const setSearchEngine = useCallback((engine: SearchEngine) => {
@@ -326,8 +341,8 @@ export default function App() {
     },
     {
       id: "files",
-      title: "File Explorer",
-      icon: "📁",
+      title: "Files",
+      icon: "F",
       description: "Browse virtual file system records",
       isOpen: false,
       isMinimized: false,
@@ -351,7 +366,7 @@ export default function App() {
     {
       id: "text-editor",
       title: "Text Editor",
-      icon: "📄",
+      icon: "T",
       description: "Create and save documents to VFS",
       isOpen: false,
       isMinimized: false,
@@ -362,9 +377,9 @@ export default function App() {
     },
     {
       id: "calculator",
-      title: "Calculator",
-      icon: "🔢",
-      description: "Perform quick calculations",
+      title: "Math Studio",
+      icon: "M",
+      description: "Graph, solve, and explore functions",
       isOpen: false,
       isMinimized: false,
       isMaximized: false,
@@ -396,6 +411,18 @@ export default function App() {
       position: { x: 165, y: 108 },
       component: <SettingsApp />,
     },
+    {
+      id: "task-manager",
+      title: "Task Manager",
+      icon: "▣",
+      description: "View and end running apps",
+      isOpen: false,
+      isMinimized: false,
+      isMaximized: false,
+      zIndex: 15,
+      position: { x: 315, y: 120 },
+      component: <TaskManagerApp />,
+    },
   ], []);
 
   return (
@@ -404,6 +431,8 @@ export default function App() {
       updateProxySettings,
       theme,
       setTheme,
+      wallpaper,
+      setWallpaper,
       proxyStatus: proxySettings.enabled ? proxyStatus : "System-wide proxy is off.",
       controller,
       serviceWorker,
@@ -431,8 +460,12 @@ export default function App() {
       autoLaunchMode,
       setAutoLaunchMode,
     }}>
-      <div className="phosium-root">
+      <div
+        className="phosium-root"
+        style={wallpaper ? { "--desktop-wallpaper": `url("${wallpaper}")` } as CSSProperties : undefined}
+      >
         <Desktop initialWindows={initialWindows} />
+        <DesktopWidgets />
       </div>
     </SystemContext.Provider>
   );

@@ -17,6 +17,8 @@ export interface SystemContextValue {
   updateProxySettings: (settings: Partial<ProxySettings>) => void;
   theme: DesktopTheme;
   setTheme: (theme: DesktopTheme) => void;
+  wallpaper: string | null;
+  setWallpaper: (wallpaper: string | null) => void;
   proxyStatus: string;
   controller: Controller | null;
   serviceWorker: ServiceWorker | null;

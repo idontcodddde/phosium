@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import type { FormEvent } from "react";
+import type { ChangeEvent, FormEvent } from "react";
 import type { ProxyEngineType, ProxyTransportType } from "@repo/proxy";
 import type { DesktopTheme } from "../../SystemContext";
 import { CLOAK_OPTIONS, launchAboutBlank, launchBlob } from "../../lib/cloak";
@@ -79,6 +79,8 @@ export function SettingsApp() {
     updateProxySettings,
     theme,
     setTheme,
+    wallpaper,
+    setWallpaper,
     proxyStatus,
     phosphorousEnabled,
     setPhosphorousEnabled,
@@ -138,14 +140,49 @@ export function SettingsApp() {
   const [newServerName, setNewServerName] = useState("");
   const [newServerUrl, setNewServerUrl] = useState("");
   const [addError, setAddError] = useState("");
+  const [wallpaperError, setWallpaperError] = useState("");
   const isTestingRef = useRef(false);
 
   // Sync wispServers changes to localStorage whenever they update
   useEffect(() => {
     try {
       localStorage.setItem("phosium_wisp_servers", JSON.stringify(wispServers));
-    } catch {}
+      window.dispatchEvent(new CustomEvent("phosium:wisp-servers-updated"));
+    } catch (error) {
+      console.error("Unable to save Wisp servers:", error);
+    }
   }, [wispServers]);
+
+  const handleWallpaperChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setWallpaperError("Choose an image file.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setWallpaperError("Choose an image smaller than 2 MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onerror = () => setWallpaperError("Unable to read this image.");
+    reader.onload = () => {
+      if (typeof reader.result !== "string") {
+        setWallpaperError("Unable to read this image.");
+        return;
+      }
+      try {
+        setWallpaper(reader.result);
+        setWallpaperError("");
+      } catch (error) {
+        console.error("Unable to save desktop wallpaper:", error);
+        setWallpaperError("Unable to save this image. Try a smaller file.");
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Function to test ping for a given wisp URL using WebSocket connection time
   const measurePing = async (url: string): Promise<number> => {
@@ -303,6 +340,31 @@ export function SettingsApp() {
           </div>
           <div className="settings-reset-row">
             <ResetButton setting="desktop theme" onReset={() => setTheme("midnight")} />
+          </div>
+          <div className="settings-card wallpaper-card">
+            <div className="wallpaper-card-copy">
+              <strong>Desktop wallpaper</strong>
+              <p>Choose an image from your device. Images up to 2 MB are saved on this browser.</p>
+            </div>
+            <div className="wallpaper-preview" style={wallpaper ? { backgroundImage: `url("${wallpaper}")` } : undefined}>
+              {!wallpaper && <span>No custom image</span>}
+            </div>
+            <div className="wallpaper-actions">
+              <label className="settings-save-button wallpaper-upload">
+                Choose image
+                <input type="file" accept="image/*" onChange={handleWallpaperChange} />
+              </label>
+              {wallpaper && <button className="wallpaper-remove" type="button" onClick={() => {
+                try {
+                  setWallpaper(null);
+                  setWallpaperError("");
+                } catch (error) {
+                  console.error("Unable to clear desktop wallpaper:", error);
+                  setWallpaperError("Unable to remove the wallpaper.");
+                }
+              }}>Remove wallpaper</button>}
+            </div>
+            {wallpaperError && <span className="settings-error" role="alert">{wallpaperError}</span>}
           </div>
         </section>
 

@@ -2,9 +2,10 @@ const DB_NAME = "PhosiumVFS";
 const STORE_NAME = "files";
 const DB_VERSION = 1;
 
-export interface VFSFile {
-    path: string;
-    content: string;
+export interface VFSNode {
+    path: string; // e.g., "/documents/notes.txt" or "/documents"
+    type: "file" | "directory";
+    content?: string;
     updatedAt: number;
 }
 
@@ -25,51 +26,40 @@ export function openVFSDB(): Promise<IDBDatabase> {
     });
 }
 
-export async function dbWriteFile(
-    path: string,
-    content: string,
-): Promise<void> {
+export async function dbPutNode(node: VFSNode): Promise<void> {
     const db = await openVFSDB();
     return new Promise((resolve, reject) => {
         const transaction = db.transaction(STORE_NAME, "readwrite");
         const store = transaction.objectStore(STORE_NAME);
-        const fileRecord: VFSFile = {
-            path,
-            content,
-            updatedAt: Date.now(),
-        };
-        const request = store.put(fileRecord);
+        const request = store.put(node);
         request.onsuccess = () => resolve();
         request.onerror = () => reject(request.error);
     });
 }
 
-export async function dbReadFile(path: string): Promise<string | null> {
+export async function dbGetNode(path: string): Promise<VFSNode | null> {
     const db = await openVFSDB();
     return new Promise((resolve, reject) => {
         const transaction = db.transaction(STORE_NAME, "readonly");
         const store = transaction.objectStore(STORE_NAME);
         const request = store.get(path);
-        request.onsuccess = () => {
-            const result = request.result as VFSFile | undefined;
-            resolve(result ? result.content : null);
-        };
+        request.onsuccess = () => resolve((request.result as VFSNode) || null);
         request.onerror = () => reject(request.error);
     });
 }
 
-export async function dbListFiles(): Promise<string[]> {
+export async function dbListNodes(): Promise<VFSNode[]> {
     const db = await openVFSDB();
     return new Promise((resolve, reject) => {
         const transaction = db.transaction(STORE_NAME, "readonly");
         const store = transaction.objectStore(STORE_NAME);
-        const request = store.getAllKeys();
-        request.onsuccess = () => resolve(request.result as string[]);
+        const request = store.getAll();
+        request.onsuccess = () => resolve(request.result as VFSNode[]);
         request.onerror = () => reject(request.error);
     });
 }
 
-export async function dbDeleteFile(path: string): Promise<void> {
+export async function dbDeleteNode(path: string): Promise<void> {
     const db = await openVFSDB();
     return new Promise((resolve, reject) => {
         const transaction = db.transaction(STORE_NAME, "readwrite");

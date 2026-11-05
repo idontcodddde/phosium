@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import type { WindowState } from '../types.js';
 import { Window } from './Window.js';
 import { Taskbar } from './Taskbar.js';
+import { WindowManagerContext } from '../WindowManagerContext.js';
 
 interface DesktopProps {
     initialWindows?: WindowState[];
@@ -161,13 +162,24 @@ export const Desktop: React.FC<DesktopProps> = ({ initialWindows = [] }) => {
         };
     }, []);
 
+    useEffect(() => {
+            const handleCloseAll = () => {
+                setWindows((current) => current.map((appWindow) => ({ ...appWindow, isOpen: false, isMinimized: false })));
+                fullscreenRestoreRef.current = null;
+                setFullscreenWindowId(null);
+                setStartMenuOpen(false);
+            };
+            window.addEventListener('phosium:close-all-windows', handleCloseAll);
+            return () => window.removeEventListener('phosium:close-all-windows', handleCloseAll);
+    }, []);
+
     return (
-        <div className={`os-desktop${fullscreenWindowId ? ' is-app-fullscreen' : ''}`} ref={desktopRef}>
-            <header className="os-topbar">
-                <span className="os-brand">PHOSIUM</span>
-                <span className="os-topbar-center">Workspace</span>
-            </header>
-            <div className="os-desktop-icons">
+            <WindowManagerContext.Provider value={{
+                windows: windows.map(({ id, title, isOpen, isMinimized }) => ({ id, title, isOpen, isMinimized })),
+                closeWindow: handleClose,
+            }}>
+            <div className={`os-desktop${fullscreenWindowId ? ' is-app-fullscreen' : ''}`} ref={desktopRef}>
+                <div className="os-desktop-icons">
                 {initialWindows.map((app) => (
                     <button className="os-desktop-icon" key={app.id} onClick={() => handleToggleWindow(app.id)} onDoubleClick={() => openNewWindow(app.id)}>
                         <span className="os-desktop-icon-glyph">{app.icon ?? app.title.charAt(0)}</span>
@@ -219,5 +231,6 @@ export const Desktop: React.FC<DesktopProps> = ({ initialWindows = [] }) => {
                 onOpenApp={() => setStartMenuOpen((open) => !open)}
             />
         </div>
+        </WindowManagerContext.Provider>
     );
 };
