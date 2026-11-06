@@ -241,6 +241,12 @@ importers:
 
   packages/os-shell:
     dependencies:
+      '@iconify-icons/lucide':
+        specifier: ^2.0.27
+        version: 2.0.27
+      '@iconify/react':
+        specifier: ^6.0.4
+        version: 6.0.4(react@19.3.1)
       '@repo/utils':
         specifier: workspace:*
         version: link:../utils
@@ -482,6 +488,17 @@ packages:
 
   '@fastify/deepmerge@3.2.2':
     resolution: {integrity: sha512-155eqA/WMQdN6gUD4RrhS2K0Pcz2Ou9pQ86L0sipOpP9ONbTA6oYw/hW4VdBjR4egcDHqmWUK9x80oUX7S1mDQ==}
+
+  '@iconify-icons/lucide@2.0.27':
+    resolution: {integrity: sha512-lEi+jDSex5X7h2DwRHKoxtfUMGLQmhg9lVTKmtUu4fHd4emgnSFnz/g38J7E+fUWDKKWL1rijYL13ylcu3rVbA==}
+
+  '@iconify/react@6.0.4':
+    resolution: {integrity: sha512-7nKd1eF52E1QGIl46eDWfMNPuTQHUxsXoK2Evgtu5jr386jCWTuWFLHM9vfsTNbUcKp+uq6ao+3skNUalDhH/w==}
+    peerDependencies:
+      react: '>=18.0.0'
+
+  '@iconify/types@2.0.0':
+    resolution: {integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==}
 
   '@mercuryworkshop/bare-mux@2.1.9':
     resolution: {integrity: sha512-fiOqWm3VP0Bl8T+0l+qnb7ab9zO+PpKVbtJvOnMsefUv6kWIaoDtqyr9hd/t4gA8oBwgtyZVqIwO2J9nKY9ylw==}
@@ -1946,6 +1963,17 @@ snapshots:
     optional: true
 
   '@fastify/deepmerge@3.2.2': {}
+
+  '@iconify-icons/lucide@2.0.27':
+    dependencies:
+      '@iconify/types': 2.0.0
+
+  '@iconify/react@6.0.4(react@19.3.1)':
+    dependencies:
+      '@iconify/types': 2.0.0
+      react: 19.3.1
+
+  '@iconify/types@2.0.0': {}
 
   '@mercuryworkshop/bare-mux@2.1.9': {}
 

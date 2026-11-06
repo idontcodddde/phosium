@@ -11,7 +11,7 @@ const hostPattern = /^(?:localhost(?::\d+)?|(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?|(?:
 
 export function resolveAddress(input: string, engine: SearchEngine): string {
   const trimmed = input.trim();
-  if (!trimmed) throw new TypeError("Enter a web address.");
+  if (!trimmed) throw new TypeError("Enter a web address or search.");
 
   if (/^[a-z][a-z\d+.-]*:\/\//i.test(trimmed)) {
     const explicitUrl = new URL(trimmed);

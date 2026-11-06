@@ -53,9 +53,6 @@ export function AboutApp() {
                 }}>
                     PHOSIUM
                 </h1>
-                <p style={{ margin: '4px 0 0', fontSize: '11px', color: 'var(--text-muted, #77798c)', letterSpacing: '0.05em' }}>
-                    EXPERIMENTAL BROWSER ENVIRONMENT
-                </p>
             </div>
 
             {/* Main Layout Block */}
@@ -131,13 +128,13 @@ export function AboutApp() {
                             }}>
                                 <div>
                                     Lead Developer:{' '}
-                                    <a href="https://github.com" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #a99bff)', textDecoration: 'none' }}>
+                                    <a href="https://github.com/idontcodddde" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #a99bff)', textDecoration: 'none' }}>
                                         idontcodddde
                                     </a>
                                 </div>
                                 <div>
                                     Repository Source:{' '}
-                                    <a href="https://github.com" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #a99bff)', textDecoration: 'none' }}>
+                                    <a href="https://github.com/idontcodddde/phosium" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent, #a99bff)', textDecoration: 'none' }}>
                                         GitHub Repo
                                     </a>
                                 </div>
@@ -172,7 +169,6 @@ export function AboutApp() {
                 color: 'var(--text-muted, #77798c)'
             }}>
                 <span>© {new Date().getFullYear()} Phosium Project. All rights reserved.</span>
-                <span>Alpha Build Phase</span>
             </div>
         </div>
     );

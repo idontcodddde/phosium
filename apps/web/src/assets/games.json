@@ -2301,7 +2301,7 @@
             "title": "Solitaire",
             "category": "Card",
             "url": "https://cardgames.io/solitaire/",
-            "art": "♠",
+            "art": "spade",
             "tint": "felt",
             "detail": "A relaxing round of classic solitaire."
         },
@@ -2325,7 +2325,7 @@
             "title": "Chess.com",
             "category": "Board",
             "url": "https://www.chess.com/play/computer",
-            "art": "♞",
+            "art": "chess-knight",
             "tint": "wood",
             "detail": "Play a quick game against the computer."
         }

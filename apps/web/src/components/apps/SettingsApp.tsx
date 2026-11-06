@@ -4,6 +4,7 @@ import type { ProxyEngineType, ProxyTransportType } from "@repo/proxy";
 import type { DesktopTheme } from "../../SystemContext";
 import { CLOAK_OPTIONS, launchAboutBlank, launchBlob } from "../../lib/cloak";
 import { useSystem } from "../../SystemContext";
+import { PhosiumIcon } from "@repo/os-shell";
 import { parseExternalPhosiumExtension } from "../../extensions/phosphorousExtensions";
 
 interface WispServer {
@@ -35,43 +36,23 @@ function defaultWispUrl(): string {
 
 // SVG Signal Icon component that dynamically renders 1, 2, 3, or 4 bars based on ping quality
 function SignalIcon({ ping }: { ping: number | null }) {
-  let activeBars = 1;
   let color = "#f87171"; // red for bad/timeout
 
   if (ping !== null && ping < 999) {
     if (ping < 150) {
-      activeBars = 4;
       color = "#4ade80"; // green
     } else if (ping < 300) {
-      activeBars = 3;
       color = "#4ade80";
     } else if (ping < 600) {
-      activeBars = 2;
       color = "#fbbf24"; // yellow
-    } else {
-      activeBars = 1;
-      color = "#f87171";
     }
   }
 
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
-      <rect x="2" y="14" width="3" height="7" rx="1" fill={activeBars >= 1 ? color : "rgba(255,255,255,0.2)"} />
-      <rect x="7" y="10" width="3" height="11" rx="1" fill={activeBars >= 2 ? color : "rgba(255,255,255,0.2)"} />
-      <rect x="12" y="6" width="3" height="15" rx="1" fill={activeBars >= 3 ? color : "rgba(255,255,255,0.2)"} />
-      <rect x="17" y="2" width="3" height="19" rx="1" fill={activeBars >= 4 ? color : "rgba(255,255,255,0.2)"} />
-    </svg>
-  );
+  return <PhosiumIcon name="wifi" size={20} style={{ flexShrink: 0, color }} />;
 }
 
-// Trash / Delete icon SVG
 function TrashIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="3 6 5 6 21 6" />
-      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-    </svg>
-  );
+  return <PhosiumIcon name="trash-2" size={16} />;
 }
 
 export function SettingsApp() {
@@ -80,6 +61,8 @@ export function SettingsApp() {
     updateProxySettings,
     theme,
     setTheme,
+    browserTheme,
+    setBrowserTheme,
     wallpaper,
     setWallpaper,
     proxyStatus,
@@ -105,7 +88,16 @@ export function SettingsApp() {
     setCloak,
     autoLaunchMode,
     setAutoLaunchMode,
+    panicKeyEnabled,
+    setPanicKeyEnabled,
+    panicKey,
+    setPanicKey,
+    panicUrl,
+    setPanicUrl,
   } = useSystem();
+  const [panicDestinationDraft, setPanicDestinationDraft] = useState(panicUrl);
+  const [panicDestinationError, setPanicDestinationError] = useState("");
+  const [isCapturingPanicKey, setIsCapturingPanicKey] = useState(false);
 
   // Load saved servers from localStorage or initialize with local host endpoint
   const [wispServers, setWispServers] = useState<WispServer[]>(() => {
@@ -353,11 +345,25 @@ export function SettingsApp() {
     }
   };
 
+  const savePanicDestination = (event: FormEvent) => {
+    event.preventDefault();
+    try {
+      setPanicUrl(panicDestinationDraft.trim());
+      setPanicDestinationError("");
+    } catch (error) {
+      console.error("Unable to save panic destination:", error);
+      setPanicDestinationError(error instanceof Error ? error.message : "Enter a valid HTTP or HTTPS URL.");
+    }
+  };
+
+  const panicKeyLabel = panicKey === "\\" ? "Backslash (\\)" : panicKey === " " ? "Space" : panicKey;
+
   return (
     <main className="settings-app">
       <aside className="settings-sidebar">
         <div className="settings-sidebar-title">System Settings</div>
         <a className="settings-nav-item is-selected" href="#appearance">Appearance</a>
+        <a className="settings-nav-item" href="#panic-key">Panic key</a>
         <a className="settings-nav-item" href="#network">Network & Proxy</a>
         <a className="settings-nav-item" href="#enhancements">Extensions</a>
         <a className="settings-nav-item" href="#search">Search engine</a>
@@ -392,6 +398,32 @@ export function SettingsApp() {
           <div className="settings-reset-row">
             <ResetButton setting="desktop theme" onReset={() => setTheme("midnight")} />
           </div>
+          <h2 className="settings-subheading">Browser appearance</h2>
+          <p className="settings-description">Choose a browser theme independent of your Phosium desktop theme.</p>
+          <div className="settings-card theme-options browser-theme-options" role="radiogroup" aria-label="Browser theme">
+            {([
+              ["light", "Light", "Bright browser controls and start page"],
+              ["dark", "Dark", "Dim browser controls and start page"],
+            ] as const).map(([value, title, description]) => (
+              <button
+                aria-checked={browserTheme === value}
+                className={`theme-option${browserTheme === value ? " is-selected" : ""}`}
+                key={value}
+                onClick={() => setBrowserTheme(value)}
+                role="radio"
+                type="button"
+              >
+                <span className={`theme-preview browser-theme-preview browser-theme-preview-${value}`}>
+                  <i /><i /><i />
+                </span>
+                <strong>{title}</strong>
+                <small>{description}</small>
+              </button>
+            ))}
+          </div>
+          <div className="settings-reset-row">
+            <ResetButton setting="browser theme" onReset={() => setBrowserTheme("light")} />
+          </div>
           <div className="settings-card wallpaper-card">
             <div className="wallpaper-card-copy">
               <strong>Desktop wallpaper</strong>
@@ -416,6 +448,70 @@ export function SettingsApp() {
               }}>Remove wallpaper</button>}
             </div>
             {wallpaperError && <span className="settings-error" role="alert">{wallpaperError}</span>}
+          </div>
+        </section>
+
+        <section className="settings-section" id="panic-key">
+          <div className="settings-eyebrow">QUICK EXIT</div>
+          <h1>Panic key</h1>
+          <p className="settings-description">Optionally redirect this tab to a chosen site with a keyboard shortcut.</p>
+          <div className="settings-card settings-toggle-row">
+            <div>
+              <strong>Enable panic key</strong>
+              <p>Disabled by default. When enabled, the chosen key opens the destination directly.</p>
+            </div>
+            <label className="switch">
+              <input
+                aria-label="Enable panic key"
+                checked={panicKeyEnabled}
+                onChange={(event) => setPanicKeyEnabled(event.target.checked)}
+                type="checkbox"
+              />
+              <span />
+            </label>
+          </div>
+          <div className="settings-card panic-key-settings">
+            <div className="settings-field">
+              <span>Activation key</span>
+              <div className="settings-control-row">
+                <button
+                  aria-label={isCapturingPanicKey ? "Press a key to use as the panic key" : `Panic key: ${panicKeyLabel}. Click to change`}
+                  className="settings-save-button panic-key-capture"
+                  data-panic-key-capture
+                  onClick={() => setIsCapturingPanicKey(true)}
+                  onKeyDown={(event) => {
+                    if (!isCapturingPanicKey) return;
+                    if (event.key === "Escape") {
+                      event.preventDefault();
+                      setIsCapturingPanicKey(false);
+                      return;
+                    }
+                    if (["Alt", "Control", "Meta", "Shift"].includes(event.key)) return;
+                    event.preventDefault();
+                    setPanicKey(event.key);
+                    setIsCapturingPanicKey(false);
+                  }}
+                  type="button"
+                >
+                  {isCapturingPanicKey ? "Press any key…" : panicKeyLabel}
+                </button>
+                <small>Click the button, then press a key.</small>
+              </div>
+            </div>
+            <form className="settings-field" onSubmit={savePanicDestination}>
+              <label htmlFor="panic-destination">Destination site</label>
+              <div className="settings-control-row panic-destination-row">
+                <input
+                  id="panic-destination"
+                  onChange={(event) => setPanicDestinationDraft(event.target.value)}
+                  placeholder="https://www.google.com/"
+                  type="url"
+                  value={panicDestinationDraft}
+                />
+                <button className="settings-save-button" type="submit">Save site</button>
+              </div>
+              {panicDestinationError && <span className="settings-error" role="alert">{panicDestinationError}</span>}
+            </form>
           </div>
         </section>
 

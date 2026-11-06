@@ -5,7 +5,7 @@ import EpoxyTransport from "@mercuryworkshop/epoxy-transport";
 import LibcurlTransport from "@mercuryworkshop/libcurl-transport";
 import { defaultConfigDev } from "@mercuryworkshop/scramjet";
 import { config as defaultControllerConfig, Controller } from "@mercuryworkshop/scramjet-controller";
-import { Desktop } from "@repo/os-shell";
+import { Desktop, PhosiumIcon } from "@repo/os-shell";
 import type { WindowState } from "@repo/os-shell";
 import { proxyManager } from "@repo/proxy";
 import type { ProxySettings } from "@repo/proxy";
@@ -20,7 +20,7 @@ import { FilesApp } from "./components/apps/FilesApp";
 import { TaskManagerApp } from "./components/apps/TaskManagerApp";
 import { DesktopWidgets } from "./components/DesktopWidgets";
 import { SystemContext } from "./SystemContext";
-import type { AutoLaunchMode, DesktopTheme, SearchEngine } from "./SystemContext";
+import type { AutoLaunchMode, BrowserTheme, DesktopTheme, SearchEngine } from "./SystemContext";
 import { applyCloak, isCloakOption, launchAboutBlank, launchBlob } from "./lib/cloak";
 import type { CloakOption } from "./lib/cloak";
 import { createBareMuxCompatibleTransport } from "./lib/proxy/bareMuxTransport";
@@ -34,6 +34,11 @@ function getSavedTheme(): DesktopTheme {
   if (typeof window === "undefined") return "midnight";
   const theme = localStorage.getItem("phosium_theme");
   return theme === "light" || theme === "ocean" ? theme : "midnight";
+}
+
+function getSavedBrowserTheme(): BrowserTheme {
+  if (typeof window === "undefined") return "light";
+  return localStorage.getItem("phosium_browser_theme") === "dark" ? "dark" : "light";
 }
 
 function getSavedWallpaper(): string | null {
@@ -59,13 +64,47 @@ function getSavedAutoLaunchMode(): AutoLaunchMode {
   return saved === "about-blank" || saved === "blob" ? saved : "none";
 }
 
+function getSavedPanicKey(): string {
+  if (typeof window === "undefined") return "\\";
+  return localStorage.getItem("phosium_panic_key") || "\\";
+}
+
+function getSavedPanicUrl(): string {
+  if (typeof window === "undefined") return "https://www.google.com/";
+  const saved = localStorage.getItem("phosium_panic_url");
+  if (!saved) return "https://www.google.com/";
+  try {
+    const url = new URL(saved);
+    return url.protocol === "http:" || url.protocol === "https:"
+      ? url.href
+      : "https://www.google.com/";
+  } catch {
+    return "https://www.google.com/";
+  }
+}
+
 export default function App() {
   const [proxySettings, setProxySettings] = useState(() => proxyManager.getSettings());
+  const [showAlphaDisclaimer, setShowAlphaDisclaimer] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return localStorage.getItem("phosium_alpha_disclaimer_acknowledged") !== "true";
+    } catch (error) {
+      console.error("Could not check whether the alpha disclaimer was acknowledged.", error);
+      return true;
+    }
+  });
   const [theme, setThemeState] = useState<DesktopTheme>(getSavedTheme);
+  const [browserTheme, setBrowserThemeState] = useState<BrowserTheme>(getSavedBrowserTheme);
   const [wallpaper, setWallpaperState] = useState<string | null>(getSavedWallpaper);
   const [searchEngine, setSearchEngineState] = useState<SearchEngine>(getSavedSearchEngine);
   const [cloak, setCloakState] = useState<CloakOption>(getSavedCloak);
   const [autoLaunchMode, setAutoLaunchModeState] = useState<AutoLaunchMode>(getSavedAutoLaunchMode);
+  const [panicKeyEnabled, setPanicKeyEnabledState] = useState(
+    () => typeof window !== "undefined" && localStorage.getItem("phosium_panic_key_enabled") === "true",
+  );
+  const [panicKey, setPanicKeyState] = useState<string>(getSavedPanicKey);
+  const [panicUrl, setPanicUrlState] = useState<string>(getSavedPanicUrl);
   const [proxyStatus, setProxyStatus] = useState(() =>
     typeof navigator !== "undefined" && "serviceWorker" in navigator
       ? "Starting system services..."
@@ -127,6 +166,20 @@ export default function App() {
     setProxySettings((current) => ({ ...current, ...update }));
   }, []);
 
+  const setBrowserTheme = useCallback((nextTheme: BrowserTheme) => {
+    localStorage.setItem("phosium_browser_theme", nextTheme);
+    setBrowserThemeState(nextTheme);
+  }, []);
+
+  const acknowledgeAlphaDisclaimer = useCallback(() => {
+    try {
+      localStorage.setItem("phosium_alpha_disclaimer_acknowledged", "true");
+    } catch (error) {
+      console.error("Could not save the alpha disclaimer acknowledgment.", error);
+    }
+    setShowAlphaDisclaimer(false);
+  }, []);
+
   const setTheme = useCallback((nextTheme: DesktopTheme) => {
     localStorage.setItem("phosium_theme", nextTheme);
     setThemeState(nextTheme);
@@ -151,6 +204,25 @@ export default function App() {
   const setAutoLaunchMode = useCallback((mode: AutoLaunchMode) => {
     localStorage.setItem("phosium_auto_launch", mode);
     setAutoLaunchModeState(mode);
+  }, []);
+
+  const setPanicKeyEnabled = useCallback((enabled: boolean) => {
+    localStorage.setItem("phosium_panic_key_enabled", String(enabled));
+    setPanicKeyEnabledState(enabled);
+  }, []);
+
+  const setPanicKey = useCallback((key: string) => {
+    localStorage.setItem("phosium_panic_key", key);
+    setPanicKeyState(key);
+  }, []);
+
+  const setPanicUrl = useCallback((url: string) => {
+    const parsedUrl = new URL(url);
+    if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+      throw new TypeError("The panic destination must use HTTP or HTTPS.");
+    }
+    localStorage.setItem("phosium_panic_url", parsedUrl.href);
+    setPanicUrlState(parsedUrl.href);
   }, []);
 
   const setPhosphorousEnabled = useCallback((enabled: boolean) => {
@@ -209,7 +281,7 @@ export default function App() {
       detail: {
         id: `game-${instance}`,
         title,
-        icon: "▶",
+        icon: <PhosiumIcon name="gamepad-2" />,
         description: `Play ${title}`,
         isOpen: true,
         isMinimized: false,
@@ -349,11 +421,25 @@ export default function App() {
     };
   }, [proxySettings, serviceWorker]);
 
+  useEffect(() => {
+    if (!panicKeyEnabled || !panicKey) return;
+    const handlePanicKey = (event: KeyboardEvent) => {
+      if (event.key !== panicKey) return;
+      const target = event.target;
+      if (target instanceof HTMLElement
+        && (target.isContentEditable || target.matches("input, textarea, select, [data-panic-key-capture]"))) return;
+      event.preventDefault();
+      window.location.assign(panicUrl);
+    };
+    window.addEventListener("keydown", handlePanicKey);
+    return () => window.removeEventListener("keydown", handlePanicKey);
+  }, [panicKey, panicKeyEnabled, panicUrl]);
+
   const initialWindows = useMemo<WindowState[]>(() => [
     {
       id: "browser",
       title: "Browser",
-      icon: "◉",
+      icon: <PhosiumIcon name="globe" />,
       description: "Browse with Chrome-inspired controls",
       isOpen: true,
       isMinimized: false,
@@ -365,7 +451,7 @@ export default function App() {
     {
       id: "files",
       title: "Files",
-      icon: "F",
+      icon: <PhosiumIcon name="folder" />,
       description: "Browse virtual file system records",
       isOpen: false,
       isMinimized: false,
@@ -377,7 +463,7 @@ export default function App() {
     {
       id: "games",
       title: "Games",
-      icon: "G",
+      icon: <PhosiumIcon name="gamepad-2" />,
       description: "Browse and launch web games",
       isOpen: false,
       isMinimized: false,
@@ -389,7 +475,7 @@ export default function App() {
     {
       id: "text-editor",
       title: "Text Editor",
-      icon: "T",
+      icon: <PhosiumIcon name="file-text" />,
       description: "Create and save documents to VFS",
       isOpen: false,
       isMinimized: false,
@@ -401,7 +487,7 @@ export default function App() {
     {
       id: "calculator",
       title: "Math Studio",
-      icon: "M",
+      icon: <PhosiumIcon name="calculator" />,
       description: "Graph, solve, and explore functions",
       isOpen: false,
       isMinimized: false,
@@ -413,7 +499,7 @@ export default function App() {
     {
       id: "about",
       title: "About",
-      icon: "ℹ",
+      icon: <PhosiumIcon name="info" />,
       description: "System details and versions",
       isOpen: false,
       isMinimized: false,
@@ -425,7 +511,7 @@ export default function App() {
     {
       id: "settings",
       title: "Settings",
-      icon: "⚙",
+      icon: <PhosiumIcon name="settings" />,
       description: "Appearance, network and browser settings",
       isOpen: false,
       isMinimized: false,
@@ -437,7 +523,7 @@ export default function App() {
     {
       id: "task-manager",
       title: "Task Manager",
-      icon: "▣",
+      icon: <PhosiumIcon name="hard-drive" />,
       description: "View and end running apps",
       isOpen: false,
       isMinimized: false,
@@ -454,6 +540,8 @@ export default function App() {
       updateProxySettings,
       theme,
       setTheme,
+      browserTheme,
+      setBrowserTheme,
       wallpaper,
       setWallpaper,
       proxyStatus: proxySettings.enabled ? proxyStatus : "System-wide proxy is off.",
@@ -484,6 +572,12 @@ export default function App() {
       setCloak,
       autoLaunchMode,
       setAutoLaunchMode,
+      panicKeyEnabled,
+      setPanicKeyEnabled,
+      panicKey,
+      setPanicKey,
+      panicUrl,
+      setPanicUrl,
     }}>
       <div
         className="phosium-root"
@@ -491,6 +585,18 @@ export default function App() {
       >
         <Desktop initialWindows={initialWindows} />
         <DesktopWidgets />
+        {showAlphaDisclaimer && (
+          <div className="alpha-disclaimer-overlay">
+            <section aria-labelledby="alpha-disclaimer-title" aria-modal="true" className="alpha-disclaimer" role="dialog">
+              <span className="alpha-disclaimer-mark"><PhosiumIcon name="sparkles" /></span>
+              <p className="alpha-disclaimer-eyebrow">EARLY ACCESS</p>
+              <h1 id="alpha-disclaimer-title">Phosium is in alpha</h1>
+              <p>Phosium is still being developed, so you may run into bugs or unfinished features. Thanks for testing it lol!</p>
+              <p>If you find a problem, please report it on our <a href="https://github.com/idontcodddde/phosium/issues" rel="noreferrer" target="_blank">GitHub issues page</a>.</p>
+              <button autoFocus onClick={acknowledgeAlphaDisclaimer} type="button">Got it, continue</button>
+            </section>
+          </div>
+        )}
       </div>
     </SystemContext.Provider>
   );

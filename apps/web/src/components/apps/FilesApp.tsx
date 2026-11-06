@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent, MouseEvent } from 'react';
 import { vfsManager } from '@repo/vfs';
 import type { WindowState } from '@repo/os-shell';
+import { PhosiumIcon } from '@repo/os-shell';
+import type { PhosiumIconName } from '@repo/os-shell';
 import { TextEditorApp } from './TextEditorApp';
 
 type VFSNode = Awaited<ReturnType<typeof vfsManager.listNodes>>[number];
@@ -14,14 +16,14 @@ function nodeName(path: string): string {
     return path.split('/').filter(Boolean).at(-1) ?? 'Home';
 }
 
-function nodeIcon(node: VFSNode): string {
-    if (node.type === 'directory') return '📁';
+function nodeIcon(node: VFSNode): PhosiumIconName {
+    if (node.type === 'directory') return 'folder';
     const extension = nodeName(node.path).split('.').at(-1)?.toLowerCase();
-    if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(extension ?? '')) return '🖼';
-    if (['mp3', 'wav', 'ogg', 'm4a'].includes(extension ?? '')) return '♫';
-    if (['mp4', 'mov', 'webm'].includes(extension ?? '')) return '▶';
-    if (['json', 'js', 'ts', 'tsx', 'css', 'html'].includes(extension ?? '')) return '{}';
-    return '📄';
+    if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(extension ?? '')) return 'file-image';
+    if (['mp3', 'wav', 'ogg', 'm4a'].includes(extension ?? '')) return 'file-audio';
+    if (['mp4', 'mov', 'webm'].includes(extension ?? '')) return 'video';
+    if (['json', 'js', 'ts', 'tsx', 'css', 'html'].includes(extension ?? '')) return 'file-code-2';
+    return 'file';
 }
 
 export function FilesApp() {
@@ -31,7 +33,11 @@ export function FilesApp() {
     const [search, setSearch] = useState('');
     const [viewMode, setViewMode] = useState<ViewMode>('grid');
     const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+    const [isCreatingFile, setIsCreatingFile] = useState(false);
+    const [isNewMenuOpen, setIsNewMenuOpen] = useState(false);
+    const [openFileMenuPath, setOpenFileMenuPath] = useState<string | null>(null);
     const [newFolderName, setNewFolderName] = useState('');
+    const [newFileName, setNewFileName] = useState('');
 
     const loadNodes = async () => {
         try {
@@ -54,6 +60,25 @@ export function FilesApp() {
         });
         return () => {
             cancelled = true;
+        };
+    }, []);
+
+    useEffect(() => {
+        const closeMenus = (event: PointerEvent) => {
+            if (!(event.target instanceof Element)) return;
+            if (!event.target.closest('.phosium-files-new-actions')) setIsNewMenuOpen(false);
+            if (!event.target.closest('.phosium-file-actions')) setOpenFileMenuPath(null);
+        };
+        const closeMenusOnEscape = (event: KeyboardEvent) => {
+            if (event.key !== 'Escape') return;
+            setIsNewMenuOpen(false);
+            setOpenFileMenuPath(null);
+        };
+        document.addEventListener('pointerdown', closeMenus);
+        document.addEventListener('keydown', closeMenusOnEscape);
+        return () => {
+            document.removeEventListener('pointerdown', closeMenus);
+            document.removeEventListener('keydown', closeMenusOnEscape);
         };
     }, []);
 
@@ -89,7 +114,7 @@ export function FilesApp() {
             detail: {
                 id: `text-editor-${instance}`,
                 title: `Edit: ${name}`,
-                icon: '📄',
+                icon: <PhosiumIcon name="file-text" />,
                 description: `Editing ${node.path}`,
                 isOpen: true,
                 isMinimized: false,
@@ -121,10 +146,36 @@ export function FilesApp() {
         }
     };
 
+    const handleCreateFile = async (event: FormEvent) => {
+        event.preventDefault();
+        const name = newFileName.trim();
+        if (!name || name.includes('/') || name === '.' || name === '..') {
+            setStatus('Enter a file name without slashes.');
+            return;
+        }
+        const path = currentPath === '/' ? `/${name}` : `${currentPath}/${name}`;
+        if (nodes.some((node) => node.path.toLowerCase() === path.toLowerCase())) {
+            setStatus('An item with that name already exists.');
+            return;
+        }
+        try {
+            await vfsManager.writeFile(path, '');
+            setNewFileName('');
+            setIsCreatingFile(false);
+            setStatus('');
+            await loadNodes();
+            handleOpenNode({ path, type: 'file', updatedAt: Date.now() });
+        } catch (error) {
+            console.error('Unable to create file:', error);
+            setStatus('Could not create that file.');
+        }
+    };
+
     const handleDelete = async (path: string, event: MouseEvent<HTMLButtonElement>) => {
         event.stopPropagation();
         try {
             await vfsManager.deleteFile(path);
+            setOpenFileMenuPath(null);
             await loadNodes();
         } catch (error) {
             console.error(`Unable to delete ${path}:`, error);
@@ -146,7 +197,7 @@ export function FilesApp() {
         <main className="phosium-files">
             <header className="phosium-files-toolbar">
                 <div className="phosium-files-nav">
-                    <button type="button" onClick={() => navigateTo('/')} aria-label="Go home" title="Home">⌂</button>
+                    <button type="button" onClick={() => navigateTo('/')} aria-label="Go home" title="Home"><PhosiumIcon name="home" /></button>
                     <button
                         type="button"
                         onClick={() => {
@@ -157,42 +208,71 @@ export function FilesApp() {
                         disabled={currentPath === '/'}
                         aria-label="Go up"
                         title="Go up"
-                    >↑</button>
-                    <button type="button" onClick={() => void loadNodes()} aria-label="Refresh" title="Refresh">⟳</button>
+                    ><PhosiumIcon name="arrow-up" /></button>
+                    <button type="button" onClick={() => void loadNodes()} aria-label="Refresh" title="Refresh"><PhosiumIcon name="rotate-cw" /></button>
                 </div>
                 <nav className="phosium-files-breadcrumbs" aria-label="Current folder">
                     <button type="button" onClick={() => navigateTo('/')}>Home</button>
                     {breadcrumbPaths.map((crumb) => (
                         <span className="phosium-files-crumb" key={crumb.path}>
-                            <span aria-hidden="true">›</span>
+                            <PhosiumIcon name="chevron-right" />
                             <button type="button" onClick={() => navigateTo(crumb.path)}>{crumb.name}</button>
                         </span>
                     ))}
                 </nav>
                 <label className="phosium-files-search">
-                    <span aria-hidden="true">⌕</span>
+                    <PhosiumIcon name="search" />
                     <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={`Search ${nodeName(currentPath)}`} />
                 </label>
                 <div className="phosium-files-view-toggle" aria-label="File view">
-                    <button type="button" className={viewMode === 'grid' ? 'is-selected' : ''} onClick={() => setViewMode('grid')} aria-label="Grid view" title="Grid view">▦</button>
-                    <button type="button" className={viewMode === 'list' ? 'is-selected' : ''} onClick={() => setViewMode('list')} aria-label="List view" title="List view">☷</button>
+                    <button type="button" className={viewMode === 'grid' ? 'is-selected' : ''} onClick={() => setViewMode('grid')} aria-label="Grid view" title="Grid view"><PhosiumIcon name="grid-2x2" /></button>
+                    <button type="button" className={viewMode === 'list' ? 'is-selected' : ''} onClick={() => setViewMode('list')} aria-label="List view" title="List view"><PhosiumIcon name="list" /></button>
                 </div>
-                <button className="phosium-files-new-folder" type="button" onClick={() => setIsCreatingFolder((open) => !open)}>＋ New folder</button>
+                <div className="phosium-files-new-actions">
+                    <button
+                        aria-expanded={isNewMenuOpen}
+                        aria-haspopup="menu"
+                        className="phosium-files-new-folder"
+                        onClick={() => setIsNewMenuOpen((open) => !open)}
+                        type="button"
+                    ><PhosiumIcon name="plus" /> New</button>
+                    {isNewMenuOpen && (
+                        <div className="phosium-files-action-menu phosium-files-new-menu" role="menu">
+                            <button role="menuitem" type="button" onClick={() => {
+                                setIsCreatingFile(true);
+                                setIsCreatingFolder(false);
+                                setIsNewMenuOpen(false);
+                            }}><PhosiumIcon name="file" /> New file</button>
+                            <button role="menuitem" type="button" onClick={() => {
+                                setIsCreatingFolder(true);
+                                setIsCreatingFile(false);
+                                setIsNewMenuOpen(false);
+                            }}><PhosiumIcon name="folder-plus" /> New folder</button>
+                        </div>
+                    )}
+                </div>
             </header>
 
-            {isCreatingFolder && (
-                <form className="phosium-files-create" onSubmit={(event) => void handleCreateFolder(event)}>
+            {(isCreatingFolder || isCreatingFile) && (
+                <form
+                    className="phosium-files-create"
+                    onSubmit={(event) => void (isCreatingFile ? handleCreateFile(event) : handleCreateFolder(event))}
+                >
                     <input
                         autoFocus
-                        value={newFolderName}
-                        onChange={(event) => setNewFolderName(event.target.value)}
-                        placeholder="New folder name"
-                        aria-label="New folder name"
+                        value={isCreatingFile ? newFileName : newFolderName}
+                        onChange={(event) => isCreatingFile
+                            ? setNewFileName(event.target.value)
+                            : setNewFolderName(event.target.value)}
+                        placeholder={isCreatingFile ? 'New file name' : 'New folder name'}
+                        aria-label={isCreatingFile ? 'New file name' : 'New folder name'}
                     />
                     <button type="submit">Create</button>
                     <button type="button" className="secondary" onClick={() => {
                         setIsCreatingFolder(false);
+                        setIsCreatingFile(false);
                         setNewFolderName('');
+                        setNewFileName('');
                     }}>Cancel</button>
                 </form>
             )}
@@ -201,7 +281,7 @@ export function FilesApp() {
                 <aside className="phosium-files-sidebar">
                     <h3>Quick access</h3>
                     <button type="button" className={currentPath === '/' ? 'is-selected' : ''} onClick={() => navigateTo('/')}>
-                        <span>⌂</span> Home
+                        <PhosiumIcon name="home" /> Home
                     </button>
                     {availableQuickFolders.map((folder) => (
                         <button
@@ -210,13 +290,13 @@ export function FilesApp() {
                             key={folder.path}
                             onClick={() => navigateTo(folder.path)}
                         >
-                            <span>{folder.name === 'Images' ? '▧' : folder.name === 'Music' ? '♫' : '▤'}</span>
+                            <PhosiumIcon name={folder.name === 'Images' ? 'image' : folder.name === 'Music' ? 'music' : 'folder'} />
                             {folder.name}
                         </button>
                     ))}
                     <h3 className="phosium-files-sidebar-heading">File system</h3>
                     <button type="button" className={currentPath === '/' ? 'is-selected' : ''} onClick={() => navigateTo('/')}>
-                        <span>▣</span> All files
+                        <PhosiumIcon name="hard-drive" /> All files
                     </button>
                 </aside>
 
@@ -230,7 +310,7 @@ export function FilesApp() {
                     {status && <div className="phosium-files-status" role="status">{status}</div>}
                     {currentNodes.length === 0 ? (
                         <div className="phosium-files-empty">
-                            <span aria-hidden="true">📂</span>
+                            <PhosiumIcon name="folder-open" />
                             <strong>{search ? 'No matching items' : 'This folder is empty'}</strong>
                             <small>{search ? 'Try another search.' : 'Create a folder or add files from another app.'}</small>
                         </div>
@@ -242,17 +322,35 @@ export function FilesApp() {
                                     key={node.path}
                                 >
                                     <button className="phosium-file-open" type="button" onClick={() => handleOpenNode(node)}>
-                                        <span className={`phosium-file-icon${node.type === 'directory' ? ' is-folder' : ''}`} aria-hidden="true">{nodeIcon(node)}</span>
+                                        <span className={`phosium-file-icon${node.type === 'directory' ? ' is-folder' : ''}`} aria-hidden="true"><PhosiumIcon name={nodeIcon(node)} /></span>
                                         <span className="phosium-file-name">{nodeName(node.path)}</span>
                                         {viewMode === 'list' && <span className="phosium-file-type">{node.type === 'directory' ? 'Folder' : 'File'}</span>}
                                     </button>
-                                    <button
-                                        className="phosium-file-delete"
-                                        type="button"
-                                        onClick={(event) => void handleDelete(node.path, event)}
-                                        aria-label={`Delete ${nodeName(node.path)}`}
-                                        title="Delete"
-                                    >⋯</button>
+                                    <div className="phosium-file-actions">
+                                        <button
+                                            aria-expanded={openFileMenuPath === node.path}
+                                            aria-haspopup="menu"
+                                            aria-label={`Options for ${nodeName(node.path)}`}
+                                            className="phosium-file-delete"
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                setOpenFileMenuPath((path) => path === node.path ? null : node.path);
+                                            }}
+                                            title="Options"
+                                            type="button"
+                                        ><PhosiumIcon name="ellipsis" /></button>
+                                        {openFileMenuPath === node.path && (
+                                            <div className="phosium-files-action-menu phosium-file-action-menu" role="menu">
+                                                <button
+                                                    aria-label={`Delete ${nodeName(node.path)}`}
+                                                    className="is-danger"
+                                                    onClick={(event) => void handleDelete(node.path, event)}
+                                                    role="menuitem"
+                                                    type="button"
+                                                ><PhosiumIcon name="trash-2" /> Delete</button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </article>
                             ))}
                         </div>

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Phosphorus } from "phosphorous";
 import type { Frame } from "@mercuryworkshop/scramjet-controller";
+import { PhosiumIcon } from "@repo/os-shell";
 import { proxyConfig } from "@repo/proxy";
 import { applyPhosiumExtensionStates, registerPhosiumExtensions } from "../../extensions/phosphorousExtensions";
 import { encodeRammerheadUrl } from "../../lib/proxy/rammerheadClient";
@@ -19,16 +20,22 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
     gameAdBlockerEnabled,
     phosphorousEnabled,
     externalExtensions,
+    setExternalExtensions,
     setGameEnhancementsEnabled,
     setGameGamingToolsEnabled,
     setGameAdBlockerEnabled,
     proxySettings,
     proxyStatus,
+    panicKeyEnabled,
+    panicKey,
+    panicUrl,
   } = useSystem();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const phosphorusRef = useRef<Phosphorus | null>(null);
   const frameRef = useRef<Frame | null>(null);
   const routeRevisionRef = useRef(0);
+  const panicSettingsRef = useRef({ enabled: panicKeyEnabled, key: panicKey, url: panicUrl });
+  const panicKeyDocumentsRef = useRef(new WeakSet<Document>());
   const extensionStateRef = useRef({
     phosphorousEnabled,
     enhancementsEnabled: gameEnhancementsEnabled,
@@ -101,6 +108,38 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
     void routeGame();
   }, [routeGame]);
 
+  const toggleExternalExtension = (id: string, enabled: boolean) => {
+    setExternalExtensions(externalExtensions.map((extension) =>
+      extension.id === id ? { ...extension, enabled } : extension,
+    ));
+  };
+
+  useEffect(() => {
+    panicSettingsRef.current = { enabled: panicKeyEnabled, key: panicKey, url: panicUrl };
+  }, [panicKeyEnabled, panicKey, panicUrl]);
+
+  const handleGameFrameLoad = () => {
+    let frameDocument: Document | null;
+    try {
+      frameDocument = iframeRef.current?.contentDocument ?? null;
+    } catch {
+      return;
+    }
+    if (!frameDocument) return;
+    if (!panicKeyDocumentsRef.current.has(frameDocument)) {
+      frameDocument.addEventListener("keydown", (event) => {
+        const panic = panicSettingsRef.current;
+        if (!panic.enabled || event.key !== panic.key) return;
+        const target = event.target as Element | null;
+        if (target?.closest("input, textarea, select, [contenteditable]")) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        window.location.assign(panic.url);
+      });
+      panicKeyDocumentsRef.current.add(frameDocument);
+    }
+  };
+
   useEffect(() => {
     // Re-route the external game after its Phosphorous settings change.
     // oxlint-disable-next-line react/set-state-in-effect
@@ -141,14 +180,14 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
       <div className="game-player-toolbar">
         <span className="game-player-title">{title}</span>
         <div className="game-player-actions">
-          <button aria-label={`Refresh ${title}`} onClick={refreshGame} type="button">↻</button>
+          <button aria-label={`Refresh ${title}`} onClick={refreshGame} type="button"><PhosiumIcon name="rotate-cw" /></button>
           <div className="game-player-extension-menu">
             <button
               aria-label="Game extensions"
               aria-expanded={extensionsOpen}
               onClick={() => setExtensionsOpen((open) => !open)}
               type="button"
-            ><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M9 3a3 3 0 1 1 6 0v2h3a2 2 0 0 1 2 2v3h-2a3 3 0 1 0 0 6h2v3a2 2 0 0 1-2 2h-3v-2a3 3 0 1 0-6 0v2H6a2 2 0 0 1-2-2v-3h2a3 3 0 1 0 0-6H4V7a2 2 0 0 1 2-2h3V3Z" /></svg></button>
+            ><PhosiumIcon name="puzzle" /></button>
             {extensionsOpen && (
               <div className="game-player-extension-popup" role="dialog" aria-label="Game extensions">
                 <strong>Game extensions</strong>
@@ -164,6 +203,26 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
                   <span>Ad blocker</span>
                   <input aria-label="Game ad blocker" checked={gameAdBlockerEnabled} disabled={!phosphorousEnabled} onChange={(event) => setGameAdBlockerEnabled(event.target.checked)} type="checkbox" />
                 </label>
+                {externalExtensions.length > 0 && (
+                  <>
+                    <div className="game-player-extension-section-heading">External extensions</div>
+                    {externalExtensions.map((extension) => (
+                      <label key={extension.id}>
+                        <span>
+                          <strong>{extension.name}</strong>
+                          <small>{extension.type?.toUpperCase() ?? "EXTENSION"} · {extension.id}</small>
+                        </span>
+                        <input
+                          aria-label={`Game ${extension.name} extension`}
+                          checked={extension.enabled}
+                          disabled={!phosphorousEnabled}
+                          onChange={(event) => toggleExternalExtension(extension.id, event.target.checked)}
+                          type="checkbox"
+                        />
+                      </label>
+                    ))}
+                  </>
+                )}
                 <small>{phosphorousEnabled ? "These settings only affect game windows." : "Phosphorous is turned off in Settings."}</small>
               </div>
             )}
@@ -173,6 +232,7 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
       <iframe
         allow="accelerometer; autoplay; clipboard-read; clipboard-write; encrypted-media; fullscreen; gamepad"
         className="game-player-frame"
+        onLoad={handleGameFrameLoad}
         ref={iframeRef}
         title={title}
       />

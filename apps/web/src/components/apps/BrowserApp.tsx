@@ -3,6 +3,7 @@ import type { FormEvent, KeyboardEvent as ReactKeyboardEvent } from "react";
 import { Phosphorus } from "phosphorous";
 import type { Frame } from "@mercuryworkshop/scramjet-controller";
 import { proxyConfig } from "@repo/proxy";
+import { PhosiumIcon } from "@repo/os-shell";
 import { applyPhosiumExtensionStates, registerPhosiumExtensions } from "../../extensions/phosphorousExtensions";
 import { resolveAddress } from "../../lib/browser/address";
 import {
@@ -24,6 +25,12 @@ interface QuickAccessSite {
   id: string;
   title: string;
   url: string;
+}
+
+interface BookmarkContextMenu {
+  bookmark: BrowserBookmark;
+  x: number;
+  y: number;
 }
 
 const defaultQuickAccessSites: QuickAccessSite[] = [
@@ -149,6 +156,7 @@ export function BrowserApp() {
     controller,
     proxyStatus,
     phosphorousEnabled,
+    browserTheme,
     externalExtensions,
     browserEnhancementsEnabled,
     browserGamingToolsEnabled,
@@ -160,6 +168,9 @@ export function BrowserApp() {
     browserRequest,
     searchEngine,
     setSearchEngine,
+    panicKeyEnabled,
+    panicKey,
+    panicUrl,
   } = useSystem();
   const [firstTab] = useState(() => createTab());
   const [tabs, setTabs] = useState<BrowserTab[]>([firstTab]);
@@ -182,10 +193,16 @@ export function BrowserApp() {
   const [extensionsOpen, setExtensionsOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [bookmarkError, setBookmarkError] = useState("");
+  const [bookmarkContextMenu, setBookmarkContextMenu] = useState<BookmarkContextMenu | null>(null);
+  const [editingBookmark, setEditingBookmark] = useState<BrowserBookmark | null>(null);
+  const [bookmarkTitleDraft, setBookmarkTitleDraft] = useState("");
+  const [bookmarkUrlDraft, setBookmarkUrlDraft] = useState("");
   const browserRef = useRef<HTMLDivElement>(null);
   const iframeRefs = useRef(new Map<string, HTMLIFrameElement>());
   const frameRefs = useRef(new Map<string, Frame>());
   const phosphorusRef = useRef<Phosphorus | null>(null);
+  const panicSettingsRef = useRef({ enabled: panicKeyEnabled, key: panicKey, url: panicUrl });
+  const panicKeyDocumentsRef = useRef(new WeakSet<Document>());
   const extensionStateRef = useRef({
     phosphorousEnabled,
     enhancementsEnabled: browserEnhancementsEnabled,
@@ -193,6 +210,10 @@ export function BrowserApp() {
     adBlockerEnabled: browserAdBlockerEnabled,
     externalExtensions,
   });
+
+  useEffect(() => {
+    panicSettingsRef.current = { enabled: panicKeyEnabled, key: panicKey, url: panicUrl };
+  }, [panicKeyEnabled, panicKey, panicUrl]);
   const detachRefs = useRef(new Map<string, () => void>());
   const navigatedKeys = useRef(new Map<string, string>());
   const lastBrowserRequestId = useRef(0);
@@ -276,14 +297,6 @@ export function BrowserApp() {
     }
   }, []);
 
-  const toggleBookmark = () => {
-    if (!activeTab?.url) return;
-    const existing = bookmarks.some((bookmark) => bookmark.url === activeTab.url);
-    saveBookmarks(existing
-      ? bookmarks.filter((bookmark) => bookmark.url !== activeTab.url)
-      : [...bookmarks, { title: activeTab.title, url: activeTab.url }]);
-  };
-
   const toggleBookmarksBar = () => {
     const nextVisible = !showBookmarksBar;
     setShowBookmarksBar(nextVisible);
@@ -336,7 +349,7 @@ export function BrowserApp() {
       if (!iframe) return null;
 
       let targetUrl = rawUrl;
-      if (proxySettings.enabled && proxySettings.engine === "scramjet") {
+      if (proxySettings.engine === "scramjet") {
         const frame = frameRefs.current.get(tabId);
         if (frame) {
           const parsedUrl = new URL(targetUrl, window.location.href);
@@ -345,14 +358,18 @@ export function BrowserApp() {
           let encodedTarget: string | null = parsedUrl.pathname.startsWith(proxyPrefix)
             ? parsedUrl.pathname.slice(proxyPrefix.length)
             : null;
-          if (encodedTarget === null && parsedUrl.pathname.startsWith("/service/")) {
-            encodedTarget = parsedUrl.pathname.split("/").slice(4).join("/");
+          if (encodedTarget === null) {
+            const servicePrefix = "/service/";
+            const serviceIndex = parsedUrl.pathname.indexOf(servicePrefix);
+            if (serviceIndex >= 0) {
+              encodedTarget = parsedUrl.pathname.slice(serviceIndex + servicePrefix.length);
+            }
           }
           if (encodedTarget) {
             targetUrl = frame.context.interface.codecDecode(encodedTarget);
           }
         }
-      } else if (proxySettings.enabled && proxySettings.engine === "ultraviolet") {
+      } else if (proxySettings.engine === "ultraviolet") {
         const parsedUrl = new URL(targetUrl, window.location.href);
         const servicePrefix = "/uv/service/";
         if (parsedUrl.pathname.startsWith(servicePrefix)) {
@@ -360,7 +377,7 @@ export function BrowserApp() {
             + parsedUrl.search
             + parsedUrl.hash;
         }
-      } else if (proxySettings.enabled && proxySettings.engine === "rammerhead") {
+      } else if (proxySettings.engine === "rammerhead") {
         const frameWindow = iframe.contentWindow as (Window & {
           "%hammerhead%"?: {
             utils?: {
@@ -389,7 +406,71 @@ export function BrowserApp() {
     } catch {
       return null;
     }
-  }, [proxySettings.enabled, proxySettings.engine]);
+  }, [proxySettings.engine]);
+
+  const getCurrentBookmarkTarget = useCallback((): { url: string; title: string } | null => {
+    if (!activeTab?.url) return null;
+    const iframe = iframeRefs.current.get(activeTab.id);
+    let frameUrl = activeTab.url;
+    let pageTitle = activeTab.title;
+    try {
+      if (iframe?.contentWindow) {
+        frameUrl = iframe.contentWindow.location.href;
+        pageTitle = iframe.contentDocument?.title || pageTitle;
+      }
+    } catch {
+      // The tab URL remains the last known destination when the frame is cross-origin.
+    }
+
+    const decodedUrl = getOriginalUrl(activeTab.id, frameUrl);
+    let targetUrl = decodedUrl ?? activeTab.url;
+    try {
+      const framePrefix = frameRefs.current.get(activeTab.id)?.prefix;
+      const isLocalProxyRoute = (rawUrl: string) => {
+        const current = new URL(rawUrl, window.location.href);
+        return current.origin === window.location.origin
+          && (current.pathname.startsWith("/uv/service/")
+            || isRammerheadProxyUrl(current.href)
+            || (framePrefix !== undefined
+              && current.pathname.startsWith(new URL(framePrefix, window.location.href).pathname)));
+      };
+      if (!decodedUrl && (isLocalProxyRoute(frameUrl) || isLocalProxyRoute(targetUrl))) return null;
+      const current = new URL(targetUrl, window.location.href);
+      if (current.protocol !== "http:" && current.protocol !== "https:") return null;
+      targetUrl = current.href;
+      if (!pageTitle || pageTitle === "localhost" || pageTitle === window.location.hostname) {
+        pageTitle = current.hostname;
+      }
+    } catch {
+      return null;
+    }
+    return { url: targetUrl, title: pageTitle };
+  }, [activeTab, getOriginalUrl]);
+
+  const toggleBookmark = () => {
+    const target = getCurrentBookmarkTarget();
+    if (!target) {
+      setBookmarkError("Could not decode this page's address to a bookmark.");
+      return;
+    }
+    const existing = bookmarks.some((bookmark) => bookmark.url === target.url);
+    saveBookmarks(existing
+      ? bookmarks.filter((bookmark) => bookmark.url !== target.url)
+      : [...bookmarks, target]);
+  };
+
+  const saveEditedBookmark = (event: FormEvent) => {
+    event.preventDefault();
+    if (!editingBookmark) return;
+    try {
+      const url = resolveAddress(bookmarkUrlDraft, searchEngine);
+      const updatedBookmark = { title: bookmarkTitleDraft.trim() || new URL(url).hostname, url };
+      saveBookmarks(bookmarks.map((bookmark) => bookmark.url === editingBookmark.url ? updatedBookmark : bookmark));
+      setEditingBookmark(null);
+    } catch (error) {
+      setBookmarkError(error instanceof Error ? error.message : "Could not update bookmark.");
+    }
+  };
 
   const syncFrameNavigation = useCallback((tabId: string, iframe: HTMLIFrameElement) => {
     let frameUrl: string;
@@ -405,6 +486,8 @@ export function BrowserApp() {
 
     const destination = getOriginalUrl(tabId, frameUrl);
     if (!destination) return;
+    const destinationHost = new URL(destination).hostname;
+    if (!title || title === "localhost" || title === window.location.hostname) title = destinationHost;
     const tab = tabs.find((current) => current.id === tabId);
     if (!tab) return;
 
@@ -478,6 +561,18 @@ export function BrowserApp() {
 
     frameDocument.addEventListener("click", handleLinkActivation, true);
     frameDocument.addEventListener("auxclick", handleLinkActivation, true);
+    if (!panicKeyDocumentsRef.current.has(frameDocument)) {
+      frameDocument.addEventListener("keydown", (event) => {
+        const panic = panicSettingsRef.current;
+        if (!panic.enabled || event.key !== panic.key) return;
+        const target = event.target as Element | null;
+        if (target?.closest("input, textarea, select, [contenteditable]")) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        window.location.assign(panic.url);
+      });
+      panicKeyDocumentsRef.current.add(frameDocument);
+    }
     syncFrameNavigation(tabId, iframe);
   }, [getOriginalUrl, openLinkInTab, syncFrameNavigation]);
 
@@ -580,10 +675,14 @@ export function BrowserApp() {
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
-      if (event.target instanceof Node && !browserRef.current?.contains(event.target)) {
+      if (!(event.target instanceof Node)) return;
+      if (!browserRef.current?.contains(event.target)) {
         setExtensionsOpen(false);
         setMenuOpen(false);
         setActiveMenuSiteId(null);
+      }
+      if (!(event.target instanceof Element) || !event.target.closest(".chrome-bookmark-context-menu")) {
+        setBookmarkContextMenu(null);
       }
     };
     document.addEventListener("pointerdown", handlePointerDown);
@@ -757,8 +856,33 @@ export function BrowserApp() {
     }
   };
 
+  const openBookmark = (rawUrl: string) => {
+    const decodedUrl = activeTab ? getOriginalUrl(activeTab.id, rawUrl) : null;
+    try {
+      const savedUrl = new URL(rawUrl, window.location.href);
+      const framePrefix = activeTab ? frameRefs.current.get(activeTab.id)?.prefix : undefined;
+      const isLocalProxyRoute = savedUrl.origin === window.location.origin
+        && (savedUrl.pathname.startsWith("/uv/service/")
+          || isRammerheadProxyUrl(savedUrl.href)
+          || (framePrefix !== undefined
+            && savedUrl.pathname.startsWith(new URL(framePrefix, window.location.href).pathname)));
+      if (isLocalProxyRoute && !decodedUrl) {
+        setNavigationError("Could not decode this bookmark with the selected proxy.");
+        return;
+      }
+    } catch {
+      setNavigationError("This bookmark has an invalid address.");
+      return;
+    }
+    navigate(decodedUrl ?? rawUrl);
+  };
+
+  const isActiveTabBookmarked = Boolean(
+    activeTab?.url && bookmarks.some((bookmark) => bookmark.url === activeTab.url),
+  );
+
   return (
-    <div className="chrome-browser" ref={browserRef}>
+    <div className="chrome-browser" data-browser-theme={browserTheme} ref={browserRef}>
       <div
         className="chrome-tab-strip"
         onWheel={(event) => {
@@ -780,7 +904,7 @@ export function BrowserApp() {
             role="button"
             tabIndex={0}
           >
-            <span className="chrome-tab-favicon">◉</span>
+            <span className="chrome-tab-favicon"><PhosiumIcon name="globe" /></span>
             <span className="chrome-tab-title">{tab.title}</span>
             <button
               aria-label={`Close ${tab.title}`}
@@ -790,17 +914,17 @@ export function BrowserApp() {
                 closeTab(tab.id);
               }}
               type="button"
-            >×</button>
+            ><PhosiumIcon name="x" /></button>
           </div>
         ))}
-        <button aria-label="New tab" className="chrome-new-tab" onClick={addTab} type="button">+</button>
+        <button aria-label="New tab" className="chrome-new-tab" onClick={addTab} type="button"><PhosiumIcon name="plus" /></button>
       </div>
       <div className="chrome-toolbar">
-        <button aria-label="Go back" className="chrome-icon-button" onClick={goBack} type="button">‹</button>
-        <button aria-label="Go forward" className="chrome-icon-button" onClick={goForward} type="button">›</button>
-        <button aria-label="Reload page" className="chrome-icon-button" onClick={reload} type="button">↻</button>
+        <button aria-label="Go back" className="chrome-icon-button" onClick={goBack} type="button"><PhosiumIcon name="chevron-left" /></button>
+        <button aria-label="Go forward" className="chrome-icon-button" onClick={goForward} type="button"><PhosiumIcon name="chevron-right" /></button>
+        <button aria-label="Reload page" className="chrome-icon-button" onClick={reload} type="button"><PhosiumIcon name="rotate-cw" /></button>
         <button aria-label="Home" className="chrome-icon-button chrome-home-button" onClick={goHome} type="button">
-          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1V10Z" /></svg>
+          <PhosiumIcon name="home" />
         </button>
         <form className={`chrome-address-form search-engine-${searchEngine}`} onSubmit={handleSubmit}>
           <button
@@ -810,10 +934,10 @@ export function BrowserApp() {
             title="Click to change search engine"
             type="button"
           >
-            <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8" /><path d="m16 16 5 5" /></svg>
+            <PhosiumIcon name="search" />
             <span aria-hidden="true">{searchEngine === "google" ? "GGL" : searchEngine === "duckduckgo" ? "DDG" : searchEngine === "bing" ? "BING" : "BRV"}</span>
           </button>
-          <span className="chrome-site-indicator">{proxySettings.enabled ? "●" : "○"}</span>
+          <PhosiumIcon className={`chrome-site-indicator${proxySettings.enabled ? " is-protected" : ""}`} name={proxySettings.enabled ? "shield-check" : "globe"} size={14} />
           <input
             aria-label="Address and search bar"
             onChange={(event) => setTabs((current) => current.map((tab) => tab.id === activeTabId
@@ -823,15 +947,15 @@ export function BrowserApp() {
             placeholder={`Search with ${searchEngine === "duckduckgo" ? "DuckDuckGo" : searchEngine === "brave" ? "Brave" : searchEngine[0].toUpperCase() + searchEngine.slice(1)} or enter a URL`}
             value={address}
           />
-          <button aria-label="Go to address" className="chrome-address-submit" type="submit">↵</button>
+          <button aria-label="Go to address" className="chrome-address-submit" type="submit"><PhosiumIcon name="corner-down-left" /></button>
           <button
-            aria-label={bookmarks.some((bookmark) => bookmark.url === activeTab?.url) ? "Remove bookmark" : "Bookmark page"}
-            aria-pressed={bookmarks.some((bookmark) => bookmark.url === activeTab?.url)}
+            aria-label={isActiveTabBookmarked ? "Remove bookmark" : "Bookmark page"}
+            aria-pressed={isActiveTabBookmarked}
             className="chrome-bookmark"
             disabled={!activeTab?.url}
             onClick={toggleBookmark}
             type="button"
-          >{bookmarks.some((bookmark) => bookmark.url === activeTab?.url) ? "★" : "☆"}</button>
+          ><PhosiumIcon name="star" className={isActiveTabBookmarked ? "is-bookmarked" : undefined} /></button>
         </form>
         <div className="chrome-toolbar-action">
           <button
@@ -843,22 +967,22 @@ export function BrowserApp() {
               setMenuOpen(false);
             }}
             type="button"
-          ><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M9 3a3 3 0 1 1 6 0v2h3a2 2 0 0 1 2 2v3h-2a3 3 0 1 0 0 6h2v3a2 2 0 0 1-2 2h-3v-2a3 3 0 1 0-6 0v2H6a2 2 0 0 1-2-2v-3h2a3 3 0 1 0 0-6H4V7a2 2 0 0 1 2-2h3V3Z" /></svg></button>
+          ><PhosiumIcon name="puzzle" /></button>
           {extensionsOpen && (
             <div aria-label="Extensions" className="chrome-extension-popup" role="dialog">
               <div className="chrome-popup-heading"><strong>Extensions</strong><span>PHOSIUM</span></div>
               <label className="chrome-extension-item">
-                <span className="extension-glyph extension-glyph-page">✦</span>
+                <span className="extension-glyph extension-glyph-page"><PhosiumIcon name="sparkles" /></span>
                 <span><strong>Page enhancements</strong><small>Browser tabs only · scrollbar styling</small></span>
                 <input aria-label="Browser page enhancements extension" checked={browserEnhancementsEnabled} disabled={!phosphorousEnabled} onChange={(event) => toggleExtension("page", event.target.checked)} type="checkbox" />
               </label>
               <label className="chrome-extension-item">
-                <span className="extension-glyph extension-glyph-game">◷</span>
+                <span className="extension-glyph extension-glyph-game"><PhosiumIcon name="clock-3" /></span>
                 <span><strong>Gaming tools</strong><small>Browser tabs only · timer, splits and notes</small></span>
                 <input aria-label="Browser gaming tools extension" checked={browserGamingToolsEnabled} disabled={!phosphorousEnabled} onChange={(event) => toggleExtension("gaming", event.target.checked)} type="checkbox" />
               </label>
               <label className="chrome-extension-item">
-                <span className="extension-glyph extension-glyph-page">⊘</span>
+                <span className="extension-glyph extension-glyph-page"><PhosiumIcon name="shield-check" /></span>
                 <span><strong>Ad blocker</strong><small>Browser tabs only · common ad domains</small></span>
                 <input aria-label="Browser ad blocker extension" checked={browserAdBlockerEnabled} disabled={!phosphorousEnabled} onChange={(event) => toggleExtension("adblock", event.target.checked)} type="checkbox" />
               </label>
@@ -867,7 +991,7 @@ export function BrowserApp() {
                   <div className="chrome-extension-section-heading">External extensions</div>
                   {externalExtensions.map((extension) => (
                     <label className="chrome-extension-item" key={extension.id}>
-                      <span className="extension-glyph extension-glyph-external">⌘</span>
+                      <span className="extension-glyph extension-glyph-external"><PhosiumIcon name="command" /></span>
                       <span>
                         <strong>{extension.name}</strong>
                         <small>{extension.type?.toUpperCase() ?? "EXTENSION"} · {extension.id}</small>
@@ -897,7 +1021,7 @@ export function BrowserApp() {
               setExtensionsOpen(false);
             }}
             type="button"
-          >⋮</button>
+          ><PhosiumIcon name="ellipsis" /></button>
           {menuOpen && (
             <div aria-label="Browser menu" className="chrome-menu-popup" role="menu">
               <button onClick={() => { setMenuOpen(false); addTab(); }} role="menuitem" type="button">New tab <kbd>Ctrl+T</kbd></button>
@@ -912,12 +1036,70 @@ export function BrowserApp() {
       {showBookmarksBar && (
         <div aria-label="Bookmarks bar" className="chrome-bookmarks-bar">
           {bookmarks.map((bookmark) => (
-            <button key={bookmark.url} onClick={() => navigate(bookmark.url)} title={bookmark.url} type="button">
-              <span>◆</span>{bookmark.title}
+            <button
+              key={bookmark.url}
+              onClick={() => openBookmark(bookmark.url)}
+              onContextMenu={(event) => {
+                event.preventDefault();
+                const bounds = browserRef.current?.getBoundingClientRect();
+                if (!bounds) return;
+                setBookmarkContextMenu({
+                  bookmark,
+                  x: event.clientX - bounds.left,
+                  y: event.clientY - bounds.top,
+                });
+              }}
+              title={bookmark.url}
+              type="button"
+            >
+              <PhosiumIcon name="bookmark" />{bookmark.title}
             </button>
           ))}
           {bookmarks.length === 0 && <span className="chrome-bookmarks-empty">Bookmarks you add will appear here</span>}
           {bookmarkError && <span className="chrome-bookmark-error" role="alert">{bookmarkError}</span>}
+        </div>
+      )}
+      {bookmarkContextMenu && (
+        <div
+          className="chrome-bookmark-context-menu"
+          role="menu"
+          style={{ left: bookmarkContextMenu.x, top: bookmarkContextMenu.y }}
+        >
+          <button role="menuitem" type="button" onClick={() => {
+            setBookmarkTitleDraft(bookmarkContextMenu.bookmark.title);
+            setBookmarkUrlDraft(bookmarkContextMenu.bookmark.url);
+            setEditingBookmark(bookmarkContextMenu.bookmark);
+            setBookmarkContextMenu(null);
+          }}>Edit bookmark</button>
+          <button role="menuitem" type="button" onClick={() => {
+            saveBookmarks(bookmarks.filter((bookmark) => bookmark.url !== bookmarkContextMenu.bookmark.url));
+            setBookmarkContextMenu(null);
+          }}>Delete bookmark</button>
+        </div>
+      )}
+      {editingBookmark && (
+        <div className="chrome-qa-modal-overlay">
+          <form className="chrome-qa-modal" onSubmit={saveEditedBookmark}>
+            <h3>Edit bookmark</h3>
+            <input
+              aria-label="Bookmark title"
+              onChange={(event) => setBookmarkTitleDraft(event.target.value)}
+              placeholder="Bookmark title"
+              value={bookmarkTitleDraft}
+            />
+            <input
+              aria-label="Bookmark URL"
+              onChange={(event) => setBookmarkUrlDraft(event.target.value)}
+              placeholder="https://example.com"
+              required
+              value={bookmarkUrlDraft}
+            />
+            {bookmarkError && <span className="chrome-bookmark-error" role="alert">{bookmarkError}</span>}
+            <div className="chrome-qa-modal-actions">
+              <button onClick={() => setEditingBookmark(null)} type="button">Cancel</button>
+              <button className="primary" type="submit">Save bookmark</button>
+            </div>
+          </form>
         </div>
       )}
       {navigationError && <div className="chrome-error" role="alert">{navigationError}</div>}
@@ -929,7 +1111,7 @@ export function BrowserApp() {
               <button onClick={() => setHistoryOpen(false)} type="button">Done</button>
             </header>
             <label className="chrome-history-search">
-              <span aria-hidden="true">⌕</span>
+              <PhosiumIcon name="search" />
               <input
                 aria-label="Search history"
                 onChange={(event) => setHistorySearch(event.target.value)}
@@ -950,7 +1132,7 @@ export function BrowserApp() {
                     className="chrome-history-remove"
                     onClick={() => saveHistory(history.filter((item) => item.id !== entry.id))}
                     type="button"
-                  >×</button>
+                  ><PhosiumIcon name="x" /></button>
                 </div>
               ))}
               {filteredHistory.length === 0 && (
@@ -977,7 +1159,7 @@ export function BrowserApp() {
               <div className="chrome-new-tab-page">
                 <div className="chrome-google-mark">Phosium</div>
                 <form className="chrome-search-form" onSubmit={handleSubmit}>
-                  <span>⌕</span>
+                  <PhosiumIcon name="search" />
                   <input
                     aria-label="Search the web"
                     onChange={(event) => setTabs((current) => current.map((tab) => tab.id === activeTabId
@@ -986,7 +1168,7 @@ export function BrowserApp() {
                     placeholder={`Search with ${searchEngine === "duckduckgo" ? "DuckDuckGo" : searchEngine === "brave" ? "Brave" : searchEngine[0].toUpperCase() + searchEngine.slice(1)} or enter a URL`}
                     value={address}
                   />
-                  <button aria-label="Search" type="submit">↵</button>
+                  <button aria-label="Search" type="submit"><PhosiumIcon name="corner-down-left" /></button>
                 </form>
 
                 {/* Quick Access Sites Grid */}
@@ -1035,7 +1217,7 @@ export function BrowserApp() {
                             type="button"
                             aria-label="Options"
                           >
-                            ⋮
+                            <PhosiumIcon name="ellipsis" />
                           </button>
                           {activeMenuSiteId === site.id && (
                             <div className="chrome-qa-context-menu">
@@ -1058,9 +1240,7 @@ export function BrowserApp() {
                         title="Add quick access site"
                       >
                         <div className="chrome-quick-access-icon">
-                          <svg className="chrome-qa-plus-icon" viewBox="0 0 24 24" width="24" height="24">
-                            <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                          </svg>
+                          <PhosiumIcon name="plus" className="chrome-qa-plus-icon" size={24} />
                         </div>
                         <span className="chrome-quick-access-label">ADD</span>
                       </button>

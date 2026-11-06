@@ -1,4 +1,5 @@
 import { useWindowManager } from '@repo/os-shell';
+import { PhosiumIcon } from '@repo/os-shell';
 
 export function TaskManagerApp() {
     const { windows, closeWindow } = useWindowManager();
@@ -17,13 +18,13 @@ export function TaskManagerApp() {
             <section className="task-manager-section" aria-label="System services">
                 <h3>System services</h3>
                 <div className="task-manager-row is-disabled">
-                    <span className="task-manager-icon">◉</span>
+                    <span className="task-manager-icon"><PhosiumIcon name="server" /></span>
                     <span className="task-manager-name"><strong>Phosium Service Worker</strong><small>Managed by the browser · cannot be stopped here</small></span>
                     <span className="task-manager-status">System</span>
                     <button type="button" disabled aria-label="Service worker cannot be stopped">Stop</button>
                 </div>
                 <div className="task-manager-row is-disabled">
-                    <span className="task-manager-icon">⌘</span>
+                    <span className="task-manager-icon"><PhosiumIcon name="command" /></span>
                     <span className="task-manager-name"><strong>Phosium Node.js Runtime</strong><small>Not available in this browser workspace</small></span>
                     <span className="task-manager-status">Unavailable</span>
                     <button type="button" disabled aria-label="Node.js runtime is unavailable">Stop</button>
@@ -36,7 +37,7 @@ export function TaskManagerApp() {
                     ? <div className="task-manager-empty">No apps are currently open.</div>
                     : tasks.map((task) => (
                         <div className="task-manager-row" key={task.id}>
-                            <span className="task-manager-icon">▣</span>
+                            <span className="task-manager-icon"><PhosiumIcon name="app-window" /></span>
                             <span className="task-manager-name">
                                 <strong>{task.title}</strong>
                                 <small>{task.isMinimized ? 'Minimized' : 'Running'}</small>

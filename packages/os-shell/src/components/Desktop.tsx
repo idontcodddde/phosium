@@ -3,6 +3,7 @@ import type { WindowState } from '../types.js';
 import { Window } from './Window.js';
 import { Taskbar } from './Taskbar.js';
 import { WindowManagerContext } from '../WindowManagerContext.js';
+import { PhosiumIcon } from './PhosiumIcon.js';
 
 interface DesktopProps {
     initialWindows?: WindowState[];
@@ -11,7 +12,7 @@ interface DesktopProps {
 
 export const Desktop: React.FC<DesktopProps> = ({ initialWindows = [] }) => {
     const [windows, setWindows] = useState<WindowState[]>(initialWindows);
-    const highestZ = useRef(10);
+    const highestZ = useRef(Math.max(10, ...initialWindows.map((window) => window.zIndex)));
     const nextWindowId = useRef(0);
     const [startMenuOpen, setStartMenuOpen] = useState(false);
     const [fullscreenWindowId, setFullscreenWindowId] = useState<string | null>(null);
@@ -48,9 +49,28 @@ export const Desktop: React.FC<DesktopProps> = ({ initialWindows = [] }) => {
         const desktop = desktopRef.current;
         if (!desktop) return;
         const maxX = Math.max(0, desktop.clientWidth - width);
-        const maxY = Math.max(34, desktop.clientHeight - height - 60);
+        const maxY = Math.max(0, desktop.clientHeight - height - 60);
         setWindows((current) => current.map((window) => window.id === id
-            ? { ...window, position: { x: Math.min(maxX, Math.max(0, x)), y: Math.min(maxY, Math.max(34, y)) } }
+            ? { ...window, position: { x: Math.min(maxX, Math.max(0, x)), y: Math.min(maxY, Math.max(0, y)) } }
+            : window));
+    };
+
+    const handleResize = (id: string, x: number, y: number, width: number, height: number) => {
+        const desktop = desktopRef.current;
+        if (!desktop) return;
+        const minWidth = Math.min(340, desktop.clientWidth);
+        const minHeight = Math.min(280, Math.max(1, desktop.clientHeight - 60));
+        const left = Math.max(0, Math.min(x, desktop.clientWidth - minWidth));
+        const top = Math.max(0, Math.min(y, desktop.clientHeight - 60 - minHeight));
+        const boundedWidth = Math.max(minWidth, Math.min(width, desktop.clientWidth - left));
+        const boundedHeight = Math.max(minHeight, Math.min(height, desktop.clientHeight - 60 - top));
+        setWindows((current) => current.map((window) => window.id === id
+            ? {
+                ...window,
+                position: { x: left, y: top },
+                width: boundedWidth,
+                height: boundedHeight,
+            }
             : window));
     };
 
@@ -163,6 +183,17 @@ export const Desktop: React.FC<DesktopProps> = ({ initialWindows = [] }) => {
     }, []);
 
     useEffect(() => {
+        const handleFocusWidgets = () => {
+            highestZ.current += 1;
+            window.dispatchEvent(new CustomEvent('phosium:desktop-widgets-focused', {
+                detail: highestZ.current,
+            }));
+        };
+        window.addEventListener('phosium:focus-desktop-widgets', handleFocusWidgets);
+        return () => window.removeEventListener('phosium:focus-desktop-widgets', handleFocusWidgets);
+    }, []);
+
+    useEffect(() => {
             const handleCloseAll = () => {
                 setWindows((current) => current.map((appWindow) => ({ ...appWindow, isOpen: false, isMinimized: false })));
                 fullscreenRestoreRef.current = null;
@@ -197,6 +228,7 @@ export const Desktop: React.FC<DesktopProps> = ({ initialWindows = [] }) => {
                     onMaximize={handleMaximize}
                     onFocus={focusWindow}
                     onMove={handleMove}
+                    onResize={handleResize}
                 />
             ))}
             {startMenuOpen && (
@@ -218,7 +250,7 @@ export const Desktop: React.FC<DesktopProps> = ({ initialWindows = [] }) => {
                             <button aria-label={`Open new ${app.title} window`} className="os-start-new-window" onClick={() => {
                                 openNewWindow(app.id);
                                 setStartMenuOpen(false);
-                            }}>+</button>
+                            }}><PhosiumIcon name="plus" /></button>
                         </div>
                     ))}
                     <div className="os-start-footer">Phosium Web OS</div>

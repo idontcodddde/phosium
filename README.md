@@ -7,7 +7,8 @@ Phosium is an experimental browser-based desktop environment. It brings a multi-
 ## What it includes
 
 - Desktop-style app windows, taskbar, and settings
-- Chrome-inspired browser with tabs, bookmarks, browsing history (yes i know), and selectable search engines
+- Resizable app windows and an optional configurable panic-key redirect (disabled by default)
+- Chrome-inspired browser with tabs, bookmarks, browsing history (yes i know), selectable search engines, and independent light/dark browser themes
 - Optional system-wide proxy routing through Ultraviolet, Scramjet, or Rammerhead
 - Configurable Wisp transport settings
 - Phosphorous page extensions, including browser/game extension controls and best-effort ad filtering

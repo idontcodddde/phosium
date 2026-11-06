@@ -10,6 +10,8 @@
         "dev": "tsc --watch"
     },
     "dependencies": {
+        "@iconify-icons/lucide": "^2.0.27",
+        "@iconify/react": "^6.0.4",
         "@repo/utils": "workspace:*"
     },
     "peerDependencies": {

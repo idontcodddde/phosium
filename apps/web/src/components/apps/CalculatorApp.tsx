@@ -9,7 +9,7 @@ import {
     type AngleMode,
     type FunctionSample,
     type TablePair,
-} from '../../lib/calculatorEngine';
+} from '../../lib/mathEngine';
 
 type Tool = 'calculate' | 'graph' | 'table' | 'solve' | 'compare';
 type HistoryEntry = { expression: string; result: string };

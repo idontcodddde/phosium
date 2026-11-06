@@ -1,8 +1,12 @@
+import type { ReactNode } from "react";
+
 export interface WindowState {
     id: string;
     title: string;
-    icon?: string;
+    icon?: ReactNode;
     description?: string;
+    width?: number;
+    height?: number;
     isOpen: boolean;
     isMinimized: boolean;
     isMaximized: boolean;

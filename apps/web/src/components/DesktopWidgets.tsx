@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSystem } from '../SystemContext';
+import { PhosiumIcon } from '@repo/os-shell';
 
 type WispServer = { id: string; name: string; url: string; ping?: number | null };
 
@@ -29,18 +30,11 @@ function readWispServers(): WispServer[] {
     return [{ id: 'local-host', name: 'Local Host Wisp', url: defaultWispUrl(), ping: null }];
 }
 
-function WifiIcon() {
-    return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M2 8.8a15 15 0 0 1 20 0M5.5 12.3a10 10 0 0 1 13 0M9 15.8a5 5 0 0 1 6 0M12 19h.01" />
-        </svg>
-    );
-}
-
 export function DesktopWidgets() {
     const { proxySettings, updateProxySettings } = useSystem();
     const [servers, setServers] = useState(readWispServers);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [zIndex, setZIndex] = useState(5);
     const [now, setNow] = useState(() => new Date());
     const widgetRef = useRef<HTMLDivElement>(null);
 
@@ -55,6 +49,15 @@ export function DesktopWidgets() {
             window.removeEventListener('phosium:wisp-servers-updated', updateServers);
             window.removeEventListener('storage', updateServers);
         };
+    }, []);
+
+    useEffect(() => {
+        const handleFocused = (event: Event) => {
+            const nextZIndex = (event as CustomEvent<number>).detail;
+            if (Number.isFinite(nextZIndex)) setZIndex(nextZIndex);
+        };
+        window.addEventListener('phosium:desktop-widgets-focused', handleFocused);
+        return () => window.removeEventListener('phosium:desktop-widgets-focused', handleFocused);
     }, []);
 
     useEffect(() => {
@@ -80,9 +83,14 @@ export function DesktopWidgets() {
     };
 
     return (
-        <aside className="phosium-desktop-widgets" aria-label="Desktop controls">
+        <aside
+            className="phosium-desktop-widgets"
+            aria-label="Desktop controls"
+            onPointerDownCapture={() => window.dispatchEvent(new Event('phosium:focus-desktop-widgets'))}
+            style={{ zIndex }}
+        >
             <div className="phosium-widget-clock">
-                <span className="phosium-widget-clock-icon" aria-hidden="true">◷</span>
+                <PhosiumIcon className="phosium-widget-clock-icon" name="clock-3" />
                 <span>
                     <strong>{now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong>
                     <small>{now.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}</small>
@@ -97,7 +105,7 @@ export function DesktopWidgets() {
                     aria-haspopup="menu"
                     onClick={() => setIsMenuOpen((open) => !open)}
                 >
-                    <WifiIcon />
+                    <PhosiumIcon name="wifi" />
                 </button>
                 <button
                     type="button"
@@ -106,7 +114,7 @@ export function DesktopWidgets() {
                     title="Close all apps"
                     onClick={() => window.dispatchEvent(new CustomEvent('phosium:close-all-windows'))}
                 >
-                    <span aria-hidden="true">×</span>
+                    <PhosiumIcon name="x" />
                 </button>
                 {isMenuOpen && (
                     <div className="phosium-wisp-menu" role="menu" aria-label="Saved Wisp servers">
@@ -121,7 +129,7 @@ export function DesktopWidgets() {
                                     key={server.id}
                                     onClick={() => selectServer(server)}
                                 >
-                                    <WifiIcon />
+                                    <PhosiumIcon name="wifi" />
                                     <span className="phosium-wisp-option-details">
                                         <strong>{server.name}</strong>
                                         <small>{server.url}</small>
@@ -129,7 +137,7 @@ export function DesktopWidgets() {
                                     {typeof server.ping === 'number' && server.ping < 999
                                         ? <span className="phosium-wisp-ping">{server.ping}ms</span>
                                         : <span className="phosium-wisp-ping is-unknown">—</span>}
-                                    {selected && <span className="phosium-wisp-check" aria-label="Selected">✓</span>}
+                                    {selected && <PhosiumIcon className="phosium-wisp-check" label="Selected" name="check" />}
                                 </button>
                             );
                         })}

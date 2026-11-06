@@ -5,6 +5,7 @@ import type { CloakOption } from "./lib/cloak";
 import type { ExternalPhosiumExtension } from "./extensions/phosphorousExtensions";
 
 export type DesktopTheme = "midnight" | "light" | "ocean";
+export type BrowserTheme = "light" | "dark";
 export type SearchEngine = "google" | "duckduckgo" | "bing" | "brave";
 export type AutoLaunchMode = "none" | "about-blank" | "blob";
 
@@ -18,6 +19,8 @@ export interface SystemContextValue {
   updateProxySettings: (settings: Partial<ProxySettings>) => void;
   theme: DesktopTheme;
   setTheme: (theme: DesktopTheme) => void;
+  browserTheme: BrowserTheme;
+  setBrowserTheme: (theme: BrowserTheme) => void;
   wallpaper: string | null;
   setWallpaper: (wallpaper: string | null) => void;
   proxyStatus: string;
@@ -48,6 +51,12 @@ export interface SystemContextValue {
   setCloak: (option: CloakOption) => void;
   autoLaunchMode: AutoLaunchMode;
   setAutoLaunchMode: (mode: AutoLaunchMode) => void;
+  panicKeyEnabled: boolean;
+  setPanicKeyEnabled: (enabled: boolean) => void;
+  panicKey: string;
+  setPanicKey: (key: string) => void;
+  panicUrl: string;
+  setPanicUrl: (url: string) => void;
 }
 
 export const SystemContext = createContext<SystemContextValue | null>(null);
