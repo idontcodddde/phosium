@@ -170,7 +170,6 @@ export function BrowserApp() {
     setSearchEngine,
     panicKeyEnabled,
     panicKey,
-    panicUrl,
   } = useSystem();
   const [firstTab] = useState(() => createTab());
   const [tabs, setTabs] = useState<BrowserTab[]>([firstTab]);
@@ -201,7 +200,7 @@ export function BrowserApp() {
   const iframeRefs = useRef(new Map<string, HTMLIFrameElement>());
   const frameRefs = useRef(new Map<string, Frame>());
   const phosphorusRef = useRef<Phosphorus | null>(null);
-  const panicSettingsRef = useRef({ enabled: panicKeyEnabled, key: panicKey, url: panicUrl });
+  const panicSettingsRef = useRef({ enabled: panicKeyEnabled, key: panicKey });
   const panicKeyDocumentsRef = useRef(new WeakSet<Document>());
   const extensionStateRef = useRef({
     phosphorousEnabled,
@@ -212,8 +211,8 @@ export function BrowserApp() {
   });
 
   useEffect(() => {
-    panicSettingsRef.current = { enabled: panicKeyEnabled, key: panicKey, url: panicUrl };
-  }, [panicKeyEnabled, panicKey, panicUrl]);
+    panicSettingsRef.current = { enabled: panicKeyEnabled, key: panicKey };
+  }, [panicKeyEnabled, panicKey]);
   const detachRefs = useRef(new Map<string, () => void>());
   const navigatedKeys = useRef(new Map<string, string>());
   const lastBrowserRequestId = useRef(0);
@@ -569,7 +568,7 @@ export function BrowserApp() {
         if (target?.closest("input, textarea, select, [contenteditable]")) return;
         event.preventDefault();
         event.stopImmediatePropagation();
-        window.location.assign(panic.url);
+        window.dispatchEvent(new Event("phosium:panic-toggle"));
       });
       panicKeyDocumentsRef.current.add(frameDocument);
     }

@@ -117,7 +117,7 @@ export function SettingsApp() {
         }
         return parsed.map((s) => (s.isLocal ? { ...s, url: localUrl } : s));
       }
-    } catch {}
+    } catch { }
 
     return [
       {
@@ -240,7 +240,7 @@ export function SettingsApp() {
           finished = true;
           try {
             ws.close();
-          } catch {}
+          } catch { }
           resolve(val);
         };
 
@@ -331,7 +331,7 @@ export function SettingsApp() {
 
   const handleDeleteServer = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     if (wispServers.length <= 1) return;
 
     const serverToDelete = wispServers.find((s) => s.id === id);
@@ -454,11 +454,11 @@ export function SettingsApp() {
         <section className="settings-section" id="panic-key">
           <div className="settings-eyebrow">QUICK EXIT</div>
           <h1>Panic key</h1>
-          <p className="settings-description">Optionally redirect this tab to a chosen site with a keyboard shortcut.</p>
+          <p className="settings-description">Show a full-screen website over Phosium. Press the panic key again to return; cross-origin pages may block the shortcut, so use Return to Phosium if needed. Some sites block iframe embedding.</p>
           <div className="settings-card settings-toggle-row">
             <div>
               <strong>Enable panic key</strong>
-              <p>Disabled by default. When enabled, the chosen key opens the destination directly.</p>
+              <p>Disabled by default. When enabled, the chosen key opens the website below in a full-screen overlay.</p>
             </div>
             <label className="switch">
               <input
@@ -499,7 +499,7 @@ export function SettingsApp() {
               </div>
             </div>
             <form className="settings-field" onSubmit={savePanicDestination}>
-              <label htmlFor="panic-destination">Destination site</label>
+              <label htmlFor="panic-destination">Website shown in panic overlay</label>
               <div className="settings-control-row panic-destination-row">
                 <input
                   id="panic-destination"
@@ -508,7 +508,7 @@ export function SettingsApp() {
                   type="url"
                   value={panicDestinationDraft}
                 />
-                <button className="settings-save-button" type="submit">Save site</button>
+                <button className="settings-save-button" type="submit">Save website</button>
               </div>
               {panicDestinationError && <span className="settings-error" role="alert">{panicDestinationError}</span>}
             </form>
@@ -571,7 +571,7 @@ export function SettingsApp() {
                 <ResetButton setting="Wisp transport" onReset={() => updateProxySettings({ transport: "epoxy" })} />
               </div>
             </div>}
-            
+
             {/* Wisp Servers Selector Grid */}
             {proxySettings.engine !== "rammerhead" && (
               <div className="settings-field">

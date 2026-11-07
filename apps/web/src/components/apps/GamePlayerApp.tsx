@@ -28,13 +28,12 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
     proxyStatus,
     panicKeyEnabled,
     panicKey,
-    panicUrl,
   } = useSystem();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const phosphorusRef = useRef<Phosphorus | null>(null);
   const frameRef = useRef<Frame | null>(null);
   const routeRevisionRef = useRef(0);
-  const panicSettingsRef = useRef({ enabled: panicKeyEnabled, key: panicKey, url: panicUrl });
+  const panicSettingsRef = useRef({ enabled: panicKeyEnabled, key: panicKey });
   const panicKeyDocumentsRef = useRef(new WeakSet<Document>());
   const extensionStateRef = useRef({
     phosphorousEnabled,
@@ -115,8 +114,8 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
   };
 
   useEffect(() => {
-    panicSettingsRef.current = { enabled: panicKeyEnabled, key: panicKey, url: panicUrl };
-  }, [panicKeyEnabled, panicKey, panicUrl]);
+    panicSettingsRef.current = { enabled: panicKeyEnabled, key: panicKey };
+  }, [panicKeyEnabled, panicKey]);
 
   const handleGameFrameLoad = () => {
     let frameDocument: Document | null;
@@ -134,7 +133,7 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
         if (target?.closest("input, textarea, select, [contenteditable]")) return;
         event.preventDefault();
         event.stopImmediatePropagation();
-        window.location.assign(panic.url);
+        window.dispatchEvent(new Event("phosium:panic-toggle"));
       });
       panicKeyDocumentsRef.current.add(frameDocument);
     }

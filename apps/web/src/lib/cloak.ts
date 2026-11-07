@@ -127,7 +127,7 @@ export async function launchAboutBlank(preset: string): Promise<void> {
 export async function launchBlob(preset: string): Promise<void> {
   const cloak = resolveCloak(preset);
   const redirect = cloak?.redirect ?? DEFAULT_REDIRECT;
-  const title = cloak?.title ?? "space";
+  const title = cloak?.title ?? "Phosium";
   const favicon = cloak?.favicon ?? "/favicon.ico";
   const html = `<!DOCTYPE html>
 <html>

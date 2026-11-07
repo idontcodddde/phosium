@@ -11,9 +11,11 @@ import { proxyManager } from "@repo/proxy";
 import type { ProxySettings } from "@repo/proxy";
 import { AboutApp } from "./components/apps/AboutApp";
 import { BrowserApp } from "./components/apps/BrowserApp";
+import { PanicOverlay } from "./components/PanicOverlay";
 import { CalculatorApp } from "./components/apps/CalculatorApp";
 import { GameApp } from "./components/apps/GameApp";
 import { GamePlayerApp } from "./components/apps/GamePlayerApp";
+import { ScriptsApp } from "./components/apps/ScriptsApp";
 import { SettingsApp } from "./components/apps/SettingsApp";
 import { TextEditorApp } from "./components/apps/TextEditorApp";
 import { FilesApp } from "./components/apps/FilesApp";
@@ -105,6 +107,7 @@ export default function App() {
   );
   const [panicKey, setPanicKeyState] = useState<string>(getSavedPanicKey);
   const [panicUrl, setPanicUrlState] = useState<string>(getSavedPanicUrl);
+  const [panicActive, setPanicActive] = useState(false);
   const [proxyStatus, setProxyStatus] = useState(() =>
     typeof navigator !== "undefined" && "serviceWorker" in navigator
       ? "Starting system services..."
@@ -429,11 +432,16 @@ export default function App() {
       if (target instanceof HTMLElement
         && (target.isContentEditable || target.matches("input, textarea, select, [data-panic-key-capture]"))) return;
       event.preventDefault();
-      window.location.assign(panicUrl);
+      setPanicActive((active) => !active);
     };
+    const handlePanicToggle = () => setPanicActive((active) => !active);
     window.addEventListener("keydown", handlePanicKey);
-    return () => window.removeEventListener("keydown", handlePanicKey);
-  }, [panicKey, panicKeyEnabled, panicUrl]);
+    window.addEventListener("phosium:panic-toggle", handlePanicToggle);
+    return () => {
+      window.removeEventListener("keydown", handlePanicKey);
+      window.removeEventListener("phosium:panic-toggle", handlePanicToggle);
+    };
+  }, [panicKey, panicKeyEnabled]);
 
   const initialWindows = useMemo<WindowState[]>(() => [
     {
@@ -521,6 +529,18 @@ export default function App() {
       component: <SettingsApp />,
     },
     {
+      id: "scripts",
+      title: "Scripts",
+      icon: <PhosiumIcon name="braces" />,
+      description: "Manage page behavior scripts",
+      isOpen: false,
+      isMinimized: false,
+      isMaximized: false,
+      zIndex: 16,
+      position: { x: 345, y: 180 },
+      component: <ScriptsApp />,
+    },
+    {
       id: "task-manager",
       title: "Task Manager",
       icon: <PhosiumIcon name="hard-drive" />,
@@ -585,6 +605,13 @@ export default function App() {
       >
         <Desktop initialWindows={initialWindows} />
         <DesktopWidgets />
+        <PanicOverlay
+          active={panicActive}
+          panicKey={panicKey}
+          panicKeyEnabled={panicKeyEnabled}
+          url={panicUrl}
+          onToggle={() => setPanicActive((active) => !active)}
+        />
         {showAlphaDisclaimer && (
           <div className="alpha-disclaimer-overlay">
             <section aria-labelledby="alpha-disclaimer-title" aria-modal="true" className="alpha-disclaimer" role="dialog">
