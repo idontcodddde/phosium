@@ -2344,6 +2344,13 @@
             "art": "CRAZY",
             "tint": "red",
             "detail": "Discover new browser games and popular hits."
+        },
+        {
+            "title": "Awesome Decomp Games",
+            "url": "https://submitgame.github.io/awesome-decomp-games/",
+            "art": "Awesome",
+            "tint": "blue",
+            "detail": "WAY too many games, most popular list of browser games."
         }
     ]
 }

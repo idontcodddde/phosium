@@ -195,7 +195,7 @@ export function GameApp() {
           <div className="game-grid">
             {filteredHubs.map((hub) => (
               <article className="game-card" key={hub.url}>
-                <button className="game-card-launch" onClick={() => openGame({ title: hub.title, url: hub.url })} type="button">
+                <button className="game-card-launch" onClick={() => openGame({ title: hub.title, url: hub.url, isHub: true })} type="button">
                   <span className={`game-card-art art-${hub.tint}`}><span>{hub.art}</span><i><PhosiumIcon name="play" /></i></span>
                   <span className="game-card-info"><span><strong>{hub.title}</strong><small>Game hub</small></span><span className="game-play"><PhosiumIcon name="play" /></span></span>
                   <span className="game-card-detail">{hub.detail}</span>

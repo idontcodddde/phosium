@@ -9,6 +9,49 @@ const searchUrl: Record<SearchEngine, (query: string) => string> = {
 
 const hostPattern = /^(?:localhost(?::\d+)?|(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?|(?:[a-z\d](?:[a-z\d-]*[a-z\d])?\.)+[a-z]{2,}(?::\d+)?)(?:[/?#][^\s]*)?$/i;
 
+export function decodeScramjetAddress(
+  input: string,
+  baseUrl: string,
+  framePrefix: string,
+  decode: (input: string) => string,
+): string {
+  const base = new URL(baseUrl);
+  const proxyPrefixPath = new URL(framePrefix, base).pathname;
+  const proxyPrefix = proxyPrefixPath.endsWith("/") ? proxyPrefixPath : `${proxyPrefixPath}/`;
+  const decodedRoutes = new Set<string>();
+  let targetUrl = input;
+
+  for (let depth = 0; depth < 10; depth += 1) {
+    const parsedUrl = new URL(targetUrl, base);
+    if (parsedUrl.origin !== base.origin || decodedRoutes.has(parsedUrl.href)) break;
+    decodedRoutes.add(parsedUrl.href);
+
+    let encodedTarget: string | null = parsedUrl.pathname.startsWith(proxyPrefix)
+      ? parsedUrl.pathname.slice(proxyPrefix.length)
+      : null;
+    if (encodedTarget === null) {
+      const servicePrefix = "/service/";
+      const serviceIndex = parsedUrl.pathname.indexOf(servicePrefix);
+      if (serviceIndex >= 0) {
+        encodedTarget = parsedUrl.pathname.slice(serviceIndex + servicePrefix.length);
+      }
+    }
+    if (!encodedTarget) break;
+
+    const embeddedUrl = /https?:\/\//i.exec(encodedTarget);
+    if (embeddedUrl?.index !== undefined) {
+      targetUrl = encodedTarget.slice(embeddedUrl.index) + parsedUrl.search + parsedUrl.hash;
+      break;
+    }
+
+    const decodedTarget = decode(encodedTarget);
+    if (decodedTarget === targetUrl) break;
+    targetUrl = decodedTarget;
+  }
+
+  return targetUrl;
+}
+
 export function resolveAddress(input: string, engine: SearchEngine): string {
   const trimmed = input.trim();
   if (!trimmed) throw new TypeError("Enter a web address or search.");

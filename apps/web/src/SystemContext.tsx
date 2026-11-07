@@ -12,6 +12,7 @@ export type AutoLaunchMode = "none" | "about-blank" | "blob";
 export interface GameLaunch {
   title: string;
   url: string;
+  isHub?: boolean;
 }
 
 export interface SystemContextValue {

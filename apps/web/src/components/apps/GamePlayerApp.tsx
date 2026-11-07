@@ -4,15 +4,17 @@ import type { Frame } from "@mercuryworkshop/scramjet-controller";
 import { PhosiumIcon } from "@repo/os-shell";
 import { proxyConfig } from "@repo/proxy";
 import { applyPhosiumExtensionStates, registerPhosiumExtensions } from "../../extensions/phosphorousExtensions";
-import { encodeRammerheadUrl } from "../../lib/proxy/rammerheadClient";
+import { decodeScramjetAddress } from "../../lib/browser/address";
+import { decodeRammerheadUrl, encodeRammerheadUrl, isRammerheadProxyUrl } from "../../lib/proxy/rammerheadClient";
 import { useSystem } from "../../SystemContext";
 
 interface GamePlayerAppProps {
   title: string;
   url: string;
+  isHub?: boolean;
 }
 
-export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
+export function GamePlayerApp({ title, url, isHub = false }: GamePlayerAppProps) {
   const {
     controller,
     gameEnhancementsEnabled,
@@ -33,6 +35,8 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
   const phosphorusRef = useRef<Phosphorus | null>(null);
   const frameRef = useRef<Frame | null>(null);
   const routeRevisionRef = useRef(0);
+  const currentUrlRef = useRef(url);
+  const navigationHistoryRef = useRef<string[]>([]);
   const panicSettingsRef = useRef({ enabled: panicKeyEnabled, key: panicKey });
   const panicKeyDocumentsRef = useRef(new WeakSet<Document>());
   const extensionStateRef = useRef({
@@ -44,6 +48,7 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
   });
   const [extensionsOpen, setExtensionsOpen] = useState(false);
   const [routeError, setRouteError] = useState("");
+  const [canGoBack, setCanGoBack] = useState(false);
   const readyStatus = proxySettings.engine === "rammerhead"
     ? "Rammerhead ready"
     : `${proxySettings.engine === "scramjet" ? "Scramjet" : "Ultraviolet"} ready · ${proxySettings.transport}`;
@@ -71,7 +76,7 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
     };
   }, [externalExtensions]);
 
-  const routeGame = useCallback(async () => {
+  const routeUrl = useCallback(async (targetUrl: string) => {
     const iframe = iframeRef.current;
     if (!iframe) return;
 
@@ -80,14 +85,14 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
     if (proxySettings.enabled && proxySettings.engine === "scramjet" && !controller) return;
     try {
       if (!proxySettings.enabled) {
-        iframe.src = url;
+        iframe.src = targetUrl;
       } else if (proxySettings.engine === "scramjet") {
         frameRef.current ??= controller!.createFrame(iframe);
-        frameRef.current.go(proxyConfig.getProxiedUrl(url, "scramjet"));
+        frameRef.current.go(proxyConfig.getProxiedUrl(targetUrl, "scramjet"));
       } else if (proxySettings.engine === "ultraviolet") {
-        iframe.src = proxyConfig.getProxiedUrl(url, "ultraviolet");
+        iframe.src = proxyConfig.getProxiedUrl(targetUrl, "ultraviolet");
       } else {
-        const rammerheadUrl = await encodeRammerheadUrl(url);
+        const rammerheadUrl = await encodeRammerheadUrl(targetUrl);
         if (routeRevisionRef.current !== revision) return;
         iframe.src = rammerheadUrl;
       }
@@ -101,11 +106,74 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
       console.error(`Could not open ${title} through the configured proxy.`, error);
       setRouteError(error instanceof Error ? error.message : String(error));
     }
-  }, [controller, proxySettings, proxyStatus, readyStatus, title, url]);
+  }, [controller, proxySettings, proxyStatus, readyStatus, title]);
+
+  const routeGame = useCallback(() => routeUrl(currentUrlRef.current), [routeUrl]);
 
   const refreshGame = useCallback(() => {
     void routeGame();
   }, [routeGame]);
+
+  const getOriginalUrl = useCallback((rawUrl: string): string | null => {
+    try {
+      let targetUrl = rawUrl;
+      if (proxySettings.engine === "scramjet") {
+        const frame = frameRef.current;
+        if (frame) {
+          targetUrl = decodeScramjetAddress(
+            targetUrl,
+            window.location.href,
+            frame.prefix,
+            (encodedTarget) => frame.context.interface.codecDecode(encodedTarget),
+          );
+        }
+      } else if (proxySettings.engine === "ultraviolet") {
+        const parsedUrl = new URL(targetUrl, window.location.href);
+        const servicePrefix = "/uv/service/";
+        if (parsedUrl.pathname.startsWith(servicePrefix)) {
+          targetUrl = decodeURIComponent(parsedUrl.pathname.slice(servicePrefix.length))
+            + parsedUrl.search
+            + parsedUrl.hash;
+        }
+      } else if (proxySettings.engine === "rammerhead") {
+        const frameWindow = iframeRef.current?.contentWindow as (Window & {
+          "%hammerhead%"?: {
+            utils?: {
+              url?: {
+                parseProxyUrl?: (url: string) => { destUrl?: string } | null;
+              };
+            };
+          };
+        }) | null | undefined;
+        const urlUtils = frameWindow?.["%hammerhead%"]?.utils?.url;
+        const decodedUrl = decodeRammerheadUrl(targetUrl, urlUtils?.parseProxyUrl, urlUtils);
+        if (decodedUrl) targetUrl = decodedUrl;
+        else if (isRammerheadProxyUrl(targetUrl)) return null;
+      }
+
+      const destination = new URL(targetUrl, window.location.href);
+      if (destination.protocol !== "http:" && destination.protocol !== "https:") return null;
+      return destination.href;
+    } catch {
+      return null;
+    }
+  }, [proxySettings.engine]);
+
+  const navigateHubLink = useCallback((destination: string) => {
+    if (destination === currentUrlRef.current) return;
+    navigationHistoryRef.current.push(currentUrlRef.current);
+    currentUrlRef.current = destination;
+    setCanGoBack(true);
+    void routeUrl(destination);
+  }, [routeUrl]);
+
+  const goBack = useCallback(() => {
+    const previousUrl = navigationHistoryRef.current.pop();
+    if (!previousUrl) return;
+    currentUrlRef.current = previousUrl;
+    setCanGoBack(navigationHistoryRef.current.length > 0);
+    void routeUrl(previousUrl);
+  }, [routeUrl]);
 
   const toggleExternalExtension = (id: string, enabled: boolean) => {
     setExternalExtensions(externalExtensions.map((extension) =>
@@ -118,13 +186,29 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
   }, [panicKeyEnabled, panicKey]);
 
   const handleGameFrameLoad = () => {
+    const iframe = iframeRef.current;
     let frameDocument: Document | null;
     try {
-      frameDocument = iframeRef.current?.contentDocument ?? null;
+      frameDocument = iframe?.contentDocument ?? null;
     } catch {
       return;
     }
     if (!frameDocument) return;
+    if (isHub) {
+      const handleLinkActivation = (event: MouseEvent) => {
+        let target = event.target as Element | null;
+        while (target && target.tagName !== "A") target = target.parentElement;
+        if (!target) return;
+
+        const destination = getOriginalUrl((target as HTMLAnchorElement).href);
+        if (!destination) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        navigateHubLink(destination);
+      };
+      frameDocument.addEventListener("click", handleLinkActivation, true);
+      frameDocument.addEventListener("auxclick", handleLinkActivation, true);
+    }
     if (!panicKeyDocumentsRef.current.has(frameDocument)) {
       frameDocument.addEventListener("keydown", (event) => {
         const panic = panicSettingsRef.current;
@@ -179,6 +263,11 @@ export function GamePlayerApp({ title, url }: GamePlayerAppProps) {
       <div className="game-player-toolbar">
         <span className="game-player-title">{title}</span>
         <div className="game-player-actions">
+          {isHub && (
+            <button aria-label="Go back to previous page" disabled={!canGoBack} onClick={goBack} type="button">
+              <PhosiumIcon name="arrow-left" />
+            </button>
+          )}
           <button aria-label={`Refresh ${title}`} onClick={refreshGame} type="button"><PhosiumIcon name="rotate-cw" /></button>
           <div className="game-player-extension-menu">
             <button

@@ -278,7 +278,7 @@ export default function App() {
     window.dispatchEvent(new CustomEvent("phosium:focus-window", { detail: "browser" }));
   }, []);
 
-  const openGame = useCallback(({ title, url }: { title: string; url: string }) => {
+  const openGame = useCallback(({ title, url, isHub }: { title: string; url: string; isHub?: boolean }) => {
     const instance = ++gameWindowIdRef.current;
     window.dispatchEvent(new CustomEvent("phosium:open-window", {
       detail: {
@@ -291,7 +291,7 @@ export default function App() {
         isMaximized: false,
         zIndex: 20 + instance,
         position: { x: 115 + (instance % 5) * 28, y: 58 + (instance % 5) * 24 },
-        component: <GamePlayerApp title={title} url={url} />,
+        component: <GamePlayerApp isHub={isHub} title={title} url={url} />,
       } satisfies WindowState,
     }));
   }, []);

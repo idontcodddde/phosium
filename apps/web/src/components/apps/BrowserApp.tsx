@@ -5,7 +5,7 @@ import type { Frame } from "@mercuryworkshop/scramjet-controller";
 import { proxyConfig } from "@repo/proxy";
 import { PhosiumIcon } from "@repo/os-shell";
 import { applyPhosiumExtensionStates, registerPhosiumExtensions } from "../../extensions/phosphorousExtensions";
-import { resolveAddress } from "../../lib/browser/address";
+import { decodeScramjetAddress, resolveAddress } from "../../lib/browser/address";
 import {
   decodeRammerheadUrl,
   encodeRammerheadUrl,
@@ -351,22 +351,12 @@ export function BrowserApp() {
       if (proxySettings.engine === "scramjet") {
         const frame = frameRefs.current.get(tabId);
         if (frame) {
-          const parsedUrl = new URL(targetUrl, window.location.href);
-          const framePrefix = new URL(frame.prefix, window.location.href).pathname;
-          const proxyPrefix = framePrefix.endsWith("/") ? framePrefix : `${framePrefix}/`;
-          let encodedTarget: string | null = parsedUrl.pathname.startsWith(proxyPrefix)
-            ? parsedUrl.pathname.slice(proxyPrefix.length)
-            : null;
-          if (encodedTarget === null) {
-            const servicePrefix = "/service/";
-            const serviceIndex = parsedUrl.pathname.indexOf(servicePrefix);
-            if (serviceIndex >= 0) {
-              encodedTarget = parsedUrl.pathname.slice(serviceIndex + servicePrefix.length);
-            }
-          }
-          if (encodedTarget) {
-            targetUrl = frame.context.interface.codecDecode(encodedTarget);
-          }
+          targetUrl = decodeScramjetAddress(
+            targetUrl,
+            window.location.href,
+            frame.prefix,
+            (encodedTarget) => frame.context.interface.codecDecode(encodedTarget),
+          );
         }
       } else if (proxySettings.engine === "ultraviolet") {
         const parsedUrl = new URL(targetUrl, window.location.href);

@@ -2834,6 +2834,11 @@
   background: #2a3039;
 }
 
+.game-player-actions > button:disabled {
+  cursor: default;
+  opacity: .45;
+}
+
 .game-player-extension-menu {
   position: relative;
 }
