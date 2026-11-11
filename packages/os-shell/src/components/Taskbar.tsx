@@ -38,7 +38,7 @@ export const Taskbar: React.FC<TaskbarProps> = ({ windows, onToggleWindow, onClo
     return (
         <footer className="os-taskbar">
             <button className="os-start-button" aria-label="Open app launcher" onClick={() => onOpenApp('start')}>
-                <span className="os-brand-mark">P</span>
+                <img alt="" className="os-brand-mark" src="/logo.png" />
             </button>
             <div
                 className="os-taskbar-apps"

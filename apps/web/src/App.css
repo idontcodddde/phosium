@@ -251,8 +251,7 @@
 }
 
 .os-desktop-icon-glyph,
-.os-app-glyph,
-.os-brand-mark {
+.os-app-glyph {
   display: inline-grid;
   flex: 0 0 auto;
   place-items: center;
@@ -274,8 +273,11 @@
 }
 
 .os-brand-mark {
-  border-radius: 10px;
-  font-weight: 850;
+  display: block;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
 }
 
 .os-window {
@@ -617,12 +619,16 @@
 }
 
 .os-taskbar-app .os-app-glyph,
-.os-start-button .os-brand-mark,
 .os-app-glyph {
   width: 25px;
   height: 25px;
   border-radius: 8px;
   font-size: 12px;
+}
+
+.os-start-button .os-brand-mark {
+  width: 25px;
+  height: 25px;
 }
 
 .os-system-tray {
@@ -2694,16 +2700,11 @@
 
 .game-brand-mark,
 .game-profile {
-  display: grid;
+  display: block;
   flex: 0 0 29px;
-  place-items: center;
   width: 29px;
   height: 29px;
-  color: #10221c;
-  background: #75e2ad;
-  border-radius: 50%;
-  font-size: 13px;
-  font-weight: 800;
+  object-fit: contain;
   letter-spacing: 0;
 }
 
@@ -2765,9 +2766,6 @@
   flex-basis: 27px;
   width: 27px;
   height: 27px;
-  color: white;
-  background: #7866cc;
-  font-size: 11px;
 }
 
 .game-store-content {

@@ -234,7 +234,7 @@ export const Desktop: React.FC<DesktopProps> = ({ initialWindows = [] }) => {
             {startMenuOpen && (
                 <div className="os-start-menu" role="menu">
                     <div className="os-start-heading">
-                        <span className="os-brand-mark">P</span>
+                        <img alt="" className="os-brand-mark" src="/logo.png" />
                         <div><strong>Phosium</strong><small>Your web workspace</small></div>
                     </div>
                     <div className="os-start-section">APPS</div>

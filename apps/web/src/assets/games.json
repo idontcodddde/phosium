@@ -898,6 +898,14 @@
             "detail": "Open this browser game and start playing."
         },
         {
+            "title": "Worse Subway Surfers",
+            "category": "Arcade",
+            "url": "https://asc2563.codeberg.page/Retini-games/subwaySurfers/",
+            "art": "SUBWAYSUR",
+            "tint": "slate",
+            "detail": "Open this browser game and start playing."
+        },
+        {
             "title": "Ragdoll Archers",
             "category": "Arcade",
             "url": "https://ragdoll-archers.game-files.crazygames.com/ragdoll-archers/30/index.html",

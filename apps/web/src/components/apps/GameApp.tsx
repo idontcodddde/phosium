@@ -93,7 +93,7 @@ export function GameApp() {
   return (
     <main className="game-store">
       <header className="game-store-header">
-        <div className="game-store-brand"><span className="game-brand-mark">P</span><span>PHOSIUM <b>GAMES</b></span></div>
+        <div className="game-store-brand"><img alt="" className="game-brand-mark" src="/logo.png" /><span>PHOSIUM <b>GAMES</b></span></div>
         <nav aria-label="Game library navigation">
           <button aria-current={view === "discover" ? "page" : undefined} className={view === "discover" ? "is-current" : ""} onClick={() => setView("discover")} type="button">Discover</button>
           <button aria-current={view === "all-games" ? "page" : undefined} className={view === "all-games" ? "is-current" : ""} onClick={() => { setView("all-games"); setCategory("All"); }} type="button">All games</button>
@@ -103,7 +103,7 @@ export function GameApp() {
           <PhosiumIcon name="search" />
           <input aria-label="Search games" onChange={(event) => setSearch(event.target.value)} placeholder="Search games" value={search} />
         </label>
-        <span className="game-profile">P</span>
+        <img alt="" className="game-profile" src="/logo.png" />
       </header>
       <div className="game-store-content">
         {view === "discover" && (
