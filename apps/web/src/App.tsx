@@ -4,6 +4,7 @@ import { BareMuxConnection } from "@mercuryworkshop/bare-mux";
 import EpoxyTransport from "@mercuryworkshop/epoxy-transport";
 import LibcurlTransport from "@mercuryworkshop/libcurl-transport";
 import { defaultConfigDev } from "@mercuryworkshop/scramjet";
+import type { ScramjetFlags } from "@mercuryworkshop/scramjet";
 import { config as defaultControllerConfig, Controller } from "@mercuryworkshop/scramjet-controller";
 import { Desktop, PhosiumIcon } from "@repo/os-shell";
 import type { WindowState } from "@repo/os-shell";
@@ -85,8 +86,32 @@ function getSavedPanicUrl(): string {
   }
 }
 
+function getSavedScramjetFlags(): ScramjetFlags {
+  const defaults = { ...defaultConfigDev.flags };
+  if (typeof window === "undefined") return defaults;
+
+  try {
+    const saved = localStorage.getItem("phosium_scramjet_flags");
+    if (!saved) return defaults;
+    const parsed: unknown = JSON.parse(saved);
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return defaults;
+
+    const stored = parsed as Record<string, unknown>;
+    for (const flag of Object.keys(defaults) as (keyof ScramjetFlags)[]) {
+      if (typeof stored[flag] === "boolean") {
+        defaults[flag] = stored[flag];
+      }
+    }
+  } catch (error) {
+    console.error("Unable to load saved Scramjet flags:", error);
+  }
+
+  return defaults;
+}
+
 export default function App() {
   const [proxySettings, setProxySettings] = useState(() => proxyManager.getSettings());
+  const [scramjetFlags, setScramjetFlagsState] = useState<ScramjetFlags>(getSavedScramjetFlags);
   const [showAlphaDisclaimer, setShowAlphaDisclaimer] = useState(() => {
     if (typeof window === "undefined") return false;
     try {
@@ -157,6 +182,7 @@ export default function App() {
   const [browserRequest, setBrowserRequest] = useState<{ id: number; url: string } | null>(null);
   const workerPromiseRef = useRef<Promise<ServiceWorker> | null>(null);
   const scramjetControllerRef = useRef<Controller | null>(null);
+  const scramjetFlagsRef = useRef(scramjetFlags);
   const bareMuxRef = useRef<BareMuxConnection | null>(null);
   const syncRevisionRef = useRef(0);
   const browserRequestIdRef = useRef(0);
@@ -167,6 +193,16 @@ export default function App() {
   const updateProxySettings = useCallback((update: Partial<ProxySettings>) => {
     proxyManager.setSettings(update);
     setProxySettings((current) => ({ ...current, ...update }));
+  }, []);
+
+  const updateScramjetFlags = useCallback((flags: ScramjetFlags) => {
+    const nextFlags = { ...flags };
+    localStorage.setItem("phosium_scramjet_flags", JSON.stringify(nextFlags));
+    scramjetFlagsRef.current = nextFlags;
+    if (scramjetControllerRef.current) {
+      Object.assign(scramjetControllerRef.current.scramjetConfig.flags, nextFlags);
+    }
+    setScramjetFlagsState(nextFlags);
   }, []);
 
   const setBrowserTheme = useCallback((nextTheme: BrowserTheme) => {
@@ -376,7 +412,10 @@ export default function App() {
                 injectPath: "/controller/controller.inject.js",
                 wasmPath: "/scramjet/scramjet.wasm",
               },
-              scramjetConfig: defaultConfigDev,
+              scramjetConfig: {
+                ...defaultConfigDev,
+                flags: { ...scramjetFlagsRef.current },
+              },
             });
             scramjetControllerRef.current = scramjetController;
             await scramjetController.wait();
@@ -558,6 +597,8 @@ export default function App() {
     <SystemContext.Provider value={{
       proxySettings,
       updateProxySettings,
+      scramjetFlags,
+      updateScramjetFlags,
       theme,
       setTheme,
       browserTheme,

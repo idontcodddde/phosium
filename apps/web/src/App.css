@@ -2605,6 +2605,206 @@
   font-size: 10px;
 }
 
+.proxy-settings-launcher {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+}
+
+.proxy-settings-launcher strong {
+  color: var(--text-primary);
+  font-size: 11px;
+}
+
+.proxy-settings-launcher p {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 9px;
+}
+
+.proxy-settings-app .settings-content {
+  padding-top: 20px;
+}
+
+.proxy-flags-heading {
+  justify-content: space-between;
+}
+
+.proxy-flags-description,
+.proxy-engine-note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.proxy-flag-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.proxy-flag-row {
+  margin: 0;
+  padding: 10px;
+}
+
+.proxy-flag-row > span:first-child {
+  min-width: 0;
+}
+
+.proxy-flag-row strong {
+  display: block;
+  color: var(--text-primary);
+  font-size: 10px;
+}
+
+.proxy-flag-row small {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-muted);
+  font-size: 8px;
+}
+
+.proxy-wisp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.proxy-wisp-server {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+
+.proxy-wisp-server.is-selected {
+  background: color-mix(in srgb, #4ade80 14%, transparent);
+  border-color: color-mix(in srgb, #4ade80 50%, var(--border));
+}
+
+.proxy-wisp-select {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+  color: var(--text-primary);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.proxy-wisp-select:disabled {
+  cursor: not-allowed;
+  opacity: .6;
+}
+
+.proxy-wisp-details {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.proxy-wisp-details strong {
+  font-size: 10px;
+}
+
+.proxy-wisp-details small {
+  overflow-wrap: anywhere;
+  color: var(--text-muted);
+  font-size: 8px;
+}
+
+.proxy-wisp-delete {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.proxy-wisp-delete:hover {
+  color: var(--text-primary);
+  background: var(--surface-hover);
+}
+
+.proxy-add-wisp {
+  min-height: 36px;
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--text-primary) 6%, transparent);
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.proxy-add-wisp:disabled {
+  cursor: not-allowed;
+  opacity: .5;
+}
+
+.proxy-add-wisp-form {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.proxy-add-wisp-form input {
+  min-width: 0;
+  height: 34px;
+  padding: 0 9px;
+  color: var(--text-primary);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 9px;
+}
+
+.proxy-add-wisp-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.proxy-add-wisp-actions button {
+  min-height: 29px;
+  padding: 0 9px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 9px;
+}
+
+.proxy-add-wisp-actions button[type="submit"] {
+  color: white;
+  background: var(--accent-strong);
+  border-color: transparent;
+}
+
 .status-dot {
   width: 7px;
   height: 7px;
@@ -4959,4 +5159,34 @@
   height: 100%;
   min-height: 0;
   box-sizing: border-box;
+}
+
+.settings-app button:not(.theme-option):not(.cloak-launch-button):not(.proxy-wisp-select) {
+  min-height: 34px;
+  padding: 0 12px;
+  color: #fff;
+  background: var(--accent-strong);
+  border: 0;
+  border-radius: 7px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  transition: filter 120ms ease, transform 120ms ease;
+}
+
+.settings-app button:not(.theme-option):not(.cloak-launch-button):not(.proxy-wisp-select):hover:not(:disabled) {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+}
+
+.settings-app button:not(.theme-option):not(.cloak-launch-button):not(.proxy-wisp-select):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.settings-app button:not(.theme-option):not(.cloak-launch-button):not(.proxy-wisp-select):disabled {
+  opacity: .5;
+  cursor: not-allowed;
+  transform: none;
 }

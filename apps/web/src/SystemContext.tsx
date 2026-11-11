@@ -1,5 +1,6 @@
 import { createContext, useContext } from "react";
 import type { Controller } from "@mercuryworkshop/scramjet-controller";
+import type { ScramjetFlags } from "@mercuryworkshop/scramjet";
 import type { ProxySettings } from "@repo/proxy";
 import type { CloakOption } from "./lib/cloak";
 import type { ExternalPhosiumExtension } from "./extensions/phosphorousExtensions";
@@ -18,6 +19,8 @@ export interface GameLaunch {
 export interface SystemContextValue {
   proxySettings: ProxySettings;
   updateProxySettings: (settings: Partial<ProxySettings>) => void;
+  scramjetFlags: ScramjetFlags;
+  updateScramjetFlags: (flags: ScramjetFlags) => void;
   theme: DesktopTheme;
   setTheme: (theme: DesktopTheme) => void;
   browserTheme: BrowserTheme;
