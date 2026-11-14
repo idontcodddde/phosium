@@ -6,6 +6,7 @@ import { useSystem } from "../../SystemContext";
 import { PhosiumIcon } from "@repo/os-shell";
 import { ProxySettingsApp } from "./ProxySettingsApp";
 import { parseExternalPhosiumExtension } from "../../extensions/phosphorousExtensions";
+import { appConfig } from "../../../app.config";
 
 function ResetButton({ setting, onReset }: { setting: string; onReset: () => void }) {
   return (
@@ -192,7 +193,7 @@ export function SettingsApp() {
             ))}
           </div>
           <div className="settings-reset-row">
-            <ResetButton setting="desktop theme" onReset={() => setTheme("midnight")} />
+            <ResetButton setting="desktop theme" onReset={() => setTheme(appConfig.appearance.defaultDesktopTheme)} />
           </div>
           <h2 className="settings-subheading">Browser appearance</h2>
           <p className="settings-description">Choose a browser theme independent of your Phosium desktop theme.</p>
@@ -218,7 +219,7 @@ export function SettingsApp() {
             ))}
           </div>
           <div className="settings-reset-row">
-            <ResetButton setting="browser theme" onReset={() => setBrowserTheme("light")} />
+            <ResetButton setting="browser theme" onReset={() => setBrowserTheme(appConfig.appearance.defaultBrowserTheme)} />
           </div>
           <div className="settings-card wallpaper-card">
             <div className="wallpaper-card-copy">
@@ -364,7 +365,7 @@ export function SettingsApp() {
                 />
                 <span />
               </label>
-              <ResetButton setting="Phosphorous" onReset={() => setPhosphorousEnabled(true)} />
+              <ResetButton setting="Phosphorous" onReset={() => setPhosphorousEnabled(appConfig.features.phosphorousEnabled)} />
             </div>
           </div>
           <h2 className="settings-subheading">Browser</h2>
@@ -384,7 +385,7 @@ export function SettingsApp() {
                 />
                 <span />
               </label>
-              <ResetButton setting="browser page enhancements" onReset={() => setBrowserEnhancementsEnabled(true)} />
+              <ResetButton setting="browser page enhancements" onReset={() => setBrowserEnhancementsEnabled(appConfig.features.browserEnhancementsEnabled)} />
             </div>
           </div>
           <div className="settings-card settings-toggle-row">
@@ -403,7 +404,7 @@ export function SettingsApp() {
                 />
                 <span />
               </label>
-              <ResetButton setting="browser gaming tools" onReset={() => setBrowserGamingToolsEnabled(true)} />
+              <ResetButton setting="browser gaming tools" onReset={() => setBrowserGamingToolsEnabled(appConfig.features.browserGamingToolsEnabled)} />
             </div>
           </div>
           <div className="settings-card settings-toggle-row">
@@ -422,7 +423,7 @@ export function SettingsApp() {
                 />
                 <span />
               </label>
-              <ResetButton setting="browser ad blocker" onReset={() => setBrowserAdBlockerEnabled(true)} />
+              <ResetButton setting="browser ad blocker" onReset={() => setBrowserAdBlockerEnabled(appConfig.features.browserAdBlockerEnabled)} />
             </div>
           </div>
           <h2 className="settings-subheading">Game windows</h2>
@@ -442,7 +443,7 @@ export function SettingsApp() {
                 />
                 <span />
               </label>
-              <ResetButton setting="game page enhancements" onReset={() => setGameEnhancementsEnabled(true)} />
+              <ResetButton setting="game page enhancements" onReset={() => setGameEnhancementsEnabled(appConfig.features.gameEnhancementsEnabled)} />
             </div>
           </div>
           <div className="settings-card settings-toggle-row">
@@ -461,7 +462,7 @@ export function SettingsApp() {
                 />
                 <span />
               </label>
-              <ResetButton setting="game ad blocker" onReset={() => setGameAdBlockerEnabled(true)} />
+              <ResetButton setting="game ad blocker" onReset={() => setGameAdBlockerEnabled(appConfig.features.gameAdBlockerEnabled)} />
             </div>
           </div>
           <div className="settings-card settings-toggle-row">
@@ -480,7 +481,7 @@ export function SettingsApp() {
                 />
                 <span />
               </label>
-              <ResetButton setting="game gaming tools" onReset={() => setGameGamingToolsEnabled(true)} />
+              <ResetButton setting="game gaming tools" onReset={() => setGameGamingToolsEnabled(appConfig.features.gameGamingToolsEnabled)} />
             </div>
           </div>
           <h2 className="settings-subheading">External extensions</h2>
@@ -560,7 +561,7 @@ export function SettingsApp() {
                   <option value="bing">Bing</option>
                   <option value="brave">Brave Search</option>
                 </select>
-                <ResetButton setting="search engine" onReset={() => setSearchEngine("google")} />
+                <ResetButton setting="search engine" onReset={() => setSearchEngine(appConfig.browser.defaultSearchEngine)} />
               </div>
             </div>
           </div>
@@ -587,7 +588,7 @@ export function SettingsApp() {
                     <option key={value} value={value}>{label}</option>
                   ))}
                 </select>
-                <ResetButton setting="cloaking" onReset={() => setCloak("none")} />
+                <ResetButton setting="cloaking" onReset={() => setCloak(appConfig.privacy.cloak)} />
               </div>
             </div>
             <div className="settings-field">
@@ -607,7 +608,7 @@ export function SettingsApp() {
                   <option value="about-blank">About:blank</option>
                   <option value="blob">Blob</option>
                 </select>
-                <ResetButton setting="automatic launch" onReset={() => autoLaunchMode} />
+                <ResetButton setting="automatic launch" onReset={() => setAutoLaunchMode(appConfig.privacy.autoLaunchMode)} />
               </div>
             </div>
           </div>

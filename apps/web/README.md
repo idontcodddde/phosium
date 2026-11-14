@@ -1,32 +1,35 @@
-# React + TypeScript + Vite
+# Phosium Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+## Fork configuration
 
-Currently, two official plugins are available:
+Edit [`app.config.ts`](./app.config.ts) to customize defaults and branding for
+your fork. These values apply to first-time users; settings already saved in
+browser storage take precedence. The Settings app's Reset buttons use the
+configured defaults. To test changed defaults, clear this site's local storage.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The config includes:
 
-## React Compiler
+- `branding`: app name, page description, and favicon path.
+- `appearance`: initial desktop and browser themes, plus an optional wallpaper
+  URL or data URL.
+- `browser`: search engine, bookmarks-bar visibility, history limit, and the
+  start-page quick-access links.
+- `privacy`: panic-key behavior and destination, cloaking preset, and
+  auto-launch mode.
+- `features`: default enablement for Phosphorous and its browser/game helpers.
+- `startup`: whether to show the alpha disclaimer.
+- `proxy`: initial proxy enablement, engine, transport, and optional Wisp URL.
+  Leave `wispUrl` as `null` to use the current host's `/wisp/` endpoint.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Theme, search-engine, cloaking, launch-mode, proxy-engine, and transport values
+are type-checked against the options supported by the app. Keep custom quick
+access entries in the same `{ id, title, url }` shape as the examples.
 
-## Expanding the Oxlint configuration
+## Development
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+Run `pnpm dev` from the repository root to start the workspace. Build this app
+with:
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```sh
+pnpm --filter web build
 ```
-
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.

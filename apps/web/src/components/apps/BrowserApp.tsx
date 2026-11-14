@@ -6,6 +6,8 @@ import { proxyConfig } from "@repo/proxy";
 import { PhosiumIcon } from "@repo/os-shell";
 import { applyPhosiumExtensionStates, registerPhosiumExtensions } from "../../extensions/phosphorousExtensions";
 import { decodeScramjetAddress, resolveAddress } from "../../lib/browser/address";
+import { appConfig } from "../../../app.config";
+import type { QuickAccessSiteConfig } from "../../../app.config";
 import {
   decodeRammerheadUrl,
   encodeRammerheadUrl,
@@ -18,14 +20,8 @@ import type { BrowserBookmark, BrowserHistoryEntry, BrowserTab } from "../../typ
 let tabSequence = 0;
 let historySequence = 0;
 const browserHistoryKey = "phosium_browser_history";
-const browserHistoryLimit = 500;
+const browserHistoryLimit = appConfig.browser.historyLimit;
 const quickAccessKey = "phosium_quick_access_sites";
-
-interface QuickAccessSite {
-  id: string;
-  title: string;
-  url: string;
-}
 
 interface BookmarkContextMenu {
   bookmark: BrowserBookmark;
@@ -33,22 +29,15 @@ interface BookmarkContextMenu {
   y: number;
 }
 
-const defaultQuickAccessSites: QuickAccessSite[] = [
-  { id: "qa-youtube", title: "YOUTUBE", url: "https://www.youtube.com" },
-  { id: "qa-discord", title: "DISCORD", url: "https://discord.com/app" },
-  { id: "qa-instagram", title: "INSTAGRAM", url: "https://www.instagram.com" },
-  { id: "qa-tiktok", title: "TIKTOK", url: "https://www.tiktok.com" },
-  { id: "qa-spotify", title: "SPOTIFY", url: "https://open.spotify.com" },
-  { id: "qa-twitch", title: "TWITCH", url: "https://www.twitch.tv" },
-];
+const defaultQuickAccessSites: QuickAccessSiteConfig[] = [...appConfig.browser.quickAccessSites];
 
-function loadQuickAccessSites(): QuickAccessSite[] {
+function loadQuickAccessSites(): QuickAccessSiteConfig[] {
   try {
     const stored = localStorage.getItem(quickAccessKey);
     if (!stored) return defaultQuickAccessSites;
     const parsed: unknown = JSON.parse(stored);
     if (!Array.isArray(parsed)) return defaultQuickAccessSites;
-    return parsed.filter((item): item is QuickAccessSite =>
+    return parsed.filter((item): item is QuickAccessSiteConfig =>
       typeof item === "object" &&
       item !== null &&
       "id" in item &&
@@ -176,7 +165,7 @@ export function BrowserApp() {
   const [activeTabId, setActiveTabId] = useState(firstTab.id);
   const [navigationError, setNavigationError] = useState("");
   const [bookmarks, setBookmarks] = useState<BrowserBookmark[]>(loadBookmarks);
-  const [quickAccessSites, setQuickAccessSites] = useState<QuickAccessSite[]>(loadQuickAccessSites);
+  const [quickAccessSites, setQuickAccessSites] = useState<QuickAccessSiteConfig[]>(loadQuickAccessSites);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newQaTitle, setNewQaTitle] = useState("");
   const [newQaUrl, setNewQaUrl] = useState("");
@@ -187,7 +176,10 @@ export function BrowserApp() {
   const [historySearch, setHistorySearch] = useState("");
   const [historyError, setHistoryError] = useState("");
   const [showBookmarksBar, setShowBookmarksBar] = useState(
-    () => localStorage.getItem("phosium_show_bookmarks_bar") !== "false",
+    () => {
+      const saved = localStorage.getItem("phosium_show_bookmarks_bar");
+      return saved === null ? appConfig.browser.showBookmarksBar : saved !== "false";
+    },
   );
   const [extensionsOpen, setExtensionsOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -246,7 +238,7 @@ export function BrowserApp() {
     }
   }, []);
 
-  const saveQuickAccess = useCallback((nextSites: QuickAccessSite[]) => {
+  const saveQuickAccess = useCallback((nextSites: QuickAccessSiteConfig[]) => {
     try {
       localStorage.setItem(quickAccessKey, JSON.stringify(nextSites));
       setQuickAccessSites(nextSites);
@@ -267,7 +259,7 @@ export function BrowserApp() {
         title = "SITE";
       }
     }
-    const newSite: QuickAccessSite = {
+    const newSite: QuickAccessSiteConfig = {
       id: `qa-${Date.now()}`,
       title,
       url: formattedUrl,

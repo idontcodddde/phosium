@@ -78,10 +78,10 @@ export function isCloakOption(value: string | null): value is CloakOption {
   return CLOAK_OPTIONS.some((option) => option.value === value);
 }
 
-export function applyCloak(option: CloakOption): void {
+export function applyCloak(option: CloakOption, appName = DEFAULT_TITLE): void {
   const metadata = CLOAK_METADATA[option];
   if (!metadata) {
-    document.title = DEFAULT_TITLE;
+    document.title = appName;
     document.querySelector(`link[${CLOAK_ICON_ATTRIBUTE}]`)?.remove();
     return;
   }
@@ -97,12 +97,13 @@ export function applyCloak(option: CloakOption): void {
   iconLink.href = metadata.icon;
 }
 
-export async function launchAboutBlank(preset: string): Promise<void> {
+export async function launchAboutBlank(preset: string, appName = DEFAULT_TITLE): Promise<void> {
   const win = window.open("", "_blank");
   if (!win) return;
 
   const cloak = resolveCloak(preset);
   const redirect = cloak?.redirect ?? DEFAULT_REDIRECT;
+  win.document.title = cloak?.title ?? appName;
   const iframe = win.document.createElement("iframe");
   iframe.style.cssText =
     "position:fixed;top:0;left:0;width:100vw;height:100vh;border:none;margin:0;padding:0;";
@@ -124,10 +125,10 @@ export async function launchAboutBlank(preset: string): Promise<void> {
   window.location.href = redirect;
 }
 
-export async function launchBlob(preset: string): Promise<void> {
+export async function launchBlob(preset: string, appName = DEFAULT_TITLE): Promise<void> {
   const cloak = resolveCloak(preset);
   const redirect = cloak?.redirect ?? DEFAULT_REDIRECT;
-  const title = cloak?.title ?? "Phosium";
+  const title = cloak?.title ?? appName;
   const favicon = cloak?.favicon ?? "/favicon.ico";
   const html = `<!DOCTYPE html>
 <html>

@@ -26,6 +26,7 @@ import { SystemContext } from "./SystemContext";
 import type { AutoLaunchMode, BrowserTheme, DesktopTheme, SearchEngine } from "./SystemContext";
 import { applyCloak, isCloakOption, launchAboutBlank, launchBlob } from "./lib/cloak";
 import type { CloakOption } from "./lib/cloak";
+import { appConfig } from "../app.config";
 import { createBareMuxCompatibleTransport } from "./lib/proxy/bareMuxTransport";
 import { createTransport, registerSystemWorker } from "./lib/proxy/runtime";
 import {
@@ -34,56 +35,88 @@ import {
 import type { ExternalPhosiumExtension } from "./extensions/phosphorousExtensions";
 
 function getSavedTheme(): DesktopTheme {
-  if (typeof window === "undefined") return "midnight";
+  if (typeof window === "undefined") return appConfig.appearance.defaultDesktopTheme;
   const theme = localStorage.getItem("phosium_theme");
-  return theme === "light" || theme === "ocean" ? theme : "midnight";
+  return theme === "midnight" || theme === "light" || theme === "ocean"
+    ? theme
+    : appConfig.appearance.defaultDesktopTheme;
 }
 
 function getSavedBrowserTheme(): BrowserTheme {
-  if (typeof window === "undefined") return "light";
-  return localStorage.getItem("phosium_browser_theme") === "dark" ? "dark" : "light";
+  if (typeof window === "undefined") return appConfig.appearance.defaultBrowserTheme;
+  const saved = localStorage.getItem("phosium_browser_theme");
+  return saved === "dark" || saved === "light" ? saved : appConfig.appearance.defaultBrowserTheme;
 }
 
 function getSavedWallpaper(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("phosium_wallpaper");
+  if (typeof window === "undefined") return appConfig.appearance.defaultWallpaper;
+  return localStorage.getItem("phosium_wallpaper") ?? appConfig.appearance.defaultWallpaper;
 }
 
 function getSavedSearchEngine(): SearchEngine {
-  if (typeof window === "undefined") return "google";
+  if (typeof window === "undefined") return appConfig.browser.defaultSearchEngine;
   const engine = localStorage.getItem("phosium_search_engine");
-  return engine === "duckduckgo" || engine === "bing" || engine === "brave" ? engine : "google";
+  return engine === "google" || engine === "duckduckgo" || engine === "bing" || engine === "brave"
+    ? engine
+    : appConfig.browser.defaultSearchEngine;
 }
 
 function getSavedCloak(): CloakOption {
-  if (typeof window === "undefined") return "none";
+  if (typeof window === "undefined") return appConfig.privacy.cloak;
   const saved = localStorage.getItem("phosium_cloak");
-  return isCloakOption(saved) ? saved : "none";
+  return isCloakOption(saved) ? saved : appConfig.privacy.cloak;
 }
 
 function getSavedAutoLaunchMode(): AutoLaunchMode {
-  if (typeof window === "undefined") return "none";
+  if (typeof window === "undefined") return appConfig.privacy.autoLaunchMode;
   const saved = localStorage.getItem("phosium_auto_launch");
-  return saved === "about-blank" || saved === "blob" ? saved : "none";
+  return saved === "about-blank" || saved === "blob" ? saved : appConfig.privacy.autoLaunchMode;
 }
 
 function getSavedPanicKey(): string {
-  if (typeof window === "undefined") return "\\";
-  return localStorage.getItem("phosium_panic_key") || "\\";
+  if (typeof window === "undefined") return appConfig.privacy.panicKey;
+  return localStorage.getItem("phosium_panic_key") || appConfig.privacy.panicKey;
 }
 
 function getSavedPanicUrl(): string {
-  if (typeof window === "undefined") return "https://www.google.com/";
+  if (typeof window === "undefined") return appConfig.privacy.panicUrl;
   const saved = localStorage.getItem("phosium_panic_url");
-  if (!saved) return "https://www.google.com/";
+  if (!saved) return appConfig.privacy.panicUrl;
   try {
     const url = new URL(saved);
     return url.protocol === "http:" || url.protocol === "https:"
       ? url.href
-      : "https://www.google.com/";
+      : appConfig.privacy.panicUrl;
   } catch {
-    return "https://www.google.com/";
+    return appConfig.privacy.panicUrl;
   }
+}
+
+function getInitialProxySettings(): ProxySettings {
+  const saved = proxyManager.getSettings();
+  if (typeof window === "undefined") {
+    return {
+      enabled: appConfig.proxy.enabled,
+      engine: appConfig.proxy.engine,
+      transport: appConfig.proxy.transport,
+      wispUrl: appConfig.proxy.wispUrl ?? saved.wispUrl,
+    };
+  }
+
+  return {
+    enabled: localStorage.getItem("system_proxy") === null ? appConfig.proxy.enabled : saved.enabled,
+    engine: localStorage.getItem("proxy_engine") === null ? appConfig.proxy.engine : saved.engine,
+    transport: localStorage.getItem("proxy_transport") === null ? appConfig.proxy.transport : saved.transport,
+    wispUrl: localStorage.getItem("wisp_url") === null
+      ? appConfig.proxy.wispUrl ?? saved.wispUrl
+      : saved.wispUrl,
+  };
+}
+
+function getSavedFeature(key: string, defaultValue: boolean, legacyKey?: string): boolean {
+  if (typeof window === "undefined") return defaultValue;
+  const saved = localStorage.getItem(key) ?? (legacyKey ? localStorage.getItem(legacyKey) : null);
+  return saved === null ? defaultValue : saved !== "false";
 }
 
 function getSavedScramjetFlags(): ScramjetFlags {
@@ -110,12 +143,13 @@ function getSavedScramjetFlags(): ScramjetFlags {
 }
 
 export default function App() {
-  const [proxySettings, setProxySettings] = useState(() => proxyManager.getSettings());
+  const [proxySettings, setProxySettings] = useState(getInitialProxySettings);
   const [scramjetFlags, setScramjetFlagsState] = useState<ScramjetFlags>(getSavedScramjetFlags);
   const [showAlphaDisclaimer, setShowAlphaDisclaimer] = useState(() => {
     if (typeof window === "undefined") return false;
     try {
-      return localStorage.getItem("phosium_alpha_disclaimer_acknowledged") !== "true";
+      return appConfig.startup.showAlphaDisclaimer
+        && localStorage.getItem("phosium_alpha_disclaimer_acknowledged") !== "true";
     } catch (error) {
       console.error("Could not check whether the alpha disclaimer was acknowledged.", error);
       return true;
@@ -127,9 +161,11 @@ export default function App() {
   const [searchEngine, setSearchEngineState] = useState<SearchEngine>(getSavedSearchEngine);
   const [cloak, setCloakState] = useState<CloakOption>(getSavedCloak);
   const [autoLaunchMode, setAutoLaunchModeState] = useState<AutoLaunchMode>(getSavedAutoLaunchMode);
-  const [panicKeyEnabled, setPanicKeyEnabledState] = useState(
-    () => typeof window !== "undefined" && localStorage.getItem("phosium_panic_key_enabled") === "true",
-  );
+  const [panicKeyEnabled, setPanicKeyEnabledState] = useState(() => {
+    if (typeof window === "undefined") return appConfig.privacy.panicKeyEnabled;
+    const saved = localStorage.getItem("phosium_panic_key_enabled");
+    return saved === null ? appConfig.privacy.panicKeyEnabled : saved === "true";
+  });
   const [panicKey, setPanicKeyState] = useState<string>(getSavedPanicKey);
   const [panicUrl, setPanicUrlState] = useState<string>(getSavedPanicUrl);
   const [panicActive, setPanicActive] = useState(false);
@@ -141,34 +177,25 @@ export default function App() {
   const [controller, setController] = useState<Controller | null>(null);
   const [serviceWorker, setServiceWorker] = useState<ServiceWorker | null>(null);
   const [phosphorousEnabled, setPhosphorousEnabledState] = useState(
-    () => typeof window === "undefined" || localStorage.getItem("phosium_phosphorous_enabled") !== "false"
+    () => getSavedFeature("phosium_phosphorous_enabled", appConfig.features.phosphorousEnabled)
   );
   const [browserEnhancementsEnabled, setBrowserEnhancementsEnabledState] = useState(
-    () => typeof window === "undefined" || localStorage.getItem("phosium_enhancements") !== "false"
+    () => getSavedFeature("phosium_enhancements", appConfig.features.browserEnhancementsEnabled)
   );
   const [browserGamingToolsEnabled, setBrowserGamingToolsEnabledState] = useState(
-    () => typeof window === "undefined" || localStorage.getItem("phosium_gaming_tools") !== "false"
+    () => getSavedFeature("phosium_gaming_tools", appConfig.features.browserGamingToolsEnabled)
   );
   const [browserAdBlockerEnabled, setBrowserAdBlockerEnabledState] = useState(
-    () => typeof window === "undefined" || localStorage.getItem("phosium_ad_blocker") !== "false"
+    () => getSavedFeature("phosium_ad_blocker", appConfig.features.browserAdBlockerEnabled)
   );
   const [gameEnhancementsEnabled, setGameEnhancementsEnabledState] = useState(
-    () => typeof window === "undefined" || (
-      localStorage.getItem("phosium_game_enhancements")
-      ?? localStorage.getItem("phosium_enhancements")
-    ) !== "false"
+    () => getSavedFeature("phosium_game_enhancements", appConfig.features.gameEnhancementsEnabled, "phosium_enhancements")
   );
   const [gameGamingToolsEnabled, setGameGamingToolsEnabledState] = useState(
-    () => typeof window === "undefined" || (
-      localStorage.getItem("phosium_game_gaming_tools")
-      ?? localStorage.getItem("phosium_gaming_tools")
-    ) !== "false"
+    () => getSavedFeature("phosium_game_gaming_tools", appConfig.features.gameGamingToolsEnabled, "phosium_gaming_tools")
   );
   const [gameAdBlockerEnabled, setGameAdBlockerEnabledState] = useState(
-    () => typeof window === "undefined" || (
-      localStorage.getItem("phosium_game_ad_blocker")
-      ?? localStorage.getItem("phosium_ad_blocker")
-    ) !== "false"
+    () => getSavedFeature("phosium_game_ad_blocker", appConfig.features.gameAdBlockerEnabled, "phosium_ad_blocker")
   );
   const [externalExtensions, setExternalExtensionsState] = useState<ExternalPhosiumExtension[]>(() => {
     if (typeof window === "undefined") return [];
@@ -365,7 +392,27 @@ export default function App() {
   }, [theme]);
 
   useEffect(() => {
-    applyCloak(cloak);
+    document.title = appConfig.branding.name;
+
+    let description = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+    if (!description) {
+      description = document.createElement("meta");
+      description.name = "description";
+      document.head.append(description);
+    }
+    description.content = appConfig.branding.description;
+
+    let favicon = document.querySelector<HTMLLinkElement>('link[rel="icon"]:not([data-phosium-cloak-icon])');
+    if (!favicon) {
+      favicon = document.createElement("link");
+      favicon.rel = "icon";
+      document.head.append(favicon);
+    }
+    favicon.href = appConfig.branding.favicon;
+  }, []);
+
+  useEffect(() => {
+    applyCloak(cloak, appConfig.branding.name);
   }, [cloak]);
 
   useEffect(() => {
@@ -374,8 +421,8 @@ export default function App() {
     didAutoLaunchRef.current = true;
 
     const { mode, cloak: startupCloak } = startupLaunchRef.current;
-    if (mode === "about-blank") void launchAboutBlank(startupCloak);
-    if (mode === "blob") void launchBlob(startupCloak);
+    if (mode === "about-blank") void launchAboutBlank(startupCloak, appConfig.branding.name);
+    if (mode === "blob") void launchBlob(startupCloak, appConfig.branding.name);
   }, []);
 
   useEffect(() => {
