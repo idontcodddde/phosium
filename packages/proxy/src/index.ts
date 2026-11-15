@@ -1,6 +1,9 @@
 export type ProxyEngineType = "ultraviolet" | "scramjet" | "rammerhead";
 export type ProxyUrlEngineType = Exclude<ProxyEngineType, "rammerhead">;
 export type ProxyTransportType = "epoxy" | "libcurl";
+export { createProxyTransport } from "./transports.js";
+import type { BareCompatibleClient } from "@mercuryworkshop/proxy-transports";
+export type ProxyTransport = BareCompatibleClient["transport"];
 
 export interface ProxySettings {
     enabled: boolean;

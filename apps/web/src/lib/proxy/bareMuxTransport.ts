@@ -1,10 +1,5 @@
 import type { BareHeaders, BareTransport } from "@mercuryworkshop/bare-mux";
-import type EpoxyTransport from "@mercuryworkshop/epoxy-transport";
-
-type CompatibleTransport = Pick<
-  EpoxyTransport,
-  "ready" | "init" | "request" | "connect"
->;
+import type { ProxyTransport } from "@repo/proxy";
 
 function toHeaderPairs(headers: BareHeaders): [string, string][] {
   return Object.entries(headers).flatMap(([name, value]) =>
@@ -15,7 +10,7 @@ function toHeaderPairs(headers: BareHeaders): [string, string][] {
 }
 
 export function createBareMuxCompatibleTransport(
-  transport: CompatibleTransport,
+  transport: ProxyTransport,
 ): BareTransport {
   return {
     get ready() {

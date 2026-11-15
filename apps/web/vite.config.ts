@@ -46,9 +46,9 @@ export default defineConfig(({ command }) => ({
           rename: { stripBase: true, name: "epoxy.wasm" },
         },
         {
-          src: "node_modules/@mercuryworkshop/epoxy-tls/full/epoxy.wasm",
-          dest: "transports/epoxy",
-          rename: { stripBase: true, name: "epoxy.wasm" },
+          src: "node_modules/@mercuryworkshop/bare-mux/dist/worker.js",
+          dest: "bare-mux",
+          rename: { stripBase: true, name: "worker.js" },
         },
         {
           src: [
@@ -64,21 +64,6 @@ export default defineConfig(({ command }) => ({
           src: "../../packages/proxy/public/uv.config.js",
           dest: "uv",
           rename: { stripBase: true },
-        },
-        {
-          src: "node_modules/@mercuryworkshop/bare-mux/dist/worker.js",
-          dest: "bare-mux",
-          rename: { stripBase: true, name: "worker.js" },
-        },
-        {
-          src: "node_modules/@mercuryworkshop/epoxy-transport/dist/index.mjs",
-          dest: "transports/epoxy",
-          rename: { stripBase: true, name: "index.mjs" },
-        },
-        {
-          src: "node_modules/@mercuryworkshop/libcurl-transport/dist/index.mjs",
-          dest: "transports/libcurl",
-          rename: { stripBase: true, name: "index.mjs" },
         },
       ],
     }),

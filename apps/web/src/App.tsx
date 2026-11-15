@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import { BareMuxConnection } from "@mercuryworkshop/bare-mux";
-import EpoxyTransport from "@mercuryworkshop/epoxy-transport";
-import LibcurlTransport from "@mercuryworkshop/libcurl-transport";
+import type { BareMuxConnection } from "@mercuryworkshop/bare-mux";
 import { defaultConfigDev } from "@mercuryworkshop/scramjet";
 import type { ScramjetFlags } from "@mercuryworkshop/scramjet";
 import { config as defaultControllerConfig, Controller } from "@mercuryworkshop/scramjet-controller";
@@ -27,8 +25,9 @@ import type { AutoLaunchMode, BrowserTheme, DesktopTheme, SearchEngine } from ".
 import { applyCloak, isCloakOption, launchAboutBlank, launchBlob } from "./lib/cloak";
 import type { CloakOption } from "./lib/cloak";
 import { appConfig } from "../app.config";
+import { registerSystemWorker } from "./lib/proxy/runtime";
 import { createBareMuxCompatibleTransport } from "./lib/proxy/bareMuxTransport";
-import { createTransport, registerSystemWorker } from "./lib/proxy/runtime";
+import { WorkerTransport } from "./lib/proxy/worker-transport.js";
 import {
   parseSavedExternalPhosiumExtensions,
 } from "./extensions/phosphorousExtensions";
@@ -144,6 +143,9 @@ function getSavedScramjetFlags(): ScramjetFlags {
 
 export default function App() {
   const [proxySettings, setProxySettings] = useState(getInitialProxySettings);
+  const [workerTransport] = useState(
+    () => new WorkerTransport(proxySettings.transport, proxySettings.wispUrl),
+  );
   const [scramjetFlags, setScramjetFlagsState] = useState<ScramjetFlags>(getSavedScramjetFlags);
   const [showAlphaDisclaimer, setShowAlphaDisclaimer] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -208,9 +210,9 @@ export default function App() {
   });
   const [browserRequest, setBrowserRequest] = useState<{ id: number; url: string } | null>(null);
   const workerPromiseRef = useRef<Promise<ServiceWorker> | null>(null);
+  const bareMuxRef = useRef<BareMuxConnection | null>(null);
   const scramjetControllerRef = useRef<Controller | null>(null);
   const scramjetFlagsRef = useRef(scramjetFlags);
-  const bareMuxRef = useRef<BareMuxConnection | null>(null);
   const syncRevisionRef = useRef(0);
   const browserRequestIdRef = useRef(0);
   const gameWindowIdRef = useRef(0);
@@ -446,12 +448,13 @@ export default function App() {
         }
 
         if (!serviceWorker) return;
+        await workerTransport.setTransport(proxySettings.transport, proxySettings.wispUrl);
         if (proxySettings.engine === "scramjet") {
           let scramjetController = scramjetControllerRef.current;
           if (!scramjetController) {
             scramjetController = new Controller({
               serviceworker: serviceWorker,
-              transport: createTransport(proxySettings),
+              transport: workerTransport,
               config: {
                 ...defaultControllerConfig,
                 prefix: "/service/",
@@ -467,7 +470,7 @@ export default function App() {
             scramjetControllerRef.current = scramjetController;
             await scramjetController.wait();
           } else {
-            scramjetController.setTransport(createTransport(proxySettings));
+            scramjetController.setTransport(workerTransport);
           }
           if (!cancelled && revision === syncRevisionRef.current) {
             setController(scramjetController);
@@ -476,21 +479,11 @@ export default function App() {
           return;
         }
 
+        const { BareMuxConnection } = await import("@mercuryworkshop/bare-mux");
         const bareMux = bareMuxRef.current ?? new BareMuxConnection("/bare-mux/worker.js");
         bareMuxRef.current = bareMux;
-        const wisp = new URL(proxySettings.wispUrl);
-        if (wisp.protocol !== "ws:" && wisp.protocol !== "wss:") {
-          throw new TypeError("Wisp URL must use ws:// or wss://.");
-        }
-        const transportOptions = proxySettings.transport === "libcurl"
-          ? { wisp: wisp.href, websocket: wisp.href }
-          : { wisp: wisp.href };
-        const transport = proxySettings.transport === "libcurl"
-          ? new LibcurlTransport(transportOptions)
-          : new EpoxyTransport(transportOptions);
-        await transport.init();
         await bareMux.setRemoteTransport(
-          createBareMuxCompatibleTransport(transport),
+          createBareMuxCompatibleTransport(workerTransport),
           `phosium-${proxySettings.transport}`,
         );
         if (!cancelled && revision === syncRevisionRef.current) {
@@ -508,7 +501,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [proxySettings, serviceWorker]);
+  }, [proxySettings, serviceWorker, workerTransport]);
 
   useEffect(() => {
     if (!panicKeyEnabled || !panicKey) return;

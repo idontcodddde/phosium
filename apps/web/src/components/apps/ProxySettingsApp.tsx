@@ -148,10 +148,6 @@ export function ProxySettingsApp() {
 
   const handleSelectWispServer = (server: WispServer) => {
     updateProxySettings({ wispUrl: server.url });
-    navigator.serviceWorker?.controller?.postMessage({
-      type: "UPDATE_WISP",
-      wispUrl: server.url,
-    });
   };
 
   const handleAddWispSubmit = (event: FormEvent<HTMLFormElement>) => {

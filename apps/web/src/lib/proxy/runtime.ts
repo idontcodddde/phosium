@@ -1,18 +1,3 @@
-import EpoxyTransport from "@mercuryworkshop/epoxy-transport";
-import LibcurlTransport from "@mercuryworkshop/libcurl-transport";
-import type { ProxySettings } from "@repo/proxy";
-
-export function createTransport(settings: ProxySettings) {
-  const wisp = new URL(settings.wispUrl);
-  if (wisp.protocol !== "ws:" && wisp.protocol !== "wss:") {
-    throw new TypeError("Wisp URL must use ws:// or wss://.");
-  }
-  if (settings.transport === "libcurl") {
-    return new LibcurlTransport({ wisp: wisp.href, websocket: wisp.href });
-  }
-  return new EpoxyTransport({ wisp: wisp.href });
-}
-
 export async function registerSystemWorker(): Promise<ServiceWorker> {
   const registration = await navigator.serviceWorker.register("/sw.js", {
     scope: "/",

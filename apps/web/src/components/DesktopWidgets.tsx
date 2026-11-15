@@ -78,7 +78,6 @@ export function DesktopWidgets() {
 
     const selectServer = (server: WispServer) => {
         updateProxySettings({ wispUrl: server.url });
-        navigator.serviceWorker?.controller?.postMessage({ type: 'UPDATE_WISP', wispUrl: server.url });
         setIsMenuOpen(false);
     };
 

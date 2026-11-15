@@ -174,12 +174,6 @@ importers:
       '@mercuryworkshop/epoxy-tls':
         specifier: 2.1.19-1
         version: 2.1.19-1
-      '@mercuryworkshop/epoxy-transport':
-        specifier: 3.0.1
-        version: 3.0.1
-      '@mercuryworkshop/libcurl-transport':
-        specifier: 2.0.5
-        version: 2.0.5
       '@mercuryworkshop/scramjet':
         specifier: 2.0.67-alpha.2
         version: 2.0.67-alpha.2
@@ -269,6 +263,15 @@ importers:
 
   packages/proxy:
     dependencies:
+      '@mercuryworkshop/epoxy-transport':
+        specifier: 3.0.1
+        version: 3.0.1
+      '@mercuryworkshop/libcurl-transport':
+        specifier: 2.0.5
+        version: 2.0.5
+      '@mercuryworkshop/proxy-transports':
+        specifier: 1.0.2
+        version: 1.0.2
       '@mercuryworkshop/scramjet':
         specifier: 2.0.67-alpha.2
         version: 2.0.67-alpha.2
@@ -502,12 +505,14 @@ packages:
 
   '@mercuryworkshop/bare-mux@2.1.9':
     resolution: {integrity: sha512-fiOqWm3VP0Bl8T+0l+qnb7ab9zO+PpKVbtJvOnMsefUv6kWIaoDtqyr9hd/t4gA8oBwgtyZVqIwO2J9nKY9ylw==}
+    deprecated: this is deprecated and will no longer be recieving updates, please use proxy-transports instead
 
   '@mercuryworkshop/epoxy-tls@2.1.19-1':
     resolution: {integrity: sha512-lF3WVDmKDWfClgFaDm1OAGI6PStcUUKUjNh2AJbfmLXEGh+dT4nvsuTY2QGRImnajCboIRyrpx9eGNY0egZSVg==}
 
   '@mercuryworkshop/epoxy-transport@3.0.1':
     resolution: {integrity: sha512-8YzL73WaXZJLBRydmmY6NNPt5leB8ygBYuqgLn4+pGQ+wgi+JUC7ZdBQrA86TR6Oue3twbdfDvLRp48bzZ7DSw==}
+    deprecated: Bundles an epoxy-tls that trusts the compromised eMudhra intermediate CAs (Oct 2026). Upgrade to >=3.0.2 (proxy-transports) or 2.1.29 (bare-mux).
 
   '@mercuryworkshop/libcurl-transport@2.0.5':
     resolution: {integrity: sha512-YkAPEAWTEUZZkEOejmRQJxNHw90+kNQnoiSqa5H2sExHBXXdGSXEtg7/35A53U8MDVaznpAwjVbXRONSsfatzw==}

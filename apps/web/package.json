@@ -12,8 +12,6 @@
     "dependencies": {
         "@mercuryworkshop/bare-mux": "2.1.9",
         "@mercuryworkshop/epoxy-tls": "2.1.19-1",
-        "@mercuryworkshop/epoxy-transport": "3.0.1",
-        "@mercuryworkshop/libcurl-transport": "2.0.5",
         "@mercuryworkshop/scramjet": "2.0.67-alpha.2",
         "@mercuryworkshop/scramjet-controller": "0.0.14",
         "@repo/os-shell": "workspace:*",
