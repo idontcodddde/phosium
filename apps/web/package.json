@@ -7,7 +7,11 @@
         "dev": "vite",
         "build": "tsc -b && vite build",
         "lint": "oxlint",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "test": "pnpm --filter @repo/proxy build && vitest run",
+        "test:watch": "vitest",
+        "test:e2e": "tsc --project tsconfig.e2e.json && playwright test --config playwright.config.ts --grep-invert @benchmark",
+        "benchmark:sites": "tsc --project tsconfig.e2e.json && playwright test --config playwright.config.ts --grep @benchmark"
     },
     "dependencies": {
         "@mercuryworkshop/bare-mux": "2.1.9",
@@ -25,6 +29,7 @@
         "react-dom": "^19.2.8"
     },
     "devDependencies": {
+        "@playwright/test": "^1.65.1",
         "@types/node": "^24.13.3",
         "@types/react": "^19.2.18",
         "@types/react-dom": "^19.2.7",
@@ -32,6 +37,7 @@
         "oxlint": "^1.81.0",
         "typescript": "^7.0.0",
         "vite": "^8.3.0",
-        "vite-plugin-static-copy": "^4.1.1"
+        "vite-plugin-static-copy": "^4.1.1",
+        "vitest": "^5.1.0"
     }
 }

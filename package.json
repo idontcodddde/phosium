@@ -6,6 +6,9 @@
         "dev": "pnpm --parallel --filter web --filter @repo/proxy run dev",
         "dev:proxy": "pnpm --filter @repo/proxy dev",
         "build": "pnpm --recursive build",
-        "start": "pnpm --filter @repo/proxy start"
+        "start": "pnpm --filter @repo/proxy start",
+        "test": "pnpm --filter web test",
+        "test:e2e": "pnpm --filter web test:e2e",
+        "benchmark:sites": "pnpm --filter web benchmark:sites"
     }
 }

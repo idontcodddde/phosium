@@ -33,3 +33,32 @@ with:
 ```sh
 pnpm --filter web build
 ```
+
+## Tests and proxy benchmark
+
+Run the focused unit tests and the live-browser proxy smoke tests with:
+
+```sh
+pnpm --filter web test
+pnpm --filter web exec playwright install chromium
+pnpm --filter web test:e2e
+```
+
+The E2E smoke tests use Chromium and load `https://example.com/` through both
+Scramjet and Ultraviolet, then check YouTube through Libcurl with both engines.
+Run the repeated public-site benchmark separately:
+
+```sh
+pnpm --filter web benchmark:sites
+```
+
+The benchmark uses the default Scramjet + Epoxy worker path, runs Discord,
+Wikipedia, Mozilla, GitHub, example.com, and YouTube five times each, and
+reports each run plus per-site mean, median, minimum, and maximum times. It
+loads each sample in a fresh browser tab and measures the proxied iframe's
+`DOMContentLoaded` event (not full app hydration or interactivity); results
+depend on network conditions and public sites may block or time out. Configure
+it with `SITE_BENCHMARK_SITES`
+(comma-separated URLs), `SITE_BENCHMARK_RUNS`, and
+`SITE_BENCHMARK_TIMEOUT_MS`. Set `PLAYWRIGHT_BASE_URL` to use an already-running
+app instead of starting the local workspace servers.

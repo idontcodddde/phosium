@@ -75,6 +75,9 @@ export function AboutApp() {
                     <button style={tabStyle('usage')} onClick={() => setActiveTab('usage')}>
                         How to Use
                     </button>
+                    <button style={tabStyle('troubleshooting')} onClick={() => setActiveTab('troubleshooting')}>
+                        Troubleshooting
+                    </button>
                 </div>
 
                 {/* Content Frame */}
@@ -153,6 +156,46 @@ export function AboutApp() {
                                 <li>Configure transport modes using standard Wisp routing arrays directly inside system configurations.</li>
                                 <li>Toggle ad filtering extensions securely via the automated Phosphorous module controller.</li>
                                 <li>Press alt+j to fullscreen any app.</li>
+                            </ul>
+                        </div>
+                    )}
+
+                    {activeTab === 'troubleshooting' && (
+                        <div style={{ maxWidth: '680px', fontSize: '13px', lineHeight: '1.6', color: 'var(--text-secondary, #aaaabb)' }}>
+                            <h3 style={{ margin: '0 0 12px', fontSize: '14px', color: 'var(--text-primary, #f5f5fa)' }}>
+                                Proxy troubleshooting
+                            </h3>
+                            <section style={{
+                                padding: '16px',
+                                marginBottom: '20px',
+                                background: 'var(--surface-raised, #282a38)',
+                                border: '1px solid var(--border, rgb(255 255 255 / 6%))',
+                                borderRadius: '8px',
+                            }}>
+                                <h4 style={{ margin: '0 0 8px', color: 'var(--text-primary, #f5f5fa)' }}>
+                                    YouTube shows an HTTP/2 PROTOCOL_ERROR
+                                </h4>
+                                <p style={{ margin: '0 0 8px' }}>
+                                    This can occur with the Epoxy transport when YouTube resets an HTTP/2 stream.
+                                    It is a transport compatibility issue and does not necessarily mean the proxy
+                                    server is down.
+                                </p>
+                                <ol style={{ paddingLeft: '20px', margin: 0 }}>
+                                    <li>Open Settings and select Proxy.</li>
+                                    <li>Change Wisp transport to Libcurl.</li>
+                                    <li>Reload the page and try again.</li>
+                                </ol>
+                                <p style={{ margin: '8px 0 0' }}>
+                                    Epoxy remains the default; Libcurl is an alternative when a site fails this way.
+                                </p>
+                            </section>
+                            <h4 style={{ margin: '0 0 8px', color: 'var(--text-primary, #f5f5fa)' }}>
+                                Proxy is not ready
+                            </h4>
+                            <ul style={{ paddingLeft: '20px', margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <li>Make sure Proxy is enabled in Settings and wait for its status to show ready.</li>
+                                <li>When developing locally, start the web app and proxy backend with <code>pnpm dev</code> from the repository root.</li>
+                                <li>If using a custom Wisp server, confirm its URL is correct and that the server is reachable.</li>
                             </ul>
                         </div>
                     )}

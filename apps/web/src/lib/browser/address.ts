@@ -73,7 +73,7 @@ export function resolveAddress(input: string, engine: SearchEngine): string {
   })();
   if (!hostPattern.test(trimmed) && !isIpv6Address) return searchUrl[engine](trimmed);
 
-  const target = new URL(`https://${trimmed}`);
+  const target = new URL(`https://${isIpv6Address ? `[${trimmed}]` : trimmed}`);
   if (target.protocol !== "http:" && target.protocol !== "https:") {
     throw new TypeError("Only HTTP and HTTPS addresses are supported.");
   }
