@@ -1,32 +1,38 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { WorkerTransport } from "./worker-transport.js";
-
-interface WorkerMessage {
-  type?: string;
-  requestId?: string;
-  port?: MessagePort;
-  remote?: string;
-  url?: string;
-}
+import { WorkerTransport } from "./worker-transport.ts";
+import type {
+  ConnectWorkerMessage,
+  RequestPortCommand,
+  TransportWorkerMessage,
+  WorkerControlResponse,
+} from "./transport-protocol";
+import { isRequestPortCommand } from "./transport-protocol";
 
 class FakeWorker extends EventTarget {
-  readonly messages: WorkerMessage[] = [];
-  readonly socketMessages: unknown[] = [];
-  onSocketMessage?: (message: unknown) => void;
+  readonly messages: TransportWorkerMessage[] = [];
+  readonly socketMessages: RequestPortCommand[] = [];
+  onSocketMessage?: (message: RequestPortCommand) => void;
 
-  postMessage(message: WorkerMessage) {
+  postMessage(message: TransportWorkerMessage) {
     this.messages.push(message);
     if (message.type === "INIT" || message.type === "SET_TRANSPORT") {
       queueMicrotask(() => {
-        this.dispatchEvent(new MessageEvent("message", {
-          data: { type: "READY", requestId: message.requestId },
+        const response: WorkerControlResponse = {
+          type: "READY",
+          requestId: message.requestId,
+        };
+        this.dispatchEvent(new MessageEvent<WorkerControlResponse>("message", {
+          data: response,
         }));
       });
     } else if (message.type === "REQUEST") {
       message.port?.postMessage({
+        type: "RESULT",
+        requestId: message.requestId,
         ok: true,
         res: {
           status: 200,
+          statusText: "OK",
           headers: [["content-type", "text/plain"]],
           body: new Uint8Array([111, 107]).buffer,
         },
@@ -34,19 +40,26 @@ class FakeWorker extends EventTarget {
     } else if (message.type === "CONNECT" && message.port) {
       const port = message.port;
       port.onmessage = (event) => {
-        const socketMessage = event.data as { type?: string; code?: number; reason?: string };
+        if (!isRequestPortCommand(event.data)) return;
+        const socketMessage = event.data;
         this.socketMessages.push(socketMessage);
         this.onSocketMessage?.(socketMessage);
         if (socketMessage.type === "CLOSE") {
           port.postMessage({
             type: "SOCKET_CLOSE",
+            connectionId: socketMessage.connectionId,
             code: socketMessage.code,
             reason: socketMessage.reason,
           });
         }
       };
       port.start();
-      port.postMessage({ type: "SOCKET_OPEN", protocol: "test", extensions: "" });
+      port.postMessage({
+        type: "SOCKET_OPEN",
+        connectionId: "direct",
+        protocol: "test",
+        extensions: "",
+      });
     }
   }
 }
@@ -139,7 +152,9 @@ describe("WorkerTransport", () => {
     await expect(opened).resolves.toBe("test");
     const worker = workers[0];
     if (!worker) throw new Error("The proxy worker was not created.");
-    const socket = worker.messages.find(({ type }) => type === "CONNECT");
+    const socket = worker.messages.find(
+      (message): message is ConnectWorkerMessage => message.type === "CONNECT",
+    );
     const sent = new Promise<unknown>((resolve) => {
       worker.onSocketMessage = resolve;
     });

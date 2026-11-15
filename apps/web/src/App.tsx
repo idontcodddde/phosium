@@ -27,7 +27,7 @@ import type { CloakOption } from "./lib/cloak";
 import { appConfig } from "../app.config";
 import { registerSystemWorker } from "./lib/proxy/runtime";
 import { createBareMuxCompatibleTransport } from "./lib/proxy/bareMuxTransport";
-import { WorkerTransport } from "./lib/proxy/worker-transport.js";
+import { WorkerTransport } from "./lib/proxy/worker-transport.ts";
 import {
   parseSavedExternalPhosiumExtensions,
 } from "./extensions/phosphorousExtensions";

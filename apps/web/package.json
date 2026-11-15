@@ -5,10 +5,10 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "tsc -b && vite build",
+        "build": "tsc -b && tsc --project tsconfig.worker.json && vite build",
         "lint": "oxlint",
         "preview": "vite preview",
-        "test": "pnpm --filter @repo/proxy build && vitest run",
+        "test": "pnpm --filter @repo/proxy build && tsc --project tsconfig.worker.json && vitest run",
         "test:watch": "vitest",
         "test:e2e": "tsc --project tsconfig.e2e.json && playwright test --config playwright.config.ts --grep-invert @benchmark",
         "benchmark:sites": "tsc --project tsconfig.e2e.json && playwright test --config playwright.config.ts --grep @benchmark"
