@@ -5,6 +5,7 @@ const searchUrl: Record<SearchEngine, (query: string) => string> = {
   duckduckgo: (query) => `https://duckduckgo.com/?q=${encodeURIComponent(query)}`,
   bing: (query) => `https://www.bing.com/search?q=${encodeURIComponent(query)}`,
   brave: (query) => `https://search.brave.com/search?q=${encodeURIComponent(query)}`,
+  yahoo: (query) => `https://search.yahoo.com/search?q=${encodeURIComponent(query)}`,
 };
 
 const hostPattern = /^(?:localhost(?::\d+)?|(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?|(?:[a-z\d](?:[a-z\d-]*[a-z\d])?\.)+[a-z]{2,}(?::\d+)?)(?:[/?#][^\s]*)?$/i;

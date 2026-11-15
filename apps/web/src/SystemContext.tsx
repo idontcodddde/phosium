@@ -7,7 +7,7 @@ import type { ExternalPhosiumExtension } from "./extensions/phosphorousExtension
 
 export type DesktopTheme = "midnight" | "light" | "ocean";
 export type BrowserTheme = "light" | "dark";
-export type SearchEngine = "google" | "duckduckgo" | "bing" | "brave";
+export type SearchEngine = "google" | "duckduckgo" | "bing" | "brave" | "yahoo";
 export type AutoLaunchMode = "none" | "about-blank" | "blob";
 
 export interface GameLaunch {

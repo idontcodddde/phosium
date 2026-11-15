@@ -11,6 +11,8 @@ describe("resolveAddress", () => {
   it("sends non-host input to the selected search engine", () => {
     expect(resolveAddress("hello world", "duckduckgo"))
       .toBe("https://duckduckgo.com/?q=hello%20world");
+    expect(resolveAddress("hello world", "yahoo"))
+      .toBe("https://search.yahoo.com/search?q=hello%20world");
   });
 
   it("accepts bare IPv6 addresses", () => {

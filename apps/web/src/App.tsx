@@ -55,7 +55,7 @@ function getSavedWallpaper(): string | null {
 function getSavedSearchEngine(): SearchEngine {
   if (typeof window === "undefined") return appConfig.browser.defaultSearchEngine;
   const engine = localStorage.getItem("phosium_search_engine");
-  return engine === "google" || engine === "duckduckgo" || engine === "bing" || engine === "brave"
+  return engine === "google" || engine === "duckduckgo" || engine === "bing" || engine === "brave" || engine === "yahoo"
     ? engine
     : appConfig.browser.defaultSearchEngine;
 }

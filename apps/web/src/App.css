@@ -1127,7 +1127,7 @@
 }
 
 .chrome-address-form.search-engine-duckduckgo {
-  --search-engine-color: #de5833;
+  --search-engine-color: #f58220;
 }
 
 .chrome-address-form.search-engine-bing {
@@ -1135,7 +1135,11 @@
 }
 
 .chrome-address-form.search-engine-brave {
-  --search-engine-color: #fb542b;
+  --search-engine-color: #c2341a;
+}
+
+.chrome-address-form.search-engine-yahoo {
+  --search-engine-color: #b026ff;
 }
 
 .chrome-address-form:focus-within {

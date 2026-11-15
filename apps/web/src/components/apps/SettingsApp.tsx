@@ -560,6 +560,7 @@ export function SettingsApp() {
                   <option value="duckduckgo">DuckDuckGo</option>
                   <option value="bing">Bing</option>
                   <option value="brave">Brave Search</option>
+                  <option value="yahoo">Yahoo</option>
                 </select>
                 <ResetButton setting="search engine" onReset={() => setSearchEngine(appConfig.browser.defaultSearchEngine)} />
               </div>

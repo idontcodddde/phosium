@@ -22,6 +22,20 @@ let historySequence = 0;
 const browserHistoryKey = "phosium_browser_history";
 const browserHistoryLimit = appConfig.browser.historyLimit;
 const quickAccessKey = "phosium_quick_access_sites";
+const searchEngineLabels: Record<SearchEngine, string> = {
+  google: "Google",
+  duckduckgo: "DuckDuckGo",
+  bing: "Bing",
+  brave: "Brave Search",
+  yahoo: "Yahoo",
+};
+const searchEngineAbbreviations: Record<SearchEngine, string> = {
+  google: "GGL",
+  duckduckgo: "DDG",
+  bing: "BING",
+  brave: "BRV",
+  yahoo: "YAH",
+};
 
 interface BookmarkContextMenu {
   bookmark: BrowserBookmark;
@@ -806,7 +820,7 @@ export function BrowserApp() {
   };
 
   const cycleSearchEngine = () => {
-    const engines: SearchEngine[] = ["google", "duckduckgo", "bing", "brave"];
+    const engines: SearchEngine[] = ["google", "duckduckgo", "bing", "brave", "yahoo"];
     const nextIndex = (engines.indexOf(searchEngine) + 1) % engines.length;
     setSearchEngine(engines[nextIndex]);
   };
@@ -909,14 +923,14 @@ export function BrowserApp() {
         </button>
         <form className={`chrome-address-form search-engine-${searchEngine}`} onSubmit={handleSubmit}>
           <button
-            aria-label={`Change search engine (currently ${searchEngine === "brave" ? "Brave Search" : searchEngine === "duckduckgo" ? "DuckDuckGo" : searchEngine[0].toUpperCase() + searchEngine.slice(1)})`}
+            aria-label={`Change search engine (currently ${searchEngineLabels[searchEngine]})`}
             className="chrome-search-engine"
             onClick={cycleSearchEngine}
             title="Click to change search engine"
             type="button"
           >
             <PhosiumIcon name="search" />
-            <span aria-hidden="true">{searchEngine === "google" ? "GGL" : searchEngine === "duckduckgo" ? "DDG" : searchEngine === "bing" ? "BING" : "BRV"}</span>
+            <span aria-hidden="true">{searchEngineAbbreviations[searchEngine]}</span>
           </button>
           <PhosiumIcon className={`chrome-site-indicator${proxySettings.enabled ? " is-protected" : ""}`} name={proxySettings.enabled ? "shield-check" : "globe"} size={14} />
           <input
@@ -925,7 +939,7 @@ export function BrowserApp() {
               ? { ...tab, draft: event.target.value }
               : tab))}
             onKeyDown={handleAddressKeyDown}
-            placeholder={`Search with ${searchEngine === "duckduckgo" ? "DuckDuckGo" : searchEngine === "brave" ? "Brave" : searchEngine[0].toUpperCase() + searchEngine.slice(1)} or enter a URL`}
+            placeholder={`Search with ${searchEngineLabels[searchEngine]} or enter a URL`}
             value={address}
           />
           <button aria-label="Go to address" className="chrome-address-submit" type="submit"><PhosiumIcon name="corner-down-left" /></button>
@@ -1146,7 +1160,7 @@ export function BrowserApp() {
                     onChange={(event) => setTabs((current) => current.map((tab) => tab.id === activeTabId
                       ? { ...tab, draft: event.target.value }
                       : tab))}
-                    placeholder={`Search with ${searchEngine === "duckduckgo" ? "DuckDuckGo" : searchEngine === "brave" ? "Brave" : searchEngine[0].toUpperCase() + searchEngine.slice(1)} or enter a URL`}
+                    placeholder={`Search with ${searchEngineLabels[searchEngine]} or enter a URL`}
                     value={address}
                   />
                   <button aria-label="Search" type="submit"><PhosiumIcon name="corner-down-left" /></button>
