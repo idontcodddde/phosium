@@ -306,7 +306,7 @@ export function ProxySettingsApp() {
                       value={proxySettings.transport}
                     >
                       <option value="epoxy">Epoxy</option>
-                      <option value="libcurl">Libcurl</option>
+                      <option value="libcurl">Libcurl.js</option>
                     </select>
                     <ResetButton setting="Wisp transport" onReset={() => updateProxySettings({ transport: "epoxy" })} />
                   </div>

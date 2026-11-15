@@ -1,4 +1,8 @@
-import { createProxyTransport, type ProxyTransport } from "@repo/proxy";
+import {
+  createProxyTransport,
+  type ProxyTransport,
+  type ProxyTransportType,
+} from "@repo/proxy";
 import type {
   ConfigureWorkerMessage,
   ConnectWorkerMessage,
@@ -46,6 +50,7 @@ const afterResponse: AfterResponseHook[] = [];
 const activeRequests = new WeakMap<MessagePort, Map<string, AbortController>>();
 const activeSockets = new WeakMap<MessagePort, Map<string, SocketHandlers>>();
 let transport: ProxyTransport | null = null;
+let activeTransportType: ProxyTransportType | null = null;
 let controlQueue: Promise<void> = Promise.resolve();
 
 workerScope.proxyTransportHooks = { beforeRequest, afterResponse };
@@ -247,6 +252,18 @@ async function configure(message: ConfigureWorkerMessage): Promise<void> {
   });
   await nextTransport.init();
   transport = nextTransport;
+  if (message.type === "SET_TRANSPORT") {
+    if (activeTransportType && activeTransportType !== message.transportType) {
+      console.info(
+        `[Proxy worker] Transport switched from ${activeTransportType} to ${message.transportType}.`,
+      );
+    } else {
+      console.info(`[Proxy worker] Transport reconfigured: ${message.transportType}.`);
+    }
+  } else {
+    console.log(message)
+  }
+  activeTransportType = message.transportType;
   workerScope.postMessage({ type: "READY", requestId: message.requestId });
 }
 
