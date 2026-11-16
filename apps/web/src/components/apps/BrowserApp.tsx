@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent as ReactKeyboardEvent } from "react";
 import { Phosphorus } from "phosphorous";
 import type { Frame } from "@mercuryworkshop/scramjet-controller";
@@ -6,6 +6,8 @@ import { proxyConfig } from "@repo/proxy";
 import { PhosiumIcon } from "@repo/os-shell";
 import { applyPhosiumExtensionStates, registerPhosiumExtensions } from "../../extensions/phosphorousExtensions";
 import { decodeScramjetAddress, resolveAddress } from "../../lib/browser/address";
+import { getLocalAutocompleteSuggestions, fetchSearchSuggestions } from "../../lib/browser/autocomplete";
+import type { AutocompleteSuggestion } from "../../lib/browser/autocomplete";
 import { appConfig } from "../../../app.config";
 import type { QuickAccessSiteConfig } from "../../../app.config";
 import type { Game } from "../../types/gameCatalog";
@@ -203,6 +205,8 @@ export function BrowserApp() {
   const [editingBookmark, setEditingBookmark] = useState<BrowserBookmark | null>(null);
   const [bookmarkTitleDraft, setBookmarkTitleDraft] = useState("");
   const [bookmarkUrlDraft, setBookmarkUrlDraft] = useState("");
+  const [isAddressFocused, setIsAddressFocused] = useState(false);
+  const [remoteSearchSuggestions, setRemoteSearchSuggestions] = useState<AutocompleteSuggestion[]>([]);
 
   const [isSaveGameModalOpen, setIsSaveGameModalOpen] = useState(false);
   const [saveGameTitle, setSaveGameTitle] = useState("");
@@ -235,6 +239,35 @@ export function BrowserApp() {
   const lastBrowserRequestId = useRef(0);
   const activeTab = tabs.find((tab) => tab.id === activeTabId) ?? tabs[0];
   const address = activeTab?.draft ?? "";
+
+  // Fetch live search recommendations
+  useEffect(() => {
+    const query = address.trim();
+    if (!query || !isAddressFocused || query.includes("://") || query.includes(".")) {
+      setRemoteSearchSuggestions([]);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(async () => {
+      const suggestions = await fetchSearchSuggestions(query, searchEngine, controller.signal);
+      setRemoteSearchSuggestions(suggestions);
+    }, 200);
+
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [address, isAddressFocused, searchEngine]);
+
+  // Combined autocomplete suggestions
+  const autocompleteSuggestions = useMemo(() => {
+    const query = address.trim();
+    if (!query || !isAddressFocused) return [];
+
+    const localSuggestions = getLocalAutocompleteSuggestions(query, quickAccessSites, bookmarks, history);
+    return [...localSuggestions, ...remoteSearchSuggestions];
+  }, [address, bookmarks, history, isAddressFocused, quickAccessSites, remoteSearchSuggestions]);
 
   const handleFrameChange = useCallback((tabId: string, iframe: HTMLIFrameElement | null) => {
     if (iframe) {
@@ -336,6 +369,7 @@ export function BrowserApp() {
     try {
       const targetUrl = resolveAddress(rawUrl, searchEngine);
       setNavigationError("");
+      setIsAddressFocused(false);
       const visitedAt = Date.now();
       saveHistory([{
         id: `history-${visitedAt}-${++historySequence}`,
@@ -384,15 +418,7 @@ export function BrowserApp() {
             + parsedUrl.hash;
         }
       } else if (proxySettings.engine === "rammerhead") {
-        const frameWindow = iframe.contentWindow as (Window & {
-          "%hammerhead%"?: {
-            utils?: {
-              url?: {
-                parseProxyUrl?: (url: string) => { destUrl?: string } | null;
-              };
-            };
-          };
-        }) | null;
+        const frameWindow = iframe.contentWindow as (Window & Record<string, any>) | null;
         const urlUtils = frameWindow?.["%hammerhead%"]?.utils?.url;
         const decodedUrl = decodeRammerheadUrl(
           targetUrl,
@@ -736,6 +762,7 @@ export function BrowserApp() {
         setExtensionsOpen(false);
         setMenuOpen(false);
         setActiveMenuSiteId(null);
+        setIsAddressFocused(false);
       }
       if (!(event.target instanceof Element) || !event.target.closest(".chrome-bookmark-context-menu")) {
         setBookmarkContextMenu(null);
@@ -995,6 +1022,7 @@ export function BrowserApp() {
             onChange={(event) => setTabs((current) => current.map((tab) => tab.id === activeTabId
               ? { ...tab, draft: event.target.value }
               : tab))}
+            onFocus={() => setIsAddressFocused(true)}
             onKeyDown={handleAddressKeyDown}
             placeholder={`Search with ${searchEngineLabels[searchEngine]} or enter a URL`}
             value={address}
@@ -1008,6 +1036,33 @@ export function BrowserApp() {
             onClick={toggleBookmark}
             type="button"
           ><PhosiumIcon name="star" className={isActiveTabBookmarked ? "is-bookmarked" : undefined} /></button>
+
+          {autocompleteSuggestions.length > 0 && (
+            <div className="chrome-autocomplete-dropdown" role="listbox">
+              {autocompleteSuggestions.map((item) => (
+                <button
+                  className={`chrome-autocomplete-item is-${item.type}`}
+                  key={item.url}
+                  onClick={() => navigate(item.url)}
+                  role="option"
+                  type="button"
+                >
+                  <PhosiumIcon
+                    name={
+                      item.type === "search"
+                        ? "search"
+                        : item.type === "bookmark"
+                        ? "bookmark"
+                        : "globe"
+                    }
+                    size={14}
+                  />
+                  <span className="chrome-autocomplete-title">{item.title}</span>
+                  <span className="chrome-autocomplete-url">{item.type === "search" ? `Search with ${searchEngineLabels[searchEngine]}` : item.url}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </form>
         <button
           aria-label="Save as game"
