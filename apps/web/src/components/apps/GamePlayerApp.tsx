@@ -49,9 +49,33 @@ export function GamePlayerApp({ title, url, isHub = false }: GamePlayerAppProps)
   const [extensionsOpen, setExtensionsOpen] = useState(false);
   const [routeError, setRouteError] = useState("");
   const [canGoBack, setCanGoBack] = useState(false);
+  const [fps, setFps] = useState<number>(0);
+
   const readyStatus = proxySettings.engine === "rammerhead"
     ? "Rammerhead ready"
     : `${proxySettings.engine === "scramjet" ? "Scramjet" : "Ultraviolet"} ready · ${proxySettings.transport}`;
+
+  useEffect(() => {
+    let frameCount = 0;
+    let lastTime = performance.now();
+    let animationFrameId: number;
+
+    const measureFps = (time: number) => {
+      frameCount++;
+      if (time - lastTime >= 1000) {
+        setFps(Math.round((frameCount * 1000) / (time - lastTime)));
+        frameCount = 0;
+        lastTime = time;
+      }
+      animationFrameId = requestAnimationFrame(measureFps);
+    };
+
+    animationFrameId = requestAnimationFrame(measureFps);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -97,8 +121,6 @@ export function GamePlayerApp({ title, url, isHub = false }: GamePlayerAppProps)
         iframe.src = rammerheadUrl;
       }
       if (routeRevisionRef.current === revision) {
-        // Clear the prior route error after the async proxy navigation succeeds.
-        // oxlint-disable-next-line react/set-state-in-effect
         setRouteError("");
       }
     } catch (error) {
@@ -224,8 +246,6 @@ export function GamePlayerApp({ title, url, isHub = false }: GamePlayerAppProps)
   };
 
   useEffect(() => {
-    // Re-route the external game after its Phosphorous settings change.
-    // oxlint-disable-next-line react/set-state-in-effect
     void routeGame();
   }, [routeGame]);
 
@@ -261,7 +281,12 @@ export function GamePlayerApp({ title, url, isHub = false }: GamePlayerAppProps)
   return (
     <div className="game-player">
       <div className="game-player-toolbar">
-        <span className="game-player-title">{title}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <span className="game-player-title">{title}</span>
+          <span className="game-player-fps" style={{ fontSize: "12px", opacity: 0.75, fontFamily: "monospace" }}>
+            {fps} FPS
+          </span>
+        </div>
         <div className="game-player-actions">
           {isHub && (
             <button aria-label="Go back to previous page" disabled={!canGoBack} onClick={goBack} type="button">

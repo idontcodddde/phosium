@@ -37,15 +37,33 @@ function isGameHub(value: unknown): value is GameHub {
     && typeof value.detail === "string";
 }
 
+function loadCustomGames(): Game[] {
+  try {
+    const stored = localStorage.getItem("phosium_custom_games");
+    if (!stored) return [];
+    const parsed: unknown = JSON.parse(stored);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(isGame);
+  } catch (error) {
+    console.error("Could not load custom games.", error);
+    return [];
+  }
+}
+
 export function loadGamesCatalog(value: unknown): GamesCatalog {
   if (!isRecord(value) || !Array.isArray(value.games) || !Array.isArray(value.hubs)) {
     throw new TypeError("Game catalog must contain games and hubs lists.");
   }
-  const games = value.games.filter(isGame);
-  if (games.length !== value.games.length) {
-    const invalidGameIndex = value.games.findIndex((game: unknown) => !isGame(game));
-    throw new TypeError(`Game catalog entry ${invalidGameIndex + 1} is invalid.`);
+  const staticGames = value.games.filter(isGame);
+  const customGames = loadCustomGames();
+  
+  // Merge custom games, avoiding duplicate titles or URLs
+  const gamesMap = new Map<string, Game>();
+  for (const game of [...staticGames, ...customGames]) {
+    gamesMap.set(game.url, game);
   }
+  const games = Array.from(gamesMap.values());
+
   const hubs = value.hubs.filter(isGameHub);
   if (hubs.length !== value.hubs.length) {
     const invalidHubIndex = value.hubs.findIndex((hub: unknown) => !isGameHub(hub));
@@ -58,9 +76,6 @@ export function loadGamesCatalog(value: unknown): GamesCatalog {
   const titles = new Set<string>();
   for (const game of games) {
     const normalizedTitle = game.title.trim().toLowerCase();
-    if (titles.has(normalizedTitle)) {
-      throw new TypeError(`Game catalog contains duplicate title "${game.title}".`);
-    }
     titles.add(normalizedTitle);
   }
   return { games, hubs };

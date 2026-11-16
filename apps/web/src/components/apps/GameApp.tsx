@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { PhosiumIcon } from "@repo/os-shell";
 import type { PhosiumIconName } from "@repo/os-shell";
 import { useSystem } from "../../SystemContext";
@@ -6,16 +6,33 @@ import gamesCatalogData from "../../assets/games.json";
 import { loadGamesCatalog } from "../../lib/gameCatalog";
 import type { Game } from "../../types/gameCatalog";
 
-const { games, hubs: gameHubs } = loadGamesCatalog(gamesCatalogData);
-const categories = ["All", ...new Set(games.map((game) => game.category).sort((a, b) => a.localeCompare(b)))];
 const gameArtIcons: Record<string, PhosiumIconName> = {
   "chess-knight": "chess-knight",
   spade: "spade",
+  gamepad: "gamepad-2",
 };
 
 function GameArt({ art }: { art: string }) {
   const icon = gameArtIcons[art];
-  return icon ? <PhosiumIcon name={icon} /> : art;
+  return icon ? <PhosiumIcon name={icon} /> : <span>{art}</span>;
+}
+
+function getCustomGameTitles(): Set<string> {
+  try {
+    const stored = localStorage.getItem("phosium_custom_games");
+    if (!stored) return new Set();
+    const parsed: unknown = JSON.parse(stored);
+    if (!Array.isArray(parsed)) return new Set();
+    return new Set(
+      parsed
+        .filter((item): item is { title: string } =>
+          typeof item === "object" && item !== null && "title" in item && typeof item.title === "string",
+        )
+        .map((item) => item.title.trim().toLowerCase()),
+    );
+  } catch {
+    return new Set();
+  }
 }
 
 function pickRandomGames(source: Game[], count: number): Game[] {
@@ -34,7 +51,7 @@ function getLocalDateKey(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-function getPersonalizedGameOfTheDay(): Game {
+function getPersonalizedGameOfTheDay(catalogGames: Game[]): Game {
   const date = getLocalDateKey(new Date());
   const storageKey = "phosium_personalized_game_of_the_day";
 
@@ -43,7 +60,7 @@ function getPersonalizedGameOfTheDay(): Game {
     if (stored && typeof stored === "object" && "date" in stored && "url" in stored) {
       const saved = stored as { date: unknown; url: unknown };
       if (saved.date === date && typeof saved.url === "string") {
-        const existingGame = games.find((game) => game.url === saved.url);
+        const existingGame = catalogGames.find((game) => game.url === saved.url);
         if (existingGame) return existingGame;
       }
     }
@@ -51,7 +68,7 @@ function getPersonalizedGameOfTheDay(): Game {
     console.error("Could not load the personalized game of the day.", error);
   }
 
-  const selectedGame = games[Math.floor(Math.random() * games.length)];
+  const selectedGame = catalogGames[Math.floor(Math.random() * catalogGames.length)];
   if (!selectedGame) {
     throw new Error("Cannot select a daily game from an empty catalog.");
   }
@@ -66,14 +83,65 @@ function getPersonalizedGameOfTheDay(): Game {
 
 export function GameApp() {
   const { openGame, proxySettings } = useSystem();
+  const [catalog, setCatalog] = useState(() => loadGamesCatalog(gamesCatalogData));
+  const [customTitles, setCustomTitles] = useState<Set<string>>(getCustomGameTitles);
+  const { games, hubs: gameHubs } = catalog;
+
+  const categories = useMemo(
+    () => ["All", ...new Set(games.map((game) => game.category).sort((a, b) => a.localeCompare(b)))],
+    [games],
+  );
+
   const [view, setView] = useState<"discover" | "all-games" | "hubs">("discover");
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
-  const [conveyorGames] = useState(() => pickRandomGames(games, Math.min(6, games.length)));
-  const [gameOfTheDay, setGameOfTheDay] = useState(getPersonalizedGameOfTheDay);
+  const [conveyorGames, setConveyorGames] = useState(() => pickRandomGames(games, Math.min(6, games.length)));
+  const [gameOfTheDay, setGameOfTheDay] = useState(() => getPersonalizedGameOfTheDay(games));
+
+  const reloadCatalog = useCallback(() => {
+    const nextCatalog = loadGamesCatalog(gamesCatalogData);
+    setCatalog(nextCatalog);
+    setCustomTitles(getCustomGameTitles());
+    setConveyorGames(pickRandomGames(nextCatalog.games, Math.min(6, nextCatalog.games.length)));
+    setGameOfTheDay(getPersonalizedGameOfTheDay(nextCatalog.games));
+  }, []);
+
+  const deleteCustomGame = (titleToDelete: string) => {
+    try {
+      const stored = localStorage.getItem("phosium_custom_games");
+      if (!stored) return;
+      const parsed: unknown = JSON.parse(stored);
+      if (!Array.isArray(parsed)) return;
+      const updated = parsed.filter(
+        (item) =>
+          !(typeof item === "object" &&
+            item !== null &&
+            "title" in item &&
+            typeof item.title === "string" &&
+            item.title.trim().toLowerCase() === titleToDelete.trim().toLowerCase()),
+      );
+      localStorage.setItem("phosium_custom_games", JSON.stringify(updated));
+      window.dispatchEvent(new Event("phosium:games-updated"));
+    } catch (error) {
+      console.error("Could not delete custom game.", error);
+    }
+  };
+
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === "phosium_custom_games") reloadCatalog();
+    };
+    window.addEventListener("phosium:games-updated", reloadCatalog);
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      window.removeEventListener("phosium:games-updated", reloadCatalog);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, [reloadCatalog]);
+
   const filteredGames = games.filter((game) =>
     (category === "All" || game.category === category)
-      && game.title.toLowerCase().includes(search.trim().toLowerCase()),
+    && game.title.toLowerCase().includes(search.trim().toLowerCase()),
   );
   const filteredHubs = gameHubs.filter((hub) =>
     hub.title.toLowerCase().includes(search.trim().toLowerCase()),
@@ -85,10 +153,10 @@ export function GameApp() {
       const currentDate = getLocalDateKey(new Date());
       if (currentDate === activeDate) return;
       activeDate = currentDate;
-      setGameOfTheDay(getPersonalizedGameOfTheDay());
+      setGameOfTheDay(getPersonalizedGameOfTheDay(games));
     }, 60_000);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [games]);
 
   return (
     <main className="game-store">
@@ -170,15 +238,32 @@ export function GameApp() {
             ))}
           </div>
           <div className="game-grid">
-            {filteredGames.map((game) => (
-              <article className="game-card" key={game.title}>
-                <button className="game-card-launch" onClick={() => openGame(game)} type="button">
-                  <span className={`game-card-art art-${game.tint}`}><span><GameArt art={game.art} /></span><i><PhosiumIcon name="play" /></i></span>
-                  <span className="game-card-info"><span><strong>{game.title}</strong><small>{game.category}</small></span><span className="game-play"><PhosiumIcon name="play" /></span></span>
-                  <span className="game-card-detail">{game.detail}</span>
-                </button>
-              </article>
-            ))}
+            {filteredGames.map((game) => {
+              const isCustom = customTitles.has(game.title.trim().toLowerCase());
+              return (
+                <article className="game-card" key={game.title} style={{ position: "relative" }}>
+                  <button className="game-card-launch" onClick={() => openGame(game)} type="button">
+                    <span className={`game-card-art art-${game.tint}`}><span><GameArt art={game.art} /></span><i><PhosiumIcon name="play" /></i></span>
+                    <span className="game-card-info"><span><strong>{game.title}</strong><small>{game.category}</small></span><span className="game-play"><PhosiumIcon name="play" /></span></span>
+                    <span className="game-card-detail">{game.detail}</span>
+                  </button>
+                  {isCustom && (
+                    <button
+                      aria-label={`Delete ${game.title}`}
+                      className="game-card-delete"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        deleteCustomGame(game.title);
+                      }}
+                      title="Delete custom game"
+                      type="button"
+                    >
+                      <PhosiumIcon name="x" size={14} />
+                    </button>
+                  )}
+                </article>
+              );
+            })}
             {filteredGames.length === 0 && <p className="game-empty">No games match that search.</p>}
           </div>
           <footer className="game-store-footer">

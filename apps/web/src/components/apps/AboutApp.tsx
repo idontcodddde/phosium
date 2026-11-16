@@ -6,7 +6,11 @@ import {
     SCRAMJET_VERSION,
     UV_VERSION,
     WISP_VERSION,
-    BARE_MUX_VERSION
+    BARE_MUX_VERSION,
+    LIBCURLJS_VERSION,
+    EPOXY_TRANSPORT_VERSION,
+    EPOXY_TLS_VERSION,
+    PROXY_TRANSPORTS_VERSION
 } from '../../constants/version';
 
 export function AboutApp() {
@@ -95,6 +99,10 @@ export function AboutApp() {
                                 { name: 'Rammerhead', version: RH_VERSION },
                                 { name: 'wisp-js', version: WISP_VERSION },
                                 { name: 'Bare Mux', version: BARE_MUX_VERSION },
+                                { name: 'Proxy Transports', version: PROXY_TRANSPORTS_VERSION },
+                                { name: 'Epoxy TLS', version: EPOXY_TLS_VERSION },
+                                { name: 'Epoxy Transport', version: EPOXY_TRANSPORT_VERSION },
+                                { name: 'Libcurl.js', version: LIBCURLJS_VERSION },
                             ].map((item) => (
                                 <div key={item.name} style={{
                                     display: 'flex',

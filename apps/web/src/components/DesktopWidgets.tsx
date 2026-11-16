@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSystem } from '../SystemContext';
 import { PhosiumIcon } from '@repo/os-shell';
+import quotesData from '../assets/quotes.json';
 
 type WispServer = { id: string; name: string; url: string; ping?: number | null };
 
@@ -30,12 +31,30 @@ function readWispServers(): WispServer[] {
     return [{ id: 'local-host', name: 'Local Host Wisp', url: defaultWispUrl(), ping: null }];
 }
 
+function getRandomQuote(): { text: string; author?: string } {
+    if (!Array.isArray(quotesData) || quotesData.length === 0) {
+        return { text: 'Stay curious and keep exploring.', author: 'Phosium' };
+    }
+    const item = quotesData[Math.floor(Math.random() * quotesData.length)];
+    if (typeof item === 'string') {
+        return { text: item };
+    }
+    if (item && typeof item === 'object') {
+        const record = item as Record<string, unknown>;
+        const text = typeof record.quote === 'string' ? record.quote : (typeof record.text === 'string' ? record.text : 'Stay curious.');
+        const author = typeof record.author === 'string' ? record.author : undefined;
+        return { text, author };
+    }
+    return { text: 'Stay curious.' };
+}
+
 export function DesktopWidgets() {
     const { proxySettings, updateProxySettings } = useSystem();
     const [servers, setServers] = useState(readWispServers);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [zIndex, setZIndex] = useState(5);
     const [now, setNow] = useState(() => new Date());
+    const [quote, setQuote] = useState(getRandomQuote);
     const widgetRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -81,6 +100,10 @@ export function DesktopWidgets() {
         setIsMenuOpen(false);
     };
 
+    const shuffleQuote = () => {
+        setQuote(getRandomQuote());
+    };
+
     return (
         <aside
             className="phosium-desktop-widgets"
@@ -95,6 +118,21 @@ export function DesktopWidgets() {
                     <small>{now.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}</small>
                 </span>
             </div>
+
+            <button
+                type="button"
+                className="phosium-widget-quote"
+                onClick={shuffleQuote}
+                title="Click for another quote"
+                aria-label="Random quote widget"
+            >
+                <PhosiumIcon name="sparkles" className="phosium-quote-icon" />
+                <span className="phosium-quote-content">
+                    <q>{quote.text}</q>
+                    {quote.author && <small>— {quote.author}</small>}
+                </span>
+            </button>
+
             <div className="phosium-widget-actions" ref={widgetRef}>
                 <button
                     type="button"

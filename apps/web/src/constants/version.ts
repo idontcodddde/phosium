@@ -5,3 +5,7 @@ export const UV_VERSION = "3.2.6";
 export const RH_VERSION = "1.3.6";
 export const WISP_VERSION = "0.5.0";
 export const BARE_MUX_VERSION = "2.1.9";
+export const PROXY_TRANSPORTS_VERSION = "1.0.2";
+export const EPOXY_TLS_VERSION = "2.1.19-1";
+export const LIBCURLJS_VERSION = "2.0.5";
+export const EPOXY_TRANSPORT_VERSION = "3.0.1";

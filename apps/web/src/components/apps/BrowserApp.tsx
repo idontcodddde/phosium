@@ -8,6 +8,7 @@ import { applyPhosiumExtensionStates, registerPhosiumExtensions } from "../../ex
 import { decodeScramjetAddress, resolveAddress } from "../../lib/browser/address";
 import { appConfig } from "../../../app.config";
 import type { QuickAccessSiteConfig } from "../../../app.config";
+import type { Game } from "../../types/gameCatalog";
 import {
   decodeRammerheadUrl,
   encodeRammerheadUrl,
@@ -202,6 +203,16 @@ export function BrowserApp() {
   const [editingBookmark, setEditingBookmark] = useState<BrowserBookmark | null>(null);
   const [bookmarkTitleDraft, setBookmarkTitleDraft] = useState("");
   const [bookmarkUrlDraft, setBookmarkUrlDraft] = useState("");
+
+  const [isSaveGameModalOpen, setIsSaveGameModalOpen] = useState(false);
+  const [saveGameTitle, setSaveGameTitle] = useState("");
+  const [saveGameUrl, setSaveGameUrl] = useState("");
+  const [saveGameCategory, setSaveGameCategory] = useState("Custom");
+  const [saveGameArt, setSaveGameArt] = useState("gamepad");
+  const [saveGameTint, setSaveGameTint] = useState("purple");
+  const [saveGameDetail, setSaveGameDetail] = useState("");
+  const [saveGameError, setSaveGameError] = useState("");
+
   const browserRef = useRef<HTMLDivElement>(null);
   const iframeRefs = useRef(new Map<string, HTMLIFrameElement>());
   const frameRefs = useRef(new Map<string, Frame>());
@@ -454,6 +465,58 @@ export function BrowserApp() {
       : [...bookmarks, target]);
   };
 
+  const openSaveGameModal = () => {
+    const target = getCurrentBookmarkTarget();
+    if (!target) {
+      setSaveGameTitle(activeTab?.title || "Custom Game");
+      setSaveGameUrl(activeTab?.url || "");
+    } else {
+      setSaveGameTitle(target.title);
+      setSaveGameUrl(target.url);
+    }
+    setSaveGameCategory("Custom");
+    setSaveGameArt("gamepad");
+    setSaveGameTint("purple");
+    setSaveGameDetail(`Custom game saved from browser.`);
+    setSaveGameError("");
+    setIsSaveGameModalOpen(true);
+  };
+
+  const handleSaveGameSubmit = (event: FormEvent) => {
+    event.preventDefault();
+    if (!saveGameUrl.trim() || !saveGameTitle.trim()) {
+      setSaveGameError("Title and URL are required.");
+      return;
+    }
+    try {
+      const formattedUrl = resolveAddress(saveGameUrl, searchEngine);
+      const newGame: Game = {
+        title: saveGameTitle.trim(),
+        url: formattedUrl,
+        category: saveGameCategory.trim() || "Custom",
+        art: saveGameArt.trim() || "gamepad",
+        tint: saveGameTint.trim() || "purple",
+        detail: saveGameDetail.trim() || `Custom game: ${saveGameTitle}`,
+      };
+
+      let existingCustom: Game[] = [];
+      const stored = localStorage.getItem("phosium_custom_games");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          existingCustom = parsed;
+        }
+      }
+
+      const updated = [newGame, ...existingCustom.filter((g) => g.title.toLowerCase() !== newGame.title.toLowerCase())];
+      localStorage.setItem("phosium_custom_games", JSON.stringify(updated));
+      window.dispatchEvent(new Event("phosium:games-updated"));
+      setIsSaveGameModalOpen(false);
+    } catch (error) {
+      setSaveGameError(error instanceof Error ? error.message : "Could not save game.");
+    }
+  };
+
   const saveEditedBookmark = (event: FormEvent) => {
     event.preventDefault();
     if (!editingBookmark) return;
@@ -649,8 +712,6 @@ export function BrowserApp() {
         } else if (proxySettings.enabled) {
           iframe.contentWindow?.location.reload();
         } else {
-          // Reloading a browser-controlled frame by URL is intentional.
-          // oxlint-disable-next-line react/immutability
           iframe.src = tab.url;
         }
       } catch (error) {
@@ -735,8 +796,6 @@ export function BrowserApp() {
             navigatedKeys.current.delete(tab.id);
           }
           console.error(`Could not route browser tab ${tab.title}.`, error);
-          // Report routing failures from the proxy/controller effect.
-          // oxlint-disable-next-line react/set-state-in-effect
           setNavigationError(error instanceof Error ? error.message : String(error));
         }
       })();
@@ -751,8 +810,6 @@ export function BrowserApp() {
     tabs,
   ]);
 
-  // The one-shot launch request comes from a separate desktop app.
-  // oxlint-disable-next-line react/set-state-in-effect
   useEffect(() => {
     if (!browserRequest || browserRequest.id === lastBrowserRequestId.current) return;
     lastBrowserRequestId.current = browserRequest.id;
@@ -952,6 +1009,16 @@ export function BrowserApp() {
             type="button"
           ><PhosiumIcon name="star" className={isActiveTabBookmarked ? "is-bookmarked" : undefined} /></button>
         </form>
+        <button
+          aria-label="Save as game"
+          className="chrome-icon-button"
+          disabled={!activeTab?.url}
+          onClick={openSaveGameModal}
+          type="button"
+          title="Save current website as a game"
+        >
+          <PhosiumIcon name="gamepad-2" />
+        </button>
         <div className="chrome-toolbar-action">
           <button
             aria-expanded={extensionsOpen}
@@ -1073,26 +1140,114 @@ export function BrowserApp() {
         </div>
       )}
       {editingBookmark && (
-        <div className="chrome-qa-modal-overlay">
-          <form className="chrome-qa-modal" onSubmit={saveEditedBookmark}>
+        <div className="chrome-qa-modal-overlay" onClick={() => setEditingBookmark(null)}>
+          <form className="chrome-qa-modal" onClick={(e) => e.stopPropagation()} onSubmit={saveEditedBookmark}>
+            <div className="chrome-modal-mark"><PhosiumIcon name="bookmark" /></div>
+            <p className="chrome-modal-eyebrow">BOOKMARKS</p>
             <h3>Edit bookmark</h3>
-            <input
-              aria-label="Bookmark title"
-              onChange={(event) => setBookmarkTitleDraft(event.target.value)}
-              placeholder="Bookmark title"
-              value={bookmarkTitleDraft}
-            />
-            <input
-              aria-label="Bookmark URL"
-              onChange={(event) => setBookmarkUrlDraft(event.target.value)}
-              placeholder="https://example.com"
-              required
-              value={bookmarkUrlDraft}
-            />
+            <label className="chrome-modal-field">
+              <span>Title</span>
+              <input
+                aria-label="Bookmark title"
+                onChange={(event) => setBookmarkTitleDraft(event.target.value)}
+                placeholder="Bookmark title"
+                value={bookmarkTitleDraft}
+              />
+            </label>
+            <label className="chrome-modal-field">
+              <span>URL</span>
+              <input
+                aria-label="Bookmark URL"
+                onChange={(event) => setBookmarkUrlDraft(event.target.value)}
+                placeholder="https://example.com"
+                required
+                value={bookmarkUrlDraft}
+              />
+            </label>
             {bookmarkError && <span className="chrome-bookmark-error" role="alert">{bookmarkError}</span>}
             <div className="chrome-qa-modal-actions">
               <button onClick={() => setEditingBookmark(null)} type="button">Cancel</button>
               <button className="primary" type="submit">Save bookmark</button>
+            </div>
+          </form>
+        </div>
+      )}
+      {isSaveGameModalOpen && (
+        <div className="chrome-qa-modal-overlay" onClick={() => setIsSaveGameModalOpen(false)}>
+          <form className="chrome-qa-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSaveGameSubmit}>
+            <div className="chrome-modal-mark"><PhosiumIcon name="gamepad-2" /></div>
+            <p className="chrome-modal-eyebrow">GAME CATALOG</p>
+            <h3>Save website as game</h3>
+            <div className="chrome-modal-grid">
+              <label className="chrome-modal-field">
+                <span>Game Title</span>
+                <input
+                  aria-label="Game Title"
+                  onChange={(event) => setSaveGameTitle(event.target.value)}
+                  placeholder="Game Title"
+                  required
+                  value={saveGameTitle}
+                />
+              </label>
+              <label className="chrome-modal-field">
+                <span>Category</span>
+                <input
+                  aria-label="Category"
+                  onChange={(event) => setSaveGameCategory(event.target.value)}
+                  placeholder="e.g. Arcade, Puzzle"
+                  value={saveGameCategory}
+                />
+              </label>
+            </div>
+            <label className="chrome-modal-field">
+              <span>Game URL</span>
+              <input
+                aria-label="Game URL"
+                onChange={(event) => setSaveGameUrl(event.target.value)}
+                placeholder="https://example.com"
+                required
+                value={saveGameUrl}
+              />
+            </label>
+            <div className="chrome-modal-grid">
+              <label className="chrome-modal-field">
+                <span>Art / Icon</span>
+                <input
+                  aria-label="Art or Icon Name"
+                  onChange={(event) => setSaveGameArt(event.target.value)}
+                  placeholder="gamepad or emoji"
+                  value={saveGameArt}
+                />
+              </label>
+              <label className="chrome-modal-field">
+                <span>Tint Theme</span>
+                <select
+                  aria-label="Tint Theme"
+                  value={saveGameTint}
+                  onChange={(event) => setSaveGameTint(event.target.value)}
+                >
+                  <option value="purple">Purple</option>
+                  <option value="blue">Blue</option>
+                  <option value="green">Green</option>
+                  <option value="orange">Orange</option>
+                  <option value="red">Red</option>
+                  <option value="cyan">Cyan</option>
+                </select>
+              </label>
+            </div>
+            <label className="chrome-modal-field">
+              <span>Description</span>
+              <input
+                aria-label="Description"
+                onChange={(event) => setSaveGameDetail(event.target.value)}
+                placeholder="Short description of the game"
+                value={saveGameDetail}
+              />
+            </label>
+            {saveGameError && <span className="chrome-bookmark-error" role="alert">{saveGameError}</span>}
+            <div className="chrome-qa-modal-actions">
+              <button onClick={() => setIsSaveGameModalOpen(false)} type="button">Cancel</button>
+              <button className="primary" type="submit">Save to catalog</button>
             </div>
           </form>
         </div>
@@ -1244,25 +1399,33 @@ export function BrowserApp() {
                 </div>
 
                 {isAddModalOpen && (
-                  <div className="chrome-qa-modal-overlay">
-                    <form className="chrome-qa-modal" onSubmit={handleAddQuickAccess}>
-                      <h3>Add Quick Access Site</h3>
-                      <input
-                        type="text"
-                        placeholder="Site Title (e.g. YouTube)"
-                        value={newQaTitle}
-                        onChange={(e) => setNewQaTitle(e.target.value)}
-                      />
-                      <input
-                        type="text"
-                        placeholder="URL (e.g. https://youtube.com)"
-                        value={newQaUrl}
-                        onChange={(e) => setNewQaUrl(e.target.value)}
-                        required
-                      />
+                  <div className="chrome-qa-modal-overlay" onClick={() => setIsAddModalOpen(false)}>
+                    <form className="chrome-qa-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleAddQuickAccess}>
+                      <div className="chrome-modal-mark"><PhosiumIcon name="plus" /></div>
+                      <p className="chrome-modal-eyebrow">NEW TAB · SHORTCUT</p>
+                      <h3>Pin quick access site</h3>
+                      <label className="chrome-modal-field">
+                        <span>Site Title</span>
+                        <input
+                          type="text"
+                          placeholder="e.g. YouTube"
+                          value={newQaTitle}
+                          onChange={(e) => setNewQaTitle(e.target.value)}
+                        />
+                      </label>
+                      <label className="chrome-modal-field">
+                        <span>Website URL</span>
+                        <input
+                          type="text"
+                          placeholder="https://youtube.com"
+                          value={newQaUrl}
+                          onChange={(e) => setNewQaUrl(e.target.value)}
+                          required
+                        />
+                      </label>
                       <div className="chrome-qa-modal-actions">
                         <button type="button" onClick={() => setIsAddModalOpen(false)}>Cancel</button>
-                        <button type="submit" className="primary">Add</button>
+                        <button type="submit" className="primary">Pin site</button>
                       </div>
                     </form>
                   </div>

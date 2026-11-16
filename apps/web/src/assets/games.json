@@ -890,6 +890,14 @@
             "detail": "Open this browser game and start playing."
         },
         {
+            "title": "coreus",
+            "category": "Arcade",
+            "url": "https://n00dle.codeberg.page/coreus/",
+            "art": "COREUS",
+            "tint": "slate",
+            "detail": "Proxy and games. proxy doesnt work tho lwk."
+        },
+        {
             "title": "Subway Surfers",
             "category": "Arcade",
             "url": "https://subwaysurfersonlinegame.github.io/file/",

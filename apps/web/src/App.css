@@ -5194,3 +5194,229 @@
   cursor: not-allowed;
   transform: none;
 }
+
+.chrome-save-game-button:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.chrome-save-game-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+
+/* Browser Modals (Styled after .alpha-disclaimer) */
+.chrome-qa-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgb(8 10 18 / 72%);
+  backdrop-filter: blur(8px);
+}
+
+.chrome-qa-modal {
+  width: min(100%, 430px);
+  padding: 30px;
+  color: var(--text-primary);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 24px 80px rgb(0 0 0 / 45%);
+  display: flex;
+  flex-direction: column;
+}
+
+.chrome-modal-mark {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  color: var(--accent);
+  background: var(--surface-raised);
+  border-radius: 12px;
+  font-size: 20px;
+}
+
+.chrome-modal-eyebrow {
+  margin: 20px 0 7px;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.chrome-qa-modal h3 {
+  margin: 0 0 16px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+}
+
+.chrome-modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.chrome-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.chrome-modal-field > span {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.chrome-qa-modal input,
+.chrome-qa-modal select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  color: var(--text-primary);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.chrome-qa-modal input:focus,
+.chrome-qa-modal select:focus {
+  border-color: var(--accent);
+}
+
+.chrome-qa-modal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.chrome-qa-modal-actions button {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.chrome-qa-modal-actions button[type="button"] {
+  color: var(--text-primary);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+}
+
+.chrome-qa-modal-actions button[type="button"]:hover {
+  border-color: var(--text-secondary);
+}
+
+.chrome-qa-modal-actions button.primary {
+  color: #11151a;
+  background: var(--accent);
+  border: 0;
+}
+
+.chrome-qa-modal-actions button.primary:hover {
+  background: var(--accent-strong);
+}
+
+/* Custom Game Delete Button */
+.game-card-delete {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  color: var(--text-primary);
+  background: rgb(8 10 18 / 72%);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.game-card:hover .game-card-delete,
+.game-card-delete:focus-visible {
+  opacity: 1;
+}
+
+.game-card-delete:hover {
+  color: #fff;
+  background: #dc2626;
+  border-color: #ef4444;
+}
+
+.phosium-widget-quote {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    width: min(100vw - 180px, 420px);
+    max-height: 120px;
+    overflow-y: auto;
+    padding: 8px 12px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text-primary);
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.phosium-widget-quote:hover {
+    background: var(--surface-hover);
+    border-color: var(--accent);
+}
+
+.phosium-quote-icon {
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.phosium-quote-content {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    width: 100%;
+}
+
+.phosium-quote-content q {
+    font-size: 11px;
+    line-height: 1.4;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.phosium-quote-content small {
+    font-size: 9px;
+    opacity: 0.65;
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
