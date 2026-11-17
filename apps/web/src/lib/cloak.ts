@@ -1,5 +1,6 @@
 export const CLOAK_OPTIONS = [
   { value: "none", label: "Phosium" },
+  { value: "custom", label: "Custom Cloak..." },
   { value: "clever", label: "Clever" },
   { value: "desmos", label: "Desmos" },
   { value: "google-classroom", label: "Google Classroom" },
@@ -11,7 +12,9 @@ export const CLOAK_OPTIONS = [
 
 export type CloakOption = (typeof CLOAK_OPTIONS)[number]["value"];
 
-const CLOAK_METADATA: Partial<Record<CloakOption, { title: string; icon: string }>> = {
+const CLOAK_METADATA: Partial<
+  Record<CloakOption, { title: string; icon: string }>
+> = {
   clever: {
     title: "Clever | Portal",
     icon: "https://assets.clever.com/launchpad/c4a9bd82e/favicon.ico",
@@ -38,7 +41,8 @@ const CLOAK_METADATA: Partial<Record<CloakOption, { title: string; icon: string 
   },
   schoology: {
     title: "Schoology",
-    icon: "https://asset-cdn.schoology.com/sites/all/themes/schoology_theme/favicon.ico",
+    icon:
+      "https://asset-cdn.schoology.com/sites/all/themes/schoology_theme/favicon.ico",
   },
 };
 
@@ -52,24 +56,78 @@ interface ResolvedCloak {
   redirect: string;
 }
 
+export interface CustomCloakConfig {
+  title: string;
+  favicon: string;
+}
+
+export function getCustomCloakConfig(): CustomCloakConfig {
+  try {
+    return {
+      title: localStorage.getItem("phosium_custom_cloak_title") || "Classes",
+      favicon: localStorage.getItem("phosium_custom_cloak_icon") ||
+        "https://www.google.com/favicon.ico",
+    };
+  } catch {
+    return { title: "Classes", favicon: "https://www.google.com/favicon.ico" };
+  }
+}
+
+export function setCustomCloakConfig(
+  config: Partial<CustomCloakConfig>,
+): CustomCloakConfig {
+  const current = getCustomCloakConfig();
+  const next = { ...current, ...config };
+  try {
+    if (next.title) {
+      localStorage.setItem("phosium_custom_cloak_title", next.title);
+    }
+    if (next.favicon) {
+      localStorage.setItem("phosium_custom_cloak_icon", next.favicon);
+    }
+    window.dispatchEvent(new Event("phosium:custom-cloak-updated"));
+  } catch (err) {
+    console.error("Could not save custom cloak config.", err);
+  }
+  return next;
+}
+
 function resolveCloak(preset: string): ResolvedCloak | null {
+  if (preset === "custom") {
+    const custom = getCustomCloakConfig();
+    return {
+      title: custom.title,
+      favicon: custom.favicon,
+      redirect: DEFAULT_REDIRECT,
+    };
+  }
   if (!isCloakOption(preset)) return null;
 
-  const metadata = CLOAK_METADATA[preset];
+  const metadata = CLOAK_METADATA[preset as CloakOption];
   return metadata
-    ? { title: metadata.title, favicon: metadata.icon, redirect: DEFAULT_REDIRECT }
+    ? {
+      title: metadata.title,
+      favicon: metadata.icon,
+      redirect: DEFAULT_REDIRECT,
+    }
     : null;
 }
 
 function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (character) => {
     switch (character) {
-      case "&": return "&amp;";
-      case "<": return "&lt;";
-      case ">": return "&gt;";
-      case '"': return "&quot;";
-      case "'": return "&#39;";
-      default: return character;
+      case "&":
+        return "&amp;";
+      case "<":
+        return "&lt;";
+      case ">":
+        return "&gt;";
+      case '"':
+        return "&quot;";
+      case "'":
+        return "&#39;";
+      default:
+        return character;
     }
   });
 }
@@ -79,25 +137,36 @@ export function isCloakOption(value: string | null): value is CloakOption {
 }
 
 export function applyCloak(option: CloakOption, appName = DEFAULT_TITLE): void {
-  const metadata = CLOAK_METADATA[option];
-  if (!metadata) {
+  if (option === "none") {
     document.title = appName;
     document.querySelector(`link[${CLOAK_ICON_ATTRIBUTE}]`)?.remove();
     return;
   }
 
-  document.title = metadata.title;
-  let iconLink = document.querySelector<HTMLLinkElement>(`link[${CLOAK_ICON_ATTRIBUTE}]`);
+  const resolved = resolveCloak(option);
+  if (!resolved) {
+    document.title = appName;
+    document.querySelector(`link[${CLOAK_ICON_ATTRIBUTE}]`)?.remove();
+    return;
+  }
+
+  document.title = resolved.title;
+  let iconLink = document.querySelector<HTMLLinkElement>(
+    `link[${CLOAK_ICON_ATTRIBUTE}]`,
+  );
   if (!iconLink) {
     iconLink = document.createElement("link");
     iconLink.rel = "icon";
     iconLink.setAttribute(CLOAK_ICON_ATTRIBUTE, "");
     document.head.append(iconLink);
   }
-  iconLink.href = metadata.icon;
+  iconLink.href = resolved.favicon;
 }
 
-export async function launchAboutBlank(preset: string, appName = DEFAULT_TITLE): Promise<void> {
+export async function launchAboutBlank(
+  preset: string,
+  appName = DEFAULT_TITLE,
+): Promise<void> {
   const win = window.open("", "_blank");
   if (!win) return;
 
@@ -125,7 +194,10 @@ export async function launchAboutBlank(preset: string, appName = DEFAULT_TITLE):
   window.location.href = redirect;
 }
 
-export async function launchBlob(preset: string, appName = DEFAULT_TITLE): Promise<void> {
+export async function launchBlob(
+  preset: string,
+  appName = DEFAULT_TITLE,
+): Promise<void> {
   const cloak = resolveCloak(preset);
   const redirect = cloak?.redirect ?? DEFAULT_REDIRECT;
   const title = cloak?.title ?? appName;
@@ -147,6 +219,8 @@ export async function launchBlob(preset: string, appName = DEFAULT_TITLE): Promi
     return;
   }
 
-  win.addEventListener("pagehide", () => URL.revokeObjectURL(url), { once: true });
+  win.addEventListener("pagehide", () => URL.revokeObjectURL(url), {
+    once: true,
+  });
   window.location.href = redirect;
 }

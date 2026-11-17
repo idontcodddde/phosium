@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import type { DesktopTheme } from "../../SystemContext";
-import { CLOAK_OPTIONS, launchAboutBlank, launchBlob } from "../../lib/cloak";
+import { CLOAK_OPTIONS, getCustomCloakConfig, setCustomCloakConfig, applyCloak, launchAboutBlank, launchBlob } from "../../lib/cloak";
 import type { CloakOption } from "../../lib/cloak";
 import { useSystem } from "../../SystemContext";
 import { PhosiumIcon } from "@repo/os-shell";
@@ -24,6 +24,87 @@ interface SettingsProfile {
   id: string;
   name: string;
   settings: Record<string, unknown>;
+}
+
+const PRESET_SWATCHES = [
+  "#0f1117", "#181b24", "#1e2230", "#212532", "#2a2f3e", "#3b82f6",
+  "#6366f1", "#818cf8", "#ec4899", "#10b981", "#f59e0b", "#ef4444",
+  "#ffffff", "#000000", "#111827", "#1f2937", "#374151", "#4b5563"
+];
+
+function CustomColorPicker({ label, value, onChange }: { label: string; value: string; onChange: (hex: string) => void }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [hexInput, setHexInput] = useState(value);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setHexInput(value);
+  }, [value]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
+
+  const handleHexChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setHexInput(val);
+    if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+      onChange(val);
+    }
+  };
+
+  return (
+    <div className="custom-palette-field" ref={containerRef} style={{ position: "relative" }}>
+      <span>{label}</span>
+      <button
+        type="button"
+        className="custom-color-trigger"
+        onClick={() => setIsOpen((prev) => !prev)}
+      >
+        <span className="custom-color-swatch-preview" style={{ backgroundColor: value }} />
+        <span style={{ fontFamily: "monospace", fontWeight: 600 }}>{value.toUpperCase()}</span>
+      </button>
+
+      {isOpen && (
+        <div className="custom-color-popover">
+          <div className="custom-color-popover-header">Presets</div>
+          <div className="custom-color-presets">
+            {PRESET_SWATCHES.map((hex) => (
+              <button
+                key={hex}
+                type="button"
+                className="custom-color-preset-btn"
+                style={{ backgroundColor: hex }}
+                onClick={() => {
+                  onChange(hex);
+                  setHexInput(hex);
+                  setIsOpen(false);
+                }}
+              />
+            ))}
+          </div>
+          <div className="custom-color-hex-row">
+            <span>HEX</span>
+            <input
+              type="text"
+              className="custom-color-hex-input"
+              value={hexInput}
+              onChange={handleHexChange}
+              maxLength={7}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 const scramjetFlagLabels: Record<keyof ScramjetFlags, string> = {
@@ -181,6 +262,22 @@ export function SettingsApp() {
   const [externalExtensionUrl, setExternalExtensionUrl] = useState("");
   const [isLoadingExternalExtension, setIsLoadingExternalExtension] = useState(false);
 
+  // Custom Cloak states
+  const [customCloakTitleDraft, setCustomCloakTitleDraft] = useState(() => getCustomCloakConfig().title);
+  const [customCloakIconDraft, setCustomCloakIconDraft] = useState(() => getCustomCloakConfig().favicon);
+  const [customCloakAppliedMsg, setCustomCloakAppliedMsg] = useState("");
+
+  // Custom Theme Palette states
+  const [customBg, setCustomBg] = useState(() => localStorage.getItem("phosium_custom_bg") || "#0f1117");
+  const [customSurface, setCustomSurface] = useState(() => localStorage.getItem("phosium_custom_surface") || "#181b24");
+  const [customAccent, setCustomAccent] = useState(() => localStorage.getItem("phosium_custom_accent") || "#818cf8");
+  const [customText, setCustomText] = useState(() => localStorage.getItem("phosium_custom_text") || "#f1f5f9");
+
+  // User-Agent custom setting state
+  const [userAgentProfile, setUserAgentProfile] = useState<string>(() => {
+    return localStorage.getItem("phosium_user_agent_profile") || "default";
+  });
+
   // Proxy states
   const [wispServers, setWispServers] = useState<WispServer[]>(getSavedWispServers);
   const [isAddingWisp, setIsAddingWisp] = useState(false);
@@ -190,6 +287,34 @@ export function SettingsApp() {
   const [flagsError, setFlagsError] = useState("");
   const [profileStatusError, setProfileStatusError] = useState("");
   const [profileStatusMessage, setProfileStatusMessage] = useState("");
+
+  const handleUserAgentChange = (preset: string) => {
+    setUserAgentProfile(preset);
+    localStorage.setItem("phosium_user_agent_profile", preset);
+    window.dispatchEvent(new Event("phosium:user-agent-updated"));
+  };
+
+  const handleApplyCustomCloak = () => {
+    setCustomCloakConfig({
+      title: customCloakTitleDraft,
+      favicon: customCloakIconDraft,
+    });
+    if (cloak === "custom") {
+      applyCloak("custom");
+    }
+    setCustomCloakAppliedMsg("Custom cloak applied successfully!");
+    setTimeout(() => setCustomCloakAppliedMsg(""), 3000);
+  };
+
+  const handleSaveCustomPalette = (bg: string, surface: string, accent: string, text: string) => {
+    const palette = { bg, surface, accent, text };
+    localStorage.setItem("phosium_custom_palette", JSON.stringify(palette));
+    localStorage.setItem("phosium_custom_bg", bg);
+    localStorage.setItem("phosium_custom_surface", surface);
+    localStorage.setItem("phosium_custom_accent", accent);
+    localStorage.setItem("phosium_custom_text", text);
+    window.dispatchEvent(new Event("phosium:custom-palette-updated"));
+  };
 
   const collectCurrentSettings = useCallback(() => ({
     theme,
@@ -211,6 +336,13 @@ export function SettingsApp() {
     panicUrl,
     proxySettings,
     scramjetFlags,
+    userAgentProfile,
+    customCloakTitle: customCloakTitleDraft,
+    customCloakIcon: customCloakIconDraft,
+    customBg,
+    customSurface,
+    customAccent,
+    customText,
     wispServers: wispServers.filter((s) => !s.isLocal),
   }), [
     theme,
@@ -232,6 +364,13 @@ export function SettingsApp() {
     panicUrl,
     proxySettings,
     scramjetFlags,
+    userAgentProfile,
+    customCloakTitleDraft,
+    customCloakIconDraft,
+    customBg,
+    customSurface,
+    customAccent,
+    customText,
     wispServers,
   ]);
 
@@ -261,7 +400,6 @@ export function SettingsApp() {
   const testingServerIdsRef = useRef(new Set<string>());
   const isSwitchingProfileRef = useRef(false);
 
-  // Sync live settings changes into the currently active profile automatically
   useEffect(() => {
     if (isSwitchingProfileRef.current) return;
     const currentSnapshot = collectCurrentSettings();
@@ -484,6 +622,22 @@ export function SettingsApp() {
     }
     if (parsed.proxySettings) updateProxySettings(parsed.proxySettings as Parameters<typeof updateProxySettings>[0]);
     if (parsed.scramjetFlags) updateScramjetFlags(parsed.scramjetFlags as ScramjetFlags);
+    if (typeof parsed.userAgentProfile === "string") handleUserAgentChange(parsed.userAgentProfile);
+    if (typeof parsed.customCloakTitle === "string") {
+      setCustomCloakTitleDraft(parsed.customCloakTitle);
+      setCustomCloakConfig({ title: parsed.customCloakTitle });
+    }
+    if (typeof parsed.customCloakIcon === "string") {
+      setCustomCloakIconDraft(parsed.customCloakIcon);
+      setCustomCloakConfig({ favicon: parsed.customCloakIcon });
+    }
+    if (typeof parsed.customBg === "string" && typeof parsed.customSurface === "string" && typeof parsed.customAccent === "string" && typeof parsed.customText === "string") {
+      setCustomBg(parsed.customBg);
+      setCustomSurface(parsed.customSurface);
+      setCustomAccent(parsed.customAccent);
+      setCustomText(parsed.customText);
+      handleSaveCustomPalette(parsed.customBg, parsed.customSurface, parsed.customAccent, parsed.customText);
+    }
     if (Array.isArray(parsed.wispServers)) {
       const localUrl = defaultWispUrl();
       const merged = [
@@ -494,7 +648,6 @@ export function SettingsApp() {
     }
   };
 
-  // Profile Management & Export/Import
   const handleCreateProfile = (e: FormEvent) => {
     e.preventDefault();
     if (!newProfileName.trim()) return;
@@ -584,7 +737,6 @@ export function SettingsApp() {
         if (typeof content !== "string") throw new Error("Invalid file content.");
         const parsed = JSON.parse(content) as Record<string, unknown>;
 
-        // Case 1: Bundle of multiple profiles
         if (parsed.type === "phosium-profiles-bundle" && Array.isArray(parsed.profiles)) {
           const importedList: SettingsProfile[] = parsed.profiles
             .filter((item): item is SettingsProfile =>
@@ -604,7 +756,6 @@ export function SettingsApp() {
           return;
         }
 
-        // Case 2: Single profile export
         if (parsed.type === "phosium-profile" && typeof parsed.profile === "object" && parsed.profile !== null) {
           const rawProfile = parsed.profile as { name?: string; settings?: Record<string, unknown> };
           const importedProfile: SettingsProfile = {
@@ -619,7 +770,6 @@ export function SettingsApp() {
           return;
         }
 
-        // Case 3: Legacy flat settings export
         const legacyProfile: SettingsProfile = {
           id: `profile-${Date.now()}`,
           name: file.name.replace(/\.json$/i, "") || "Imported Settings",
@@ -663,6 +813,7 @@ export function SettingsApp() {
                 ["midnight", "Midnight", "Deep slate with violet accents"],
                 ["light", "Cloud", "Soft neutral surfaces"],
                 ["ocean", "Ocean", "Cool blue glass and sea tones"],
+                ["custom", "Custom", "Choose your own custom color palette"],
               ] as const).map(([value, title, description]) => (
                 <button
                   aria-checked={theme === value}
@@ -678,6 +829,48 @@ export function SettingsApp() {
                 </button>
               ))}
             </div>
+
+            {theme === "custom" && (
+              <div className="custom-palette-card">
+                <h3 className="settings-subheading" style={{ margin: "0 0 4px 0" }}>Custom Palette Colors</h3>
+                <p className="settings-description" style={{ marginBottom: "12px" }}>Customize your desktop variables with presets or hex codes.</p>
+                <div className="custom-palette-grid">
+                  <CustomColorPicker
+                    label="Background Color"
+                    value={customBg}
+                    onChange={(hex) => {
+                      setCustomBg(hex);
+                      handleSaveCustomPalette(hex, customSurface, customAccent, customText);
+                    }}
+                  />
+                  <CustomColorPicker
+                    label="Surface Color"
+                    value={customSurface}
+                    onChange={(hex) => {
+                      setCustomSurface(hex);
+                      handleSaveCustomPalette(customBg, hex, customAccent, customText);
+                    }}
+                  />
+                  <CustomColorPicker
+                    label="Accent Color"
+                    value={customAccent}
+                    onChange={(hex) => {
+                      setCustomAccent(hex);
+                      handleSaveCustomPalette(customBg, customSurface, hex, customText);
+                    }}
+                  />
+                  <CustomColorPicker
+                    label="Text Color"
+                    value={customText}
+                    onChange={(hex) => {
+                      setCustomText(hex);
+                      handleSaveCustomPalette(customBg, customSurface, customAccent, hex);
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
             <div className="settings-reset-row">
               <ResetButton setting="desktop theme" onReset={() => setTheme(appConfig.appearance.defaultDesktopTheme)} />
             </div>
@@ -840,6 +1033,35 @@ export function SettingsApp() {
                     <option value="rammerhead">Rammerhead</option>
                   </select>
                   <ResetButton setting="proxy engine" onReset={() => updateProxySettings({ engine: "scramjet" })} />
+                </div>
+              </div>
+
+              <div className="settings-field">
+                <span>User-Agent Profile</span>
+                <div className="settings-control-row">
+                  <select
+                    aria-label="User-Agent profile"
+                    value={userAgentProfile}
+                    onChange={(event) => handleUserAgentChange(event.target.value)}
+                  >
+                    <option value="default">Default (System)</option>
+                    <optgroup label="Desktop">
+                      <option value="chrome-windows">Google Chrome (Windows)</option>
+                      <option value="chrome-mac">Google Chrome (macOS)</option>
+                      <option value="chrome-linux">Google Chrome (Linux)</option>
+                      <option value="firefox-windows">Mozilla Firefox (Windows)</option>
+                      <option value="firefox-mac">Mozilla Firefox (macOS)</option>
+                      <option value="safari-mac">Apple Safari (macOS)</option>
+                      <option value="edge-windows">Microsoft Edge (Windows)</option>
+                    </optgroup>
+                    <optgroup label="Mobile">
+                      <option value="iphone">Mobile Safari (iPhone)</option>
+                      <option value="ipad">Mobile Safari (iPad)</option>
+                      <option value="android-chrome">Google Chrome (Android)</option>
+                      <option value="android-firefox">Mozilla Firefox (Android)</option>
+                    </optgroup>
+                  </select>
+                  <ResetButton setting="User-Agent profile" onReset={() => handleUserAgentChange("default")} />
                 </div>
               </div>
 
@@ -1229,6 +1451,48 @@ export function SettingsApp() {
                   <ResetButton setting="cloaking" onReset={() => setCloak(appConfig.privacy.cloak)} />
                 </div>
               </div>
+
+              {cloak === "custom" && (
+                <>
+                  <div className="settings-field">
+                    <span>Custom Tab Title</span>
+                    <div className="settings-control-row">
+                      <input
+                        type="text"
+                        value={customCloakTitleDraft}
+                        placeholder="e.g. Google Drive"
+                        onChange={(e) => setCustomCloakTitleDraft(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="settings-field">
+                    <span>Custom Favicon URL</span>
+                    <div className="settings-control-row">
+                      <input
+                        type="url"
+                        value={customCloakIconDraft}
+                        placeholder="https://example.com/favicon.ico"
+                        onChange={(e) => setCustomCloakIconDraft(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="settings-field" style={{ display: "flex", alignItems: "center", gap: "12px", marginTop: "8px" }}>
+                    <button
+                      type="button"
+                      className="settings-save-button"
+                      onClick={handleApplyCustomCloak}
+                    >
+                      Apply Custom Cloak
+                    </button>
+                    {customCloakAppliedMsg && (
+                      <span style={{ fontSize: "0.85rem", color: "#4ade80", fontWeight: 500 }}>
+                        {customCloakAppliedMsg}
+                      </span>
+                    )}
+                  </div>
+                </>
+              )}
+
               <div className="settings-field">
                 <span>Automatically launch on site open</span>
                 <div className="settings-control-row">
@@ -1273,7 +1537,7 @@ export function SettingsApp() {
 
             <div className="settings-card settings-form-card">
               <form className="profile-create-form" onSubmit={handleCreateProfile}>
-                  <input
+                <input
                   aria-label="New profile name"
                   placeholder="New profile name..."
                   value={newProfileName}

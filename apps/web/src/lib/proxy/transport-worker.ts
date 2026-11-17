@@ -42,7 +42,7 @@ type TransportWorkerScope = typeof globalThis & {
     beforeRequest: BeforeRequestHook[];
     afterResponse: AfterResponseHook[];
   };
-}
+};
 
 const workerScope: TransportWorkerScope = globalThis;
 const beforeRequest: BeforeRequestHook[] = [];
@@ -53,10 +53,57 @@ let transport: ProxyTransport | null = null;
 let activeTransportType: ProxyTransportType | null = null;
 let controlQueue: Promise<void> = Promise.resolve();
 
+// Expanded User-Agent presets mapping
+const userAgentPresets: Record<string, string> = {
+  // Desktop Browsers
+  "chrome-windows":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  "chrome-mac":
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  "chrome-linux":
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+
+  "firefox-windows":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0",
+  "firefox-mac":
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:125.0) Gecko/20100101 Firefox/125.0",
+
+  "safari-mac":
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15",
+
+  "edge-windows":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.2478.51",
+
+  // Mobile Browsers
+  "iphone":
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+  "ipad":
+    "Mozilla/5.0 (iPad; CPU OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+  "android-chrome":
+    "Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.6367.82 Mobile Safari/537.36",
+  "android-firefox":
+    "Mozilla/5.0 (Android 14; Mobile; rv:125.0) Gecko/125.0 Firefox/125.0",
+};
+
+let activeUserAgent: string | null = null;
+
+// Register User-Agent middleware hook
+beforeRequest.push((context) => {
+  if (!activeUserAgent) return;
+  const headers = new Headers(context.headers);
+  headers.set("User-Agent", activeUserAgent);
+  context.headers = Array.from(headers.entries());
+});
+
 workerScope.proxyTransportHooks = { beforeRequest, afterResponse };
 
-function postSocketMessage(port: MessagePort, message: SocketWorkerEvent): void {
-  if (message.type === "SOCKET_MESSAGE" && message.data instanceof ArrayBuffer) {
+function postSocketMessage(
+  port: MessagePort,
+  message: SocketWorkerEvent,
+): void {
+  if (
+    message.type === "SOCKET_MESSAGE" && message.data instanceof ArrayBuffer
+  ) {
     const copy = message.data.slice(0);
     port.postMessage({ ...message, data: copy }, [copy]);
     return;
@@ -93,7 +140,9 @@ async function postResponse(
           type: "RESULT",
           requestId: message.requestId,
           ok: false,
-          error: `Unable to transfer the proxy response body: ${String(fallbackError)}`,
+          error: `Unable to transfer the proxy response body: ${
+            String(fallbackError)
+          }`,
         };
         port.postMessage(failure);
         return;
@@ -118,7 +167,9 @@ async function postResponse(
           type: "RESULT",
           requestId: message.requestId,
           ok: false,
-          error: `Unable to send the proxy response: ${String(finalError ?? error)}`,
+          error: `Unable to send the proxy response: ${
+            String(finalError ?? error)
+          }`,
         };
         port.postMessage(failure);
       }
@@ -141,15 +192,21 @@ function getTransport(): ProxyTransport {
   return transport;
 }
 
-async function runRequest(port: MessagePort, request: RequestWorkerMessage): Promise<void> {
+async function runRequest(
+  port: MessagePort,
+  request: RequestWorkerMessage,
+): Promise<void> {
   const controller = new AbortController();
-  const requestMap = activeRequests.get(port) ?? new Map<string, AbortController>();
+  const requestMap = activeRequests.get(port) ??
+    new Map<string, AbortController>();
   activeRequests.set(port, requestMap);
   requestMap.set(request.requestId, controller);
 
   const listener = (event: MessageEvent<unknown>) => {
     if (!isRequestPortCommand(event.data)) return;
-    if (event.data.type === "ABORT" && event.data.requestId === request.requestId) {
+    if (
+      event.data.type === "ABORT" && event.data.requestId === request.requestId
+    ) {
       controller.abort();
     }
   };
@@ -189,7 +246,8 @@ async function runRequest(port: MessagePort, request: RequestWorkerMessage): Pro
 
 function connectSocket(port: MessagePort, request: ConnectWorkerMessage): void {
   const connectionId = "direct";
-  const socketMap = activeSockets.get(port) ?? new Map<string, SocketHandlers>();
+  const socketMap = activeSockets.get(port) ??
+    new Map<string, SocketHandlers>();
   activeSockets.set(port, socketMap);
 
   try {
@@ -197,34 +255,44 @@ function connectSocket(port: MessagePort, request: ConnectWorkerMessage): void {
       new URL(request.url),
       request.protocols,
       request.requestHeaders,
-      (protocol, extensions) => postSocketMessage(port, {
-        type: "SOCKET_OPEN",
-        connectionId,
-        protocol,
-        extensions,
-      }),
-      (data: SocketData) => postSocketMessage(port, {
-        type: "SOCKET_MESSAGE",
-        connectionId,
-        data,
-      }),
+      (protocol, extensions) =>
+        postSocketMessage(port, {
+          type: "SOCKET_OPEN",
+          connectionId,
+          protocol,
+          extensions,
+        }),
+      (data: SocketData) =>
+        postSocketMessage(port, {
+          type: "SOCKET_MESSAGE",
+          connectionId,
+          data,
+        }),
       (code, reason) => {
-        postSocketMessage(port, { type: "SOCKET_CLOSE", connectionId, code, reason });
+        postSocketMessage(port, {
+          type: "SOCKET_CLOSE",
+          connectionId,
+          code,
+          reason,
+        });
         socketMap.delete(connectionId);
         port.close();
       },
-      (error) => postSocketMessage(port, {
-        type: "SOCKET_ERROR",
-        connectionId,
-        error,
-      }),
+      (error) =>
+        postSocketMessage(port, {
+          type: "SOCKET_ERROR",
+          connectionId,
+          error,
+        }),
     );
     socketMap.set(connectionId, [send, close]);
 
     const listener = (event: MessageEvent<unknown>) => {
-      if (!isRequestPortCommand(event.data)
-        || event.data.type === "ABORT"
-        || event.data.connectionId !== connectionId) return;
+      if (
+        !isRequestPortCommand(event.data) ||
+        event.data.type === "ABORT" ||
+        event.data.connectionId !== connectionId
+      ) return;
       const socket = socketMap.get(connectionId);
       if (!socket) return;
       if (event.data.type === "SEND") socket[0](event.data.data);
@@ -246,6 +314,16 @@ function connectSocket(port: MessagePort, request: ConnectWorkerMessage): void {
 }
 
 async function configure(message: ConfigureWorkerMessage): Promise<void> {
+  if (message.type === "SET_USER_AGENT") {
+    activeUserAgent = message.userAgent && userAgentPresets[message.userAgent]
+      ? userAgentPresets[message.userAgent]
+      : null;
+    workerScope.postMessage({ type: "READY", requestId: message.requestId });
+    return;
+  }
+
+  if (!message.transportType || !message.wispUrl) return;
+
   const nextTransport = createProxyTransport({
     transport: message.transportType,
     wispUrl: message.wispUrl,
@@ -258,10 +336,10 @@ async function configure(message: ConfigureWorkerMessage): Promise<void> {
         `[Proxy worker] Transport switched from ${activeTransportType} to ${message.transportType}.`,
       );
     } else {
-      console.info(`[Proxy worker] Transport reconfigured: ${message.transportType}.`);
+      console.info(
+        `[Proxy worker] Transport reconfigured: ${message.transportType}.`,
+      );
     }
-  } else {
-    console.log(message)
   }
   activeTransportType = message.transportType;
   workerScope.postMessage({ type: "READY", requestId: message.requestId });
@@ -274,6 +352,7 @@ workerScope.addEventListener("message", (event: MessageEvent<unknown>) => {
   switch (message.type) {
     case "INIT":
     case "SET_TRANSPORT":
+    case "SET_USER_AGENT":
       controlQueue = controlQueue
         .then(() => configure(message))
         .catch((error: unknown) => {

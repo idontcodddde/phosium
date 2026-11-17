@@ -8,6 +8,7 @@ import { applyPhosiumExtensionStates, registerPhosiumExtensions } from "../../ex
 import { decodeScramjetAddress, resolveAddress } from "../../lib/browser/address";
 import { getLocalAutocompleteSuggestions, fetchSearchSuggestions } from "../../lib/browser/autocomplete";
 import type { AutocompleteSuggestion } from "../../lib/browser/autocomplete";
+import { loadUnifiedHistory, recordHistoryEntry } from "../../lib/history";
 import { appConfig } from "../../../app.config";
 import type { QuickAccessSiteConfig } from "../../../app.config";
 import type { Game } from "../../types/gameCatalog";
@@ -21,9 +22,6 @@ import type { SearchEngine } from "../../SystemContext";
 import type { BrowserBookmark, BrowserHistoryEntry, BrowserTab } from "../../types/browser";
 
 let tabSequence = 0;
-let historySequence = 0;
-const browserHistoryKey = "phosium_browser_history";
-const browserHistoryLimit = appConfig.browser.historyLimit;
 const quickAccessKey = "phosium_quick_access_sites";
 const searchEngineLabels: Record<SearchEngine, string> = {
   google: "Google",
@@ -100,31 +98,10 @@ function loadBookmarks(): BrowserBookmark[] {
   }
 }
 
-function loadHistory(): BrowserHistoryEntry[] {
-  try {
-    const stored = localStorage.getItem(browserHistoryKey);
-    if (!stored) return [];
-    const parsed: unknown = JSON.parse(stored);
-    if (!Array.isArray(parsed)) throw new TypeError("Saved browser history must be a list.");
-    return parsed.filter((entry): entry is BrowserHistoryEntry =>
-      typeof entry === "object"
-      && entry !== null
-      && "id" in entry
-      && typeof entry.id === "string"
-      && "title" in entry
-      && typeof entry.title === "string"
-      && "url" in entry
-      && typeof entry.url === "string"
-      && /^https?:\/\//i.test(entry.url)
-      && "visitedAt" in entry
-      && typeof entry.visitedAt === "number"
-      && Number.isFinite(entry.visitedAt)
-      && Math.abs(entry.visitedAt) <= 8.64e15,
-    ).slice(0, browserHistoryLimit);
-  } catch (error) {
-    console.error("Could not load Phosium browser history.", error);
-    return [];
-  }
+function getBrowserHistoryForAutocomplete(): BrowserHistoryEntry[] {
+  return loadUnifiedHistory()
+    .filter((entry) => entry.source === "browser")
+    .map(({ id, title, url, visitedAt }) => ({ id, title, url, visitedAt }));
 }
 
 interface BrowserFrameProps {
@@ -187,11 +164,7 @@ export function BrowserApp() {
   const [newQaTitle, setNewQaTitle] = useState("");
   const [newQaUrl, setNewQaUrl] = useState("");
   const [activeMenuSiteId, setActiveMenuSiteId] = useState<string | null>(null);
-  const [history, setHistory] = useState<BrowserHistoryEntry[]>(loadHistory);
-  const historyRef = useRef(history);
-  const [historyOpen, setHistoryOpen] = useState(false);
-  const [historySearch, setHistorySearch] = useState("");
-  const [historyError, setHistoryError] = useState("");
+  const [history, setHistory] = useState<BrowserHistoryEntry[]>(getBrowserHistoryForAutocomplete);
   const [showBookmarksBar, setShowBookmarksBar] = useState(
     () => {
       const saved = localStorage.getItem("phosium_show_bookmarks_bar");
@@ -232,6 +205,12 @@ export function BrowserApp() {
   });
 
   useEffect(() => {
+    const syncAutocompleteHistory = () => setHistory(getBrowserHistoryForAutocomplete());
+    window.addEventListener("phosium:history-updated", syncAutocompleteHistory);
+    return () => window.removeEventListener("phosium:history-updated", syncAutocompleteHistory);
+  }, []);
+
+  useEffect(() => {
     panicSettingsRef.current = { enabled: panicKeyEnabled, key: panicKey };
   }, [panicKeyEnabled, panicKey]);
   const detachRefs = useRef(new Map<string, () => void>());
@@ -240,7 +219,6 @@ export function BrowserApp() {
   const activeTab = tabs.find((tab) => tab.id === activeTabId) ?? tabs[0];
   const address = activeTab?.draft ?? "";
 
-  // Fetch live search recommendations
   useEffect(() => {
     const query = address.trim();
     if (!query || !isAddressFocused || query.includes("://") || query.includes(".")) {
@@ -260,7 +238,6 @@ export function BrowserApp() {
     };
   }, [address, isAddressFocused, searchEngine]);
 
-  // Combined autocomplete suggestions
   const autocompleteSuggestions = useMemo(() => {
     const query = address.trim();
     if (!query || !isAddressFocused) return [];
@@ -333,19 +310,6 @@ export function BrowserApp() {
     setActiveMenuSiteId(null);
   };
 
-  const saveHistory = useCallback((nextHistory: BrowserHistoryEntry[]) => {
-    const boundedHistory = nextHistory.slice(0, browserHistoryLimit);
-    historyRef.current = boundedHistory;
-    setHistory(boundedHistory);
-    try {
-      localStorage.setItem(browserHistoryKey, JSON.stringify(boundedHistory));
-      setHistoryError("");
-    } catch (error) {
-      console.error("Could not save Phosium browser history.", error);
-      setHistoryError("History is available until this browser closes, but could not be saved.");
-    }
-  }, []);
-
   const toggleBookmarksBar = () => {
     const nextVisible = !showBookmarksBar;
     setShowBookmarksBar(nextVisible);
@@ -370,21 +334,18 @@ export function BrowserApp() {
       const targetUrl = resolveAddress(rawUrl, searchEngine);
       setNavigationError("");
       setIsAddressFocused(false);
-      const visitedAt = Date.now();
-      saveHistory([{
-        id: `history-${visitedAt}-${++historySequence}`,
+      recordHistoryEntry({
         title: new URL(targetUrl).hostname,
         url: targetUrl,
-        visitedAt,
-      }, ...historyRef.current]);
-      setHistoryOpen(false);
+        source: "browser",
+      });
       setTabs((current) => current.map((tab) => tab.id === tabId
         ? { ...tab, url: targetUrl, draft: targetUrl, title: new URL(targetUrl).hostname }
         : tab));
     } catch (error) {
       setNavigationError(error instanceof Error ? error.message : String(error));
     }
-  }, [activeTabId, saveHistory, searchEngine]);
+  }, [activeTabId, searchEngine]);
 
   const openLinkInTab = useCallback((url: string) => {
     const tab = createTab(url);
@@ -451,7 +412,7 @@ export function BrowserApp() {
         pageTitle = iframe.contentDocument?.title || pageTitle;
       }
     } catch {
-      // The tab URL remains the last known destination when the frame is cross-origin.
+      // Cross-origin fallback
     }
 
     const decodedUrl = getOriginalUrl(activeTab.id, frameUrl);
@@ -594,13 +555,11 @@ export function BrowserApp() {
     ].join(":");
     navigatedKeys.current.set(tabId, `${proxyRevision}:${destination}`);
 
-    const visitedAt = Date.now();
-    saveHistory([{
-      id: `history-${visitedAt}-${++historySequence}`,
+    recordHistoryEntry({
       title,
       url: destination,
-      visitedAt,
-    }, ...historyRef.current]);
+      source: "browser",
+    });
     setTabs((current) => current.map((item) => item.id === tabId
       ? { ...item, url: destination, draft: destination, title }
       : item));
@@ -611,7 +570,6 @@ export function BrowserApp() {
     proxySettings.transport,
     proxySettings.wispUrl,
     proxyStatus,
-    saveHistory,
     tabs,
   ]);
 
@@ -687,22 +645,6 @@ export function BrowserApp() {
       phosphorusRef.current = null;
     };
   }, [phosphorousEnabled, externalExtensions]);
-
-  useEffect(() => {
-    const handleHistoryShortcut = (event: KeyboardEvent) => {
-      if (!event.altKey || event.ctrlKey || event.metaKey || event.key.toLowerCase() !== "h") return;
-      event.preventDefault();
-      setHistoryOpen((open) => !open);
-      setMenuOpen(false);
-      setExtensionsOpen(false);
-    };
-    window.addEventListener("keydown", handleHistoryShortcut);
-    return () => window.removeEventListener("keydown", handleHistoryShortcut);
-  }, []);
-
-  const filteredHistory = history.filter((entry) =>
-    `${entry.title} ${entry.url}`.toLowerCase().includes(historySearch.trim().toLowerCase()),
-  );
 
   useEffect(() => {
     if (phosphorusRef.current) {
@@ -1052,8 +994,8 @@ export function BrowserApp() {
                       item.type === "search"
                         ? "search"
                         : item.type === "bookmark"
-                        ? "bookmark"
-                        : "globe"
+                          ? "bookmark"
+                          : "globe"
                     }
                     size={14}
                   />
@@ -1142,7 +1084,6 @@ export function BrowserApp() {
           {menuOpen && (
             <div aria-label="Browser menu" className="chrome-menu-popup" role="menu">
               <button onClick={() => { setMenuOpen(false); addTab(); }} role="menuitem" type="button">New tab <kbd>Ctrl+T</kbd></button>
-              <button onClick={() => { setMenuOpen(false); setHistoryOpen(true); setHistorySearch(""); }} role="menuitem" type="button">History <kbd>Ctrl+H</kbd></button>
               <button onClick={toggleBookmarksBar} role="menuitem" type="button">{showBookmarksBar ? "Hide" : "Show"} bookmarks bar</button>
               <button onClick={() => { setMenuOpen(false); setExtensionsOpen(true); }} role="menuitem" type="button">Manage extensions</button>
               <button onClick={() => { setMenuOpen(false); window.dispatchEvent(new CustomEvent("phosium:focus-window", { detail: "settings" })); }} role="menuitem" type="button">Settings</button>
@@ -1309,191 +1250,147 @@ export function BrowserApp() {
       )}
       {navigationError && <div className="chrome-error" role="alert">{navigationError}</div>}
       <div className="chrome-page">
-        {historyOpen ? (
-          <section aria-label="Browsing history" className="chrome-history">
-            <header className="chrome-history-header">
-              <div><h2>History</h2><span>{history.length} visits saved on this device</span></div>
-              <button onClick={() => setHistoryOpen(false)} type="button">Done</button>
-            </header>
-            <label className="chrome-history-search">
+        {tabs.map((tab) => (
+          <BrowserFrame
+            active={tab.id === activeTabId}
+            key={tab.id}
+            onFrameChange={handleFrameChange}
+            onFrameLoad={handleFrameLoad}
+            tab={tab}
+          />
+        ))}
+        {!activeTab?.url && (
+          <div className="chrome-new-tab-page">
+            <div className="chrome-google-mark">Phosium</div>
+            <form className="chrome-search-form" onSubmit={handleSubmit}>
               <PhosiumIcon name="search" />
               <input
-                aria-label="Search history"
-                onChange={(event) => setHistorySearch(event.target.value)}
-                placeholder="Search history"
-                value={historySearch}
+                aria-label="Search the web"
+                onChange={(event) => setTabs((current) => current.map((tab) => tab.id === activeTabId
+                  ? { ...tab, draft: event.target.value }
+                  : tab))}
+                placeholder={`Search with ${searchEngineLabels[searchEngine]} or enter a URL`}
+                value={address}
               />
-            </label>
-            <div className="chrome-history-list">
-              {filteredHistory.map((entry) => (
-                <div className="chrome-history-entry" key={entry.id}>
-                  <button className="chrome-history-visit" onClick={() => navigate(entry.url)} title={entry.url} type="button">
-                    <strong>{entry.title}</strong>
-                    <span>{entry.url}</span>
-                    <time dateTime={new Date(entry.visitedAt).toISOString()}>{new Date(entry.visitedAt).toLocaleString()}</time>
-                  </button>
-                  <button
-                    aria-label={`Remove ${entry.title} from history`}
-                    className="chrome-history-remove"
-                    onClick={() => saveHistory(history.filter((item) => item.id !== entry.id))}
-                    type="button"
-                  ><PhosiumIcon name="x" /></button>
-                </div>
-              ))}
-              {filteredHistory.length === 0 && (
-                <p className="chrome-history-empty">{history.length ? "No history matches your search." : "Pages you visit will appear here."}</p>
-              )}
-            </div>
-            <footer className="chrome-history-footer">
-              {historyError && <span role="alert">{historyError}</span>}
-              <button disabled={history.length === 0} onClick={() => saveHistory([])} type="button">Clear browsing history</button>
-            </footer>
-          </section>
-        ) : (
-          <>
-            {tabs.map((tab) => (
-              <BrowserFrame
-                active={tab.id === activeTabId}
-                key={tab.id}
-                onFrameChange={handleFrameChange}
-                onFrameLoad={handleFrameLoad}
-                tab={tab}
-              />
-            ))}
-            {!activeTab?.url && (
-              <div className="chrome-new-tab-page">
-                <div className="chrome-google-mark">Phosium</div>
-                <form className="chrome-search-form" onSubmit={handleSubmit}>
-                  <PhosiumIcon name="search" />
-                  <input
-                    aria-label="Search the web"
-                    onChange={(event) => setTabs((current) => current.map((tab) => tab.id === activeTabId
-                      ? { ...tab, draft: event.target.value }
-                      : tab))}
-                    placeholder={`Search with ${searchEngineLabels[searchEngine]} or enter a URL`}
-                    value={address}
-                  />
-                  <button aria-label="Search" type="submit"><PhosiumIcon name="corner-down-left" /></button>
-                </form>
+              <button aria-label="Search" type="submit"><PhosiumIcon name="corner-down-left" /></button>
+            </form>
 
-                {/* Quick Access Sites Grid */}
-                <div className="chrome-quick-access-container">
-                  <div className="chrome-quick-access-grid">
-                    {quickAccessSites.map((site) => {
-                      let domain = "";
-                      try {
-                        domain = new URL(site.url).hostname;
-                      } catch {
-                        domain = site.url;
-                      }
-                      const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+            {/* Quick Access Sites Grid */}
+            <div className="chrome-quick-access-container">
+              <div className="chrome-quick-access-grid">
+                {quickAccessSites.map((site) => {
+                  let domain = "";
+                  try {
+                    domain = new URL(site.url).hostname;
+                  } catch {
+                    domain = site.url;
+                  }
+                  const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
 
-                      return (
-                        <div key={site.id} className="chrome-quick-access-wrapper">
-                          <button
-                            className="chrome-quick-access-item"
-                            onClick={() => navigate(site.url)}
-                            type="button"
-                          >
-                            <div className="chrome-quick-access-icon">
-                              <img
-                                src={faviconUrl}
-                                alt=""
-                                onError={(e) => {
-                                  e.currentTarget.style.display = "none";
-                                  const parent = e.currentTarget.parentElement;
-                                  if (parent && !parent.querySelector(".qa-fallback")) {
-                                    const span = document.createElement("span");
-                                    span.className = "qa-fallback";
-                                    span.textContent = site.title.charAt(0);
-                                    parent.appendChild(span);
-                                  }
-                                }}
-                              />
-                            </div>
-                            <span className="chrome-quick-access-label">{site.title}</span>
-                          </button>
-                          <button
-                            className="chrome-qa-menu-btn"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveMenuSiteId(activeMenuSiteId === site.id ? null : site.id);
-                            }}
-                            type="button"
-                            aria-label="Options"
-                          >
-                            <PhosiumIcon name="ellipsis" />
-                          </button>
-                          {activeMenuSiteId === site.id && (
-                            <div className="chrome-qa-context-menu">
-                              <button
-                                onClick={() => deleteQuickAccessSite(site.id)}
-                                type="button"
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                    <div className="chrome-quick-access-wrapper">
+                  return (
+                    <div key={site.id} className="chrome-quick-access-wrapper">
                       <button
-                        className="chrome-quick-access-item chrome-quick-access-add"
-                        onClick={() => setIsAddModalOpen(true)}
+                        className="chrome-quick-access-item"
+                        onClick={() => navigate(site.url)}
                         type="button"
-                        title="Add quick access site"
                       >
                         <div className="chrome-quick-access-icon">
-                          <PhosiumIcon name="plus" className="chrome-qa-plus-icon" size={24} />
+                          <img
+                            src={faviconUrl}
+                            alt=""
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                              const parent = e.currentTarget.parentElement;
+                              if (parent && !parent.querySelector(".qa-fallback")) {
+                                const span = document.createElement("span");
+                                span.className = "qa-fallback";
+                                span.textContent = site.title.charAt(0);
+                                parent.appendChild(span);
+                              }
+                            }}
+                          />
                         </div>
-                        <span className="chrome-quick-access-label">ADD</span>
+                        <span className="chrome-quick-access-label">{site.title}</span>
                       </button>
+                      <button
+                        className="chrome-qa-menu-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveMenuSiteId(activeMenuSiteId === site.id ? null : site.id);
+                        }}
+                        type="button"
+                        aria-label="Options"
+                      >
+                        <PhosiumIcon name="ellipsis" />
+                      </button>
+                      {activeMenuSiteId === site.id && (
+                        <div className="chrome-qa-context-menu">
+                          <button
+                            onClick={() => deleteQuickAccessSite(site.id)}
+                            type="button"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                </div>
-
-                {isAddModalOpen && (
-                  <div className="chrome-qa-modal-overlay" onClick={() => setIsAddModalOpen(false)}>
-                    <form className="chrome-qa-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleAddQuickAccess}>
-                      <div className="chrome-modal-mark"><PhosiumIcon name="plus" /></div>
-                      <p className="chrome-modal-eyebrow">NEW TAB · SHORTCUT</p>
-                      <h3>Pin quick access site</h3>
-                      <label className="chrome-modal-field">
-                        <span>Site Title</span>
-                        <input
-                          type="text"
-                          placeholder="e.g. YouTube"
-                          value={newQaTitle}
-                          onChange={(e) => setNewQaTitle(e.target.value)}
-                        />
-                      </label>
-                      <label className="chrome-modal-field">
-                        <span>Website URL</span>
-                        <input
-                          type="text"
-                          placeholder="https://youtube.com"
-                          value={newQaUrl}
-                          onChange={(e) => setNewQaUrl(e.target.value)}
-                          required
-                        />
-                      </label>
-                      <div className="chrome-qa-modal-actions">
-                        <button type="button" onClick={() => setIsAddModalOpen(false)}>Cancel</button>
-                        <button type="submit" className="primary">Pin site</button>
-                      </div>
-                    </form>
-                  </div>
-                )}
-
-                <div className="chrome-new-tab-hint">
-                  {proxySettings.enabled
-                    ? proxyStatus
-                    : "Proxy disabled · browsing directly"}
+                  );
+                })}
+                <div className="chrome-quick-access-wrapper">
+                  <button
+                    className="chrome-quick-access-item chrome-quick-access-add"
+                    onClick={() => setIsAddModalOpen(true)}
+                    type="button"
+                    title="Add quick access site"
+                  >
+                    <div className="chrome-quick-access-icon">
+                      <PhosiumIcon name="plus" className="chrome-qa-plus-icon" size={24} />
+                    </div>
+                    <span className="chrome-quick-access-label">ADD</span>
+                  </button>
                 </div>
               </div>
+            </div>
+
+            {isAddModalOpen && (
+              <div className="chrome-qa-modal-overlay" onClick={() => setIsAddModalOpen(false)}>
+                <form className="chrome-qa-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleAddQuickAccess}>
+                  <div className="chrome-modal-mark"><PhosiumIcon name="plus" /></div>
+                  <p className="chrome-modal-eyebrow">NEW TAB · SHORTCUT</p>
+                  <h3>Pin quick access site</h3>
+                  <label className="chrome-modal-field">
+                    <span>Site Title</span>
+                    <input
+                      type="text"
+                      placeholder="e.g. YouTube"
+                      value={newQaTitle}
+                      onChange={(e) => setNewQaTitle(e.target.value)}
+                    />
+                  </label>
+                  <label className="chrome-modal-field">
+                    <span>Website URL</span>
+                    <input
+                      type="text"
+                      placeholder="https://youtube.com"
+                      value={newQaUrl}
+                      onChange={(e) => setNewQaUrl(e.target.value)}
+                      required
+                    />
+                  </label>
+                  <div className="chrome-qa-modal-actions">
+                    <button type="button" onClick={() => setIsAddModalOpen(false)}>Cancel</button>
+                    <button type="submit" className="primary">Pin site</button>
+                  </div>
+                </form>
+              </div>
             )}
-          </>
+
+            <div className="chrome-new-tab-hint">
+              {proxySettings.enabled
+                ? proxyStatus
+                : "Proxy disabled · browsing directly"}
+            </div>
+          </div>
         )}
       </div>
       <div className="chrome-statusbar">

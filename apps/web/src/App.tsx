@@ -20,10 +20,12 @@ import { TextEditorApp } from "./components/apps/TextEditorApp";
 import { FilesApp } from "./components/apps/FilesApp";
 import { TaskManagerApp } from "./components/apps/TaskManagerApp";
 import { DesktopWidgets } from "./components/DesktopWidgets";
+import { HistoryApp } from "./components/apps/HistoryApp";
 import { SystemContext } from "./SystemContext";
 import type { AutoLaunchMode, BrowserTheme, DesktopTheme, SearchEngine } from "./SystemContext";
 import { applyCloak, isCloakOption, launchAboutBlank, launchBlob } from "./lib/cloak";
 import type { CloakOption } from "./lib/cloak";
+import { recordHistoryEntry } from "./lib/history";
 import { appConfig } from "../app.config";
 import { registerSystemWorker } from "./lib/proxy/runtime";
 import { createBareMuxCompatibleTransport } from "./lib/proxy/bareMuxTransport";
@@ -36,7 +38,7 @@ import type { ExternalPhosiumExtension } from "./extensions/phosphorousExtension
 function getSavedTheme(): DesktopTheme {
   if (typeof window === "undefined") return appConfig.appearance.defaultDesktopTheme;
   const theme = localStorage.getItem("phosium_theme");
-  return theme === "midnight" || theme === "light" || theme === "ocean"
+  return theme === "midnight" || theme === "light" || theme === "ocean" || theme === "custom"
     ? theme
     : appConfig.appearance.defaultDesktopTheme;
 }
@@ -63,7 +65,7 @@ function getSavedSearchEngine(): SearchEngine {
 function getSavedCloak(): CloakOption {
   if (typeof window === "undefined") return appConfig.privacy.cloak;
   const saved = localStorage.getItem("phosium_cloak");
-  return isCloakOption(saved) ? saved : appConfig.privacy.cloak;
+  return isCloakOption(saved) || saved === "custom" ? saved : appConfig.privacy.cloak;
 }
 
 function getSavedAutoLaunchMode(): AutoLaunchMode {
@@ -141,6 +143,22 @@ function getSavedScramjetFlags(): ScramjetFlags {
   return defaults;
 }
 
+function getSavedCustomPalette() {
+  if (typeof window === "undefined") {
+    return { bg: "#0f1117", surface: "#181b24", accent: "#818cf8", text: "#f1f5f9" };
+  }
+  try {
+    const saved = localStorage.getItem("phosium_custom_palette");
+    if (saved) return JSON.parse(saved);
+  } catch { }
+  return {
+    bg: localStorage.getItem("phosium_custom_bg") || "#0f1117",
+    surface: localStorage.getItem("phosium_custom_surface") || "#181b24",
+    accent: localStorage.getItem("phosium_custom_accent") || "#818cf8",
+    text: localStorage.getItem("phosium_custom_text") || "#f1f5f9",
+  };
+}
+
 export default function App() {
   const [proxySettings, setProxySettings] = useState(getInitialProxySettings);
   const [workerTransport] = useState(
@@ -208,6 +226,7 @@ export default function App() {
       return [];
     }
   });
+  const [customPalette, setCustomPalette] = useState(getSavedCustomPalette);
   const [browserRequest, setBrowserRequest] = useState<{ id: number; url: string } | null>(null);
   const workerPromiseRef = useRef<Promise<ServiceWorker> | null>(null);
   const bareMuxRef = useRef<BareMuxConnection | null>(null);
@@ -344,6 +363,7 @@ export default function App() {
   }, []);
 
   const openGame = useCallback(({ title, url, isHub }: { title: string; url: string; isHub?: boolean }) => {
+    recordHistoryEntry({ title, url, source: "game", isHub });
     const instance = ++gameWindowIdRef.current;
     window.dispatchEvent(new CustomEvent("phosium:open-window", {
       detail: {
@@ -359,6 +379,14 @@ export default function App() {
         component: <GamePlayerApp isHub={isHub} title={title} url={url} />,
       } satisfies WindowState,
     }));
+  }, []);
+
+  useEffect(() => {
+    const handleCustomPaletteUpdate = () => {
+      setCustomPalette(getSavedCustomPalette());
+    };
+    window.addEventListener("phosium:custom-palette-updated", handleCustomPaletteUpdate);
+    return () => window.removeEventListener("phosium:custom-palette-updated", handleCustomPaletteUpdate);
   }, []);
 
   useEffect(() => {
@@ -572,6 +600,18 @@ export default function App() {
       component: <TextEditorApp />,
     },
     {
+      id: "history",
+      title: "History",
+      icon: <PhosiumIcon name="clock-3" />,
+      description: "View browser and game history",
+      isOpen: false,
+      isMinimized: false,
+      isMaximized: false,
+      zIndex: 17,
+      position: { x: 250, y: 150 },
+      component: <HistoryApp />,
+    },
+    {
       id: "calculator",
       title: "Math Studio",
       icon: <PhosiumIcon name="calculator" />,
@@ -633,6 +673,20 @@ export default function App() {
     },
   ], []);
 
+  const customStyle = useMemo(() => {
+    const style: CSSProperties & Record<string, string> = {};
+    if (wallpaper) {
+      style["--desktop-wallpaper"] = `url("${wallpaper}")`;
+    }
+    if (theme === "custom") {
+      style["--custom-bg"] = customPalette.bg;
+      style["--custom-surface"] = customPalette.surface;
+      style["--custom-accent"] = customPalette.accent;
+      style["--custom-text"] = customPalette.text;
+    }
+    return Object.keys(style).length > 0 ? style : undefined;
+  }, [theme, wallpaper, customPalette]);
+
   return (
     <SystemContext.Provider value={{
       proxySettings,
@@ -682,7 +736,8 @@ export default function App() {
     }}>
       <div
         className="phosium-root"
-        style={wallpaper ? { "--desktop-wallpaper": `url("${wallpaper}")` } as CSSProperties : undefined}
+        data-theme={theme}
+        style={customStyle}
       >
         <Desktop initialWindows={initialWindows} />
         <DesktopWidgets />

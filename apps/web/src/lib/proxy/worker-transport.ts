@@ -31,7 +31,10 @@ async function postRequest(
   message: Omit<RequestWorkerMessage, "port">,
 ): Promise<void> {
   const transfer: Transferable[] = [port];
-  if (message.body instanceof ReadableStream || message.body instanceof ArrayBuffer) {
+  if (
+    message.body instanceof ReadableStream ||
+    message.body instanceof ArrayBuffer
+  ) {
     transfer.push(message.body);
   }
 
@@ -40,7 +43,10 @@ async function postRequest(
   } catch (error) {
     if (!(message.body instanceof ReadableStream)) throw error;
     const fallbackBody = await new Response(message.body).arrayBuffer();
-    worker.postMessage({ ...message, body: fallbackBody, port }, [port, fallbackBody]);
+    worker.postMessage({ ...message, body: fallbackBody, port }, [
+      port,
+      fallbackBody,
+    ]);
   }
 }
 
@@ -59,10 +65,21 @@ export class WorkerTransport implements ProxyTransport {
   ) {
     this.transportType = transportType;
     this.wispUrl = wispUrl;
+    this.userAgent = localStorage.getItem("phosium_user_agent_profile") ||
+      "default";
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("phosium:user-agent-updated", () => {
+        this.userAgent = localStorage.getItem("phosium_user_agent_profile") ||
+          "default";
+        void this.syncUserAgent();
+      });
+    }
   }
 
   private transportType: ProxyTransportType;
   private wispUrl: string;
+  private userAgent: string;
 
   get ready(): boolean {
     return this.isReady;
@@ -71,9 +88,12 @@ export class WorkerTransport implements ProxyTransport {
   private ensureWorker(): Worker {
     if (this.worker) return this.worker;
 
-    const worker = new Worker(new URL("./transport-worker.ts", import.meta.url), {
-      type: "module",
-    });
+    const worker = new Worker(
+      new URL("./transport-worker.ts", import.meta.url),
+      {
+        type: "module",
+      },
+    );
     this.worker = worker;
     worker.addEventListener("message", (event: MessageEvent<unknown>) => {
       if (!isWorkerControlResponse(event.data)) return;
@@ -85,13 +105,19 @@ export class WorkerTransport implements ProxyTransport {
         this.isReady = true;
         pending.resolve();
       } else {
-        pending.reject(new Error(message.error || "Proxy transport initialization failed."));
+        pending.reject(
+          new Error(message.error || "Proxy transport initialization failed."),
+        );
       }
     });
     worker.addEventListener("error", (event) => {
       this.isReady = false;
-      const error = new Error(event.message || "Proxy transport worker failed.");
-      for (const pending of this.pendingControls.values()) pending.reject(error);
+      const error = new Error(
+        event.message || "Proxy transport worker failed.",
+      );
+      for (const pending of this.pendingControls.values()) {
+        pending.reject(error);
+      }
       this.pendingControls.clear();
       for (const port of this.activePorts) port.close();
       this.activePorts.clear();
@@ -107,31 +133,68 @@ export class WorkerTransport implements ProxyTransport {
 
   private sendControl(
     type: ConfigureWorkerMessage["type"],
-    transportType: ProxyTransportType,
-    wispUrl: string,
+    transportType?: ProxyTransportType,
+    wispUrl?: string,
+    userAgent?: string,
   ): Promise<void> {
     const worker = this.ensureWorker();
     const requestId = `control-${++this.controlRequestId}`;
     return new Promise<void>((resolve, reject) => {
       this.pendingControls.set(requestId, { resolve, reject });
-      worker.postMessage({ type, requestId, transportType, wispUrl } satisfies ConfigureWorkerMessage);
+      worker.postMessage(
+        {
+          type,
+          requestId,
+          transportType,
+          wispUrl,
+          userAgent,
+        } satisfies ConfigureWorkerMessage,
+      );
     });
   }
 
   init(): Promise<void> {
-    return this.enqueueControl(() => {
-      if (this.isReady) return Promise.resolve();
-      return this.sendControl("INIT", this.transportType, this.wispUrl);
+    return this.enqueueControl(async () => {
+      if (this.isReady) return;
+      await this.sendControl("INIT", this.transportType, this.wispUrl);
+      await this.sendControl(
+        "SET_USER_AGENT",
+        undefined,
+        undefined,
+        this.userAgent,
+      );
     });
   }
 
-  setTransport(transportType: ProxyTransportType, wispUrl: string): Promise<void> {
+  syncUserAgent(): Promise<void> {
     return this.enqueueControl(async () => {
-      const changed = this.transportType !== transportType || this.wispUrl !== wispUrl;
+      if (!this.isReady) return;
+      await this.sendControl(
+        "SET_USER_AGENT",
+        undefined,
+        undefined,
+        this.userAgent,
+      );
+    });
+  }
+
+  setTransport(
+    transportType: ProxyTransportType,
+    wispUrl: string,
+  ): Promise<void> {
+    return this.enqueueControl(async () => {
+      const changed = this.transportType !== transportType ||
+        this.wispUrl !== wispUrl;
       this.transportType = transportType;
       this.wispUrl = wispUrl;
       if (!this.isReady) {
         await this.sendControl("INIT", transportType, wispUrl);
+        await this.sendControl(
+          "SET_USER_AGENT",
+          undefined,
+          undefined,
+          this.userAgent,
+        );
       } else if (changed) {
         await this.sendControl("SET_TRANSPORT", transportType, wispUrl);
       }
@@ -147,7 +210,8 @@ export class WorkerTransport implements ProxyTransport {
   ): Promise<ProxyResponse> {
     await this.init();
     if (signal?.aborted) {
-      throw signal.reason ?? new DOMException("The request was aborted.", "AbortError");
+      throw signal.reason ??
+        new DOMException("The request was aborted.", "AbortError");
     }
 
     const worker = this.ensureWorker();
@@ -162,11 +226,16 @@ export class WorkerTransport implements ProxyTransport {
         callback(value);
       };
       const abort = () => {
-        channel.port1.postMessage({ type: "ABORT", requestId } satisfies RequestPortCommand);
+        channel.port1.postMessage(
+          { type: "ABORT", requestId } satisfies RequestPortCommand,
+        );
         signal?.removeEventListener("abort", abort);
         channel.port1.close();
         this.activePorts.delete(channel.port1);
-        reject(signal?.reason ?? new DOMException("The request was aborted.", "AbortError"));
+        reject(
+          signal?.reason ??
+            new DOMException("The request was aborted.", "AbortError"),
+        );
       };
       channel.port1.onmessage = (event: MessageEvent<unknown>) => {
         if (!isRequestPortResponse(event.data)) {
@@ -175,9 +244,13 @@ export class WorkerTransport implements ProxyTransport {
         }
         const message: RequestPortResponse = event.data;
         if (message.ok) finish(resolve, message.res);
-        else finish(reject, new Error(message.error || "Proxy transport request failed."));
+        else {finish(
+            reject,
+            new Error(message.error || "Proxy transport request failed."),
+          );}
       };
-      channel.port1.onmessageerror = () => finish(reject, new Error("Invalid proxy worker response."));
+      channel.port1.onmessageerror = () =>
+        finish(reject, new Error("Invalid proxy worker response."));
       signal?.addEventListener("abort", abort, { once: true });
       if (signal?.aborted) {
         abort();
@@ -193,9 +266,14 @@ export class WorkerTransport implements ProxyTransport {
         body,
         headers,
       };
-      void postRequest(worker, channel.port2, message).catch((error: unknown) => {
-        finish(reject, error instanceof Error ? error : new Error(String(error)));
-      });
+      void postRequest(worker, channel.port2, message).catch(
+        (error: unknown) => {
+          finish(
+            reject,
+            error instanceof Error ? error : new Error(String(error)),
+          );
+        },
+      );
     });
   }
 
@@ -224,7 +302,9 @@ export class WorkerTransport implements ProxyTransport {
         return;
       }
       const message: SocketWorkerEvent = event.data;
-      if (message.type === "SOCKET_OPEN") onopen(message.protocol, message.extensions);
+      if (message.type === "SOCKET_OPEN") {
+        onopen(message.protocol, message.extensions);
+      }
       if (message.type === "SOCKET_MESSAGE") onmessage(message.data);
       if (message.type === "SOCKET_CLOSE") {
         onclose(message.code, message.reason);
@@ -254,7 +334,9 @@ export class WorkerTransport implements ProxyTransport {
     });
 
     const send = (data: SocketData) => {
-      if (closed) throw new DOMException("WebSocket is closed.", "InvalidStateError");
+      if (closed) {
+        throw new DOMException("WebSocket is closed.", "InvalidStateError");
+      }
       const transferable = data instanceof ArrayBuffer ? data.slice(0) : data;
       const command: RequestPortCommand = {
         type: "SEND",

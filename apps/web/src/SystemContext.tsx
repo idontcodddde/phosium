@@ -5,7 +5,7 @@ import type { ProxySettings } from "@repo/proxy";
 import type { CloakOption } from "./lib/cloak";
 import type { ExternalPhosiumExtension } from "./extensions/phosphorousExtensions";
 
-export type DesktopTheme = "midnight" | "light" | "ocean";
+export type DesktopTheme = "midnight" | "light" | "ocean" | "custom";
 export type BrowserTheme = "light" | "dark";
 export type SearchEngine = "google" | "duckduckgo" | "bing" | "brave" | "yahoo";
 export type AutoLaunchMode = "none" | "about-blank" | "blob";
