@@ -201,7 +201,7 @@ export async function launchBlob(
   const cloak = resolveCloak(preset);
   const redirect = cloak?.redirect ?? DEFAULT_REDIRECT;
   const title = cloak?.title ?? appName;
-  const favicon = cloak?.favicon ?? "/favicon.ico";
+  const favicon = cloak?.favicon ?? "/favicon.png";
   const html = `<!DOCTYPE html>
 <html>
 <head>
