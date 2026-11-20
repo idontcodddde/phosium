@@ -12,6 +12,7 @@ import { AboutApp } from "./components/apps/AboutApp";
 import { BrowserApp } from "./components/apps/BrowserApp";
 import { PanicOverlay } from "./components/PanicOverlay";
 import { CalculatorApp } from "./components/apps/CalculatorApp";
+import { AiAssistantApp } from "./components/apps/AiAssistantApp.tsx";
 import { GameApp } from "./components/apps/GameApp";
 import { GamePlayerApp } from "./components/apps/GamePlayerApp";
 import { ScriptsApp } from "./components/apps/ScriptsApp";
@@ -586,6 +587,18 @@ export default function App() {
       zIndex: 8,
       position: { x: 130, y: 78 },
       component: <GameApp />,
+    },
+    {
+      id: "ai-assistant",
+      title: "Phosium AI",
+      icon: <PhosiumIcon name="sparkles" />,
+      description: "Local WebAssembly AI assistant in a Web Worker",
+      isOpen: false,
+      isMinimized: false,
+      isMaximized: false,
+      zIndex: 18,
+      position: { x: 220, y: 95 },
+      component: <AiAssistantApp />,
     },
     {
       id: "text-editor",

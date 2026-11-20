@@ -24,6 +24,7 @@
         "@repo/vfs": "workspace:*",
         "@rubynetwork/rammerhead-browser": "1.0.9",
         "@titaniumnetwork-dev/ultraviolet": "3.2.10",
+        "@wllama/wllama": "^3.13.0",
         "phosphorous": "^1.0.0",
         "react": "^19.2.8",
         "react-dom": "^19.2.8"
