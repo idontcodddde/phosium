@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { FormEvent, KeyboardEvent as ReactKeyboardEvent } from "react";
+import type { CSSProperties, FormEvent, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 import { Phosphorus } from "phosphorous";
 import type { Frame } from "@mercuryworkshop/scramjet-controller";
 import { proxyConfig } from "@repo/proxy";
@@ -23,6 +23,10 @@ import type { BrowserBookmark, BrowserHistoryEntry, BrowserTab } from "../../typ
 
 let tabSequence = 0;
 const quickAccessKey = "phosium_quick_access_sites";
+const SPLIT_HEADER_HEIGHT = 30;
+
+type SplitPaneSide = "left" | "right";
+
 const searchEngineLabels: Record<SearchEngine, string> = {
   google: "Google",
   duckduckgo: "DuckDuckGo",
@@ -106,12 +110,13 @@ function getBrowserHistoryForAutocomplete(): BrowserHistoryEntry[] {
 
 interface BrowserFrameProps {
   tab: BrowserTab;
-  active: boolean;
+  visible: boolean;
+  frameStyle?: CSSProperties;
   onFrameChange: (tabId: string, frame: HTMLIFrameElement | null) => void;
   onFrameLoad: (tabId: string, frame: HTMLIFrameElement) => void;
 }
 
-function BrowserFrame({ tab, active, onFrameChange, onFrameLoad }: BrowserFrameProps) {
+function BrowserFrame({ tab, visible, frameStyle, onFrameChange, onFrameLoad }: BrowserFrameProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
@@ -127,7 +132,10 @@ function BrowserFrame({ tab, active, onFrameChange, onFrameLoad }: BrowserFrameP
         if (iframeRef.current) onFrameLoad(tab.id, iframeRef.current);
       }}
       ref={iframeRef}
-      style={{ display: active && tab.url ? "block" : "none" }}
+      style={{
+        ...frameStyle,
+        display: visible && tab.url ? "block" : "none",
+      }}
       title={tab.title}
     />
   );
@@ -157,6 +165,11 @@ export function BrowserApp() {
   const [firstTab] = useState(() => createTab());
   const [tabs, setTabs] = useState<BrowserTab[]>([firstTab]);
   const [activeTabId, setActiveTabId] = useState(firstTab.id);
+  const [splitScreenEnabled, setSplitScreenEnabled] = useState(false);
+  const [splitTabId, setSplitTabId] = useState<string | null>(null);
+  const [focusedSplitPane, setFocusedSplitPane] = useState<SplitPaneSide>("left");
+  const [splitRatio, setSplitRatio] = useState(50);
+  const [isResizingSplit, setIsResizingSplit] = useState(false);
   const [navigationError, setNavigationError] = useState("");
   const [bookmarks, setBookmarks] = useState<BrowserBookmark[]>(loadBookmarks);
   const [quickAccessSites, setQuickAccessSites] = useState<QuickAccessSiteConfig[]>(loadQuickAccessSites);
@@ -191,6 +204,7 @@ export function BrowserApp() {
   const [saveGameError, setSaveGameError] = useState("");
 
   const browserRef = useRef<HTMLDivElement>(null);
+  const splitContainerRef = useRef<HTMLDivElement>(null);
   const iframeRefs = useRef(new Map<string, HTMLIFrameElement>());
   const frameRefs = useRef(new Map<string, Frame>());
   const phosphorusRef = useRef<Phosphorus | null>(null);
@@ -213,11 +227,114 @@ export function BrowserApp() {
   useEffect(() => {
     panicSettingsRef.current = { enabled: panicKeyEnabled, key: panicKey };
   }, [panicKeyEnabled, panicKey]);
+
   const detachRefs = useRef(new Map<string, () => void>());
   const navigatedKeys = useRef(new Map<string, string>());
   const lastBrowserRequestId = useRef(0);
   const activeTab = tabs.find((tab) => tab.id === activeTabId) ?? tabs[0];
-  const address = activeTab?.draft ?? "";
+
+  const secondaryTab = useMemo(() => {
+    if (!splitScreenEnabled) return null;
+    if (splitTabId && splitTabId !== activeTab?.id) {
+      const matched = tabs.find((tab) => tab.id === splitTabId);
+      if (matched) return matched;
+    }
+    return tabs.find((tab) => tab.id !== activeTab?.id) ?? null;
+  }, [activeTab?.id, splitScreenEnabled, splitTabId, tabs]);
+
+  const addressTargetTab = useMemo(() => {
+    if (splitScreenEnabled && focusedSplitPane === "right" && secondaryTab) {
+      return secondaryTab;
+    }
+    return activeTab;
+  }, [activeTab, focusedSplitPane, secondaryTab, splitScreenEnabled]);
+
+  const addressTargetTabId = addressTargetTab?.id ?? activeTabId;
+  const address = addressTargetTab?.draft ?? "";
+
+  useEffect(() => {
+    if (!splitScreenEnabled) {
+      setFocusedSplitPane("left");
+      return;
+    }
+    if (tabs.length < 2 || !secondaryTab) {
+      setSplitScreenEnabled(false);
+      setSplitTabId(null);
+      setFocusedSplitPane("left");
+    }
+  }, [secondaryTab, splitScreenEnabled, tabs.length]);
+
+  useEffect(() => {
+    if (!isResizingSplit) return;
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const container = splitContainerRef.current;
+      if (!container) return;
+      const bounds = container.getBoundingClientRect();
+      if (bounds.width <= 0) return;
+      const rawPercent = ((event.clientX - bounds.left) / bounds.width) * 100;
+      const clamped = Math.min(80, Math.max(20, Number(rawPercent.toFixed(1))));
+      setSplitRatio(clamped);
+    };
+
+    const stopResizing = () => setIsResizingSplit(false);
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", stopResizing);
+    window.addEventListener("pointercancel", stopResizing);
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", stopResizing);
+      window.removeEventListener("pointercancel", stopResizing);
+    };
+  }, [isResizingSplit]);
+
+  const handleDividerPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsResizingSplit(true);
+  };
+
+  const exitSplitScreen = useCallback(() => {
+    setSplitScreenEnabled(false);
+    setSplitTabId(null);
+    setFocusedSplitPane("left");
+    setIsResizingSplit(false);
+  }, []);
+
+  const toggleSplitScreen = () => {
+    setMenuOpen(false);
+    if (splitScreenEnabled) {
+      exitSplitScreen();
+      return;
+    }
+    const otherTab = tabs.find((tab) => tab.id !== activeTab?.id);
+    if (otherTab) {
+      setSplitTabId(otherTab.id);
+    } else {
+      const companionTab = createTab();
+      setTabs((current) => [...current, companionTab]);
+      setSplitTabId(companionTab.id);
+    }
+    setFocusedSplitPane("left");
+    setSplitScreenEnabled(true);
+  };
+
+  const swapSplitPanes = () => {
+    if (!activeTab || !secondaryTab) return;
+    const prevPrimaryId = activeTab.id;
+    const prevSecondaryId = secondaryTab.id;
+    setActiveTabId(prevSecondaryId);
+    setSplitTabId(prevPrimaryId);
+    setFocusedSplitPane((side) => (side === "left" ? "right" : "left"));
+  };
+
+  const openNewTabInSplitPane = () => {
+    const newSplitTab = createTab();
+    setTabs((current) => [...current, newSplitTab]);
+    setSplitTabId(newSplitTab.id);
+    setFocusedSplitPane("right");
+    setSplitScreenEnabled(true);
+  };
 
   useEffect(() => {
     const query = address.trim();
@@ -329,7 +446,7 @@ export function BrowserApp() {
     ));
   };
 
-  const navigate = useCallback((rawUrl: string, tabId = activeTabId) => {
+  const navigate = useCallback((rawUrl: string, tabId = addressTargetTabId) => {
     try {
       const targetUrl = resolveAddress(rawUrl, searchEngine);
       setNavigationError("");
@@ -345,14 +462,24 @@ export function BrowserApp() {
     } catch (error) {
       setNavigationError(error instanceof Error ? error.message : String(error));
     }
-  }, [activeTabId, searchEngine]);
+  }, [addressTargetTabId, searchEngine]);
 
-  const openLinkInTab = useCallback((url: string) => {
+  const openLinkInTab = useCallback((url: string, sourceSide: SplitPaneSide = "left") => {
     const tab = createTab(url);
     setTabs((current) => [...current, tab]);
-    setActiveTabId(tab.id);
+    if (splitScreenEnabled) {
+      if (sourceSide === "right") {
+        setSplitTabId(tab.id);
+        setFocusedSplitPane("right");
+      } else {
+        setActiveTabId(tab.id);
+        setFocusedSplitPane("left");
+      }
+    } else {
+      setActiveTabId(tab.id);
+    }
     navigate(url, tab.id);
-  }, [navigate]);
+  }, [navigate, splitScreenEnabled]);
 
   const getOriginalUrl = useCallback((tabId: string, rawUrl: string): string | null => {
     try {
@@ -402,10 +529,10 @@ export function BrowserApp() {
   }, [proxySettings.engine]);
 
   const getCurrentBookmarkTarget = useCallback((): { url: string; title: string } | null => {
-    if (!activeTab?.url) return null;
-    const iframe = iframeRefs.current.get(activeTab.id);
-    let frameUrl = activeTab.url;
-    let pageTitle = activeTab.title;
+    if (!addressTargetTab?.url) return null;
+    const iframe = iframeRefs.current.get(addressTargetTab.id);
+    let frameUrl = addressTargetTab.url;
+    let pageTitle = addressTargetTab.title;
     try {
       if (iframe?.contentWindow) {
         frameUrl = iframe.contentWindow.location.href;
@@ -415,10 +542,10 @@ export function BrowserApp() {
       // Cross-origin fallback
     }
 
-    const decodedUrl = getOriginalUrl(activeTab.id, frameUrl);
-    let targetUrl = decodedUrl ?? activeTab.url;
+    const decodedUrl = getOriginalUrl(addressTargetTab.id, frameUrl);
+    let targetUrl = decodedUrl ?? addressTargetTab.url;
     try {
-      const framePrefix = frameRefs.current.get(activeTab.id)?.prefix;
+      const framePrefix = frameRefs.current.get(addressTargetTab.id)?.prefix;
       const isLocalProxyRoute = (rawUrl: string) => {
         const current = new URL(rawUrl, window.location.href);
         return current.origin === window.location.origin
@@ -438,7 +565,7 @@ export function BrowserApp() {
       return null;
     }
     return { url: targetUrl, title: pageTitle };
-  }, [activeTab, getOriginalUrl]);
+  }, [addressTargetTab, getOriginalUrl]);
 
   const toggleBookmark = () => {
     const target = getCurrentBookmarkTarget();
@@ -455,8 +582,8 @@ export function BrowserApp() {
   const openSaveGameModal = () => {
     const target = getCurrentBookmarkTarget();
     if (!target) {
-      setSaveGameTitle(activeTab?.title || "Custom Game");
-      setSaveGameUrl(activeTab?.url || "");
+      setSaveGameTitle(addressTargetTab?.title || "Custom Game");
+      setSaveGameUrl(addressTargetTab?.url || "");
     } else {
       setSaveGameTitle(target.title);
       setSaveGameUrl(target.url);
@@ -464,7 +591,7 @@ export function BrowserApp() {
     setSaveGameCategory("Custom");
     setSaveGameArt("gamepad");
     setSaveGameTint("purple");
-    setSaveGameDetail(`Custom game saved from browser.`);
+    setSaveGameDetail("Custom game saved from browser.");
     setSaveGameError("");
     setIsSaveGameModalOpen(true);
   };
@@ -582,7 +709,19 @@ export function BrowserApp() {
     }
     if (!frameDocument) return;
 
+    const sourceSide: SplitPaneSide =
+      splitScreenEnabled && secondaryTab?.id === tabId ? "right" : "left";
+
+    const handleFrameFocusSide = () => {
+      if (splitScreenEnabled) {
+        setFocusedSplitPane(sourceSide);
+      }
+    };
+
     const handleLinkActivation = (event: MouseEvent) => {
+      if (splitScreenEnabled) {
+        setFocusedSplitPane(sourceSide);
+      }
       let target = event.target as HTMLElement | null;
       while (target && target.tagName !== "A") target = target.parentElement;
       if (!target) return;
@@ -598,9 +737,11 @@ export function BrowserApp() {
       if (!destination) return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      openLinkInTab(destination);
+      openLinkInTab(destination, sourceSide);
     };
 
+    frameDocument.addEventListener("pointerdown", handleFrameFocusSide, true);
+    frameDocument.addEventListener("focusin", handleFrameFocusSide, true);
     frameDocument.addEventListener("click", handleLinkActivation, true);
     frameDocument.addEventListener("auxclick", handleLinkActivation, true);
     if (!panicKeyDocumentsRef.current.has(frameDocument)) {
@@ -616,7 +757,7 @@ export function BrowserApp() {
       panicKeyDocumentsRef.current.add(frameDocument);
     }
     syncFrameNavigation(tabId, iframe);
-  }, [getOriginalUrl, openLinkInTab, syncFrameNavigation]);
+  }, [getOriginalUrl, openLinkInTab, secondaryTab?.id, splitScreenEnabled, syncFrameNavigation]);
 
   useEffect(() => {
     const navigationPoll = window.setInterval(() => {
@@ -790,19 +931,24 @@ export function BrowserApp() {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    navigate(address);
+    navigate(address, addressTargetTabId);
   };
 
   const handleAddressKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>) => {
     if (event.key !== "Enter") return;
     event.preventDefault();
-    navigate(event.currentTarget.value);
+    navigate(event.currentTarget.value, addressTargetTabId);
   };
 
   const addTab = () => {
     const tab = createTab();
     setTabs((current) => [...current, tab]);
-    setActiveTabId(tab.id);
+    if (splitScreenEnabled) {
+      setSplitTabId(tab.id);
+      setFocusedSplitPane("right");
+    } else {
+      setActiveTabId(tab.id);
+    }
     setNavigationError("");
   };
 
@@ -813,6 +959,7 @@ export function BrowserApp() {
       const tab = createTab();
       setTabs((current) => [...current, tab]);
       setActiveTabId(tab.id);
+      setFocusedSplitPane("left");
       setNavigationError("");
     };
     window.addEventListener("keydown", handleNewTabShortcut);
@@ -824,22 +971,32 @@ export function BrowserApp() {
       const replacement = createTab();
       setTabs([replacement]);
       setActiveTabId(replacement.id);
+      exitSplitScreen();
       return;
     }
+
     const index = tabs.findIndex((tab) => tab.id === tabId);
     const remaining = tabs.filter((tab) => tab.id !== tabId);
-    if (tabId === activeTabId) {
+    const isClosingActive = tabId === activeTabId;
+    const isClosingSplit = splitScreenEnabled && (tabId === activeTabId || tabId === secondaryTab?.id || tabId === splitTabId);
+
+    if (isClosingActive) {
       const nextTab = remaining[Math.max(0, index - 1)];
       setActiveTabId(nextTab.id);
     }
+
+    if (isClosingSplit || remaining.length < 2) {
+      exitSplitScreen();
+    }
+
     setTabs(remaining);
   };
 
   const goHome = () => {
-    navigatedKeys.current.delete(activeTabId);
-    const iframe = iframeRefs.current.get(activeTabId);
+    navigatedKeys.current.delete(addressTargetTabId);
+    const iframe = iframeRefs.current.get(addressTargetTabId);
     if (iframe) iframe.src = "about:blank";
-    setTabs((current) => current.map((tab) => tab.id === activeTabId
+    setTabs((current) => current.map((tab) => tab.id === addressTargetTabId
       ? { ...tab, title: "New tab", url: "", draft: "" }
       : tab));
     setNavigationError("");
@@ -852,10 +1009,10 @@ export function BrowserApp() {
   };
 
   const reload = () => {
-    const iframe = iframeRefs.current.get(activeTabId);
-    if (!activeTab?.url || !iframe) return;
+    const iframe = iframeRefs.current.get(addressTargetTabId);
+    if (!addressTargetTab?.url || !iframe) return;
     if (proxySettings.enabled && proxySettings.engine === "scramjet") {
-      frameRefs.current.get(activeTabId)?.reload();
+      frameRefs.current.get(addressTargetTabId)?.reload();
     } else {
       iframe.contentWindow?.location.reload();
     }
@@ -863,25 +1020,25 @@ export function BrowserApp() {
 
   const goBack = () => {
     if (proxySettings.enabled && proxySettings.engine === "scramjet") {
-      frameRefs.current.get(activeTabId)?.back();
+      frameRefs.current.get(addressTargetTabId)?.back();
     } else {
-      iframeRefs.current.get(activeTabId)?.contentWindow?.history.back();
+      iframeRefs.current.get(addressTargetTabId)?.contentWindow?.history.back();
     }
   };
 
   const goForward = () => {
     if (proxySettings.enabled && proxySettings.engine === "scramjet") {
-      frameRefs.current.get(activeTabId)?.forward();
+      frameRefs.current.get(addressTargetTabId)?.forward();
     } else {
-      iframeRefs.current.get(activeTabId)?.contentWindow?.history.forward();
+      iframeRefs.current.get(addressTargetTabId)?.contentWindow?.history.forward();
     }
   };
 
   const openBookmark = (rawUrl: string) => {
-    const decodedUrl = activeTab ? getOriginalUrl(activeTab.id, rawUrl) : null;
+    const decodedUrl = addressTargetTab ? getOriginalUrl(addressTargetTab.id, rawUrl) : null;
     try {
       const savedUrl = new URL(rawUrl, window.location.href);
-      const framePrefix = activeTab ? frameRefs.current.get(activeTab.id)?.prefix : undefined;
+      const framePrefix = addressTargetTab ? frameRefs.current.get(addressTargetTab.id)?.prefix : undefined;
       const isLocalProxyRoute = savedUrl.origin === window.location.origin
         && (savedUrl.pathname.startsWith("/uv/service/")
           || isRammerheadProxyUrl(savedUrl.href)
@@ -895,15 +1052,37 @@ export function BrowserApp() {
       setNavigationError("This bookmark has an invalid address.");
       return;
     }
-    navigate(decodedUrl ?? rawUrl);
+    navigate(decodedUrl ?? rawUrl, addressTargetTabId);
   };
 
   const isActiveTabBookmarked = Boolean(
-    activeTab?.url && bookmarks.some((bookmark) => bookmark.url === activeTab.url),
+    addressTargetTab?.url && bookmarks.some((bookmark) => bookmark.url === addressTargetTab.url),
   );
 
+  const getFrameLayoutStyle = (tabId: string): CSSProperties | undefined => {
+    if (!splitScreenEnabled) return undefined;
+
+    const isPrimary = tabId === activeTab?.id;
+    const isSecondary = tabId === secondaryTab?.id;
+    if (!isPrimary && !isSecondary) return undefined;
+
+    return {
+      position: "absolute",
+      top: `${SPLIT_HEADER_HEIGHT}px`,
+      height: `calc(100% - ${SPLIT_HEADER_HEIGHT}px)`,
+      left: isPrimary ? "0px" : `calc(${splitRatio}% + 3px)`,
+      width: isPrimary ? `calc(${splitRatio}% - 3px)` : `calc(${100 - splitRatio}% - 3px)`,
+      zIndex: 2,
+      pointerEvents: isResizingSplit ? "none" : "auto",
+    };
+  };
+
   return (
-    <div className="chrome-browser" data-browser-theme={browserTheme} ref={browserRef}>
+    <div
+      className={`chrome-browser${splitScreenEnabled ? " is-split-screen" : ""}${isResizingSplit ? " is-resizing-split" : ""}`}
+      data-browser-theme={browserTheme}
+      ref={browserRef}
+    >
       <div
         className="chrome-tab-strip"
         onWheel={(event) => {
@@ -913,31 +1092,49 @@ export function BrowserApp() {
           tabStrip.scrollLeft += event.deltaY || event.deltaX;
         }}
       >
-        {tabs.map((tab) => (
-          <div
-            aria-current={tab.id === activeTabId ? "page" : undefined}
-            className={`chrome-tab${tab.id === activeTabId ? " is-active" : ""}`}
-            key={tab.id}
-            onClick={() => setActiveTabId(tab.id)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") setActiveTabId(tab.id);
-            }}
-            role="button"
-            tabIndex={0}
-          >
-            <span className="chrome-tab-favicon"><PhosiumIcon name="globe" /></span>
-            <span className="chrome-tab-title">{tab.title}</span>
-            <button
-              aria-label={`Close ${tab.title}`}
-              className="chrome-tab-close"
-              onClick={(event) => {
-                event.stopPropagation();
-                closeTab(tab.id);
+        {tabs.map((tab) => {
+          const isSecondary = splitScreenEnabled && secondaryTab?.id === tab.id;
+          return (
+            <div
+              aria-current={tab.id === activeTabId ? "page" : undefined}
+              className={`chrome-tab${tab.id === activeTabId ? " is-active" : ""}${isSecondary ? " is-split-secondary" : ""}`}
+              key={tab.id}
+              onClick={() => {
+                if (splitScreenEnabled && tab.id === secondaryTab?.id) {
+                  setFocusedSplitPane("right");
+                } else {
+                  setActiveTabId(tab.id);
+                  if (splitScreenEnabled) setFocusedSplitPane("left");
+                }
               }}
-              type="button"
-            ><PhosiumIcon name="x" /></button>
-          </div>
-        ))}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  if (splitScreenEnabled && tab.id === secondaryTab?.id) {
+                    setFocusedSplitPane("right");
+                  } else {
+                    setActiveTabId(tab.id);
+                    if (splitScreenEnabled) setFocusedSplitPane("left");
+                  }
+                }
+              }}
+              role="button"
+              tabIndex={0}
+            >
+              <span className="chrome-tab-favicon"><PhosiumIcon name="globe" /></span>
+              <span className="chrome-tab-title">{tab.title}</span>
+              {isSecondary && <span className="chrome-split-badge">SPLIT</span>}
+              <button
+                aria-label={`Close ${tab.title}`}
+                className="chrome-tab-close"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  closeTab(tab.id);
+                }}
+                type="button"
+              ><PhosiumIcon name="x" /></button>
+            </div>
+          );
+        })}
         <button aria-label="New tab" className="chrome-new-tab" onClick={addTab} type="button"><PhosiumIcon name="plus" /></button>
       </div>
       <div className="chrome-toolbar">
@@ -961,12 +1158,19 @@ export function BrowserApp() {
           <PhosiumIcon className={`chrome-site-indicator${proxySettings.enabled ? " is-protected" : ""}`} name={proxySettings.enabled ? "shield-check" : "globe"} size={14} />
           <input
             aria-label="Address and search bar"
-            onChange={(event) => setTabs((current) => current.map((tab) => tab.id === activeTabId
-              ? { ...tab, draft: event.target.value }
-              : tab))}
+            onChange={(event) => {
+              const nextDraft = event.target.value;
+              setTabs((current) => current.map((tab) => tab.id === addressTargetTabId
+                ? { ...tab, draft: nextDraft }
+                : tab));
+            }}
             onFocus={() => setIsAddressFocused(true)}
             onKeyDown={handleAddressKeyDown}
-            placeholder={`Search with ${searchEngineLabels[searchEngine]} or enter a URL`}
+            placeholder={
+              splitScreenEnabled
+                ? `Search (${focusedSplitPane === "right" ? "Right" : "Left"} pane) or enter a URL`
+                : `Search with ${searchEngineLabels[searchEngine]} or enter a URL`
+            }
             value={address}
           />
           <button aria-label="Go to address" className="chrome-address-submit" type="submit"><PhosiumIcon name="corner-down-left" /></button>
@@ -974,7 +1178,7 @@ export function BrowserApp() {
             aria-label={isActiveTabBookmarked ? "Remove bookmark" : "Bookmark page"}
             aria-pressed={isActiveTabBookmarked}
             className="chrome-bookmark"
-            disabled={!activeTab?.url}
+            disabled={!addressTargetTab?.url}
             onClick={toggleBookmark}
             type="button"
           ><PhosiumIcon name="star" className={isActiveTabBookmarked ? "is-bookmarked" : undefined} /></button>
@@ -985,7 +1189,7 @@ export function BrowserApp() {
                 <button
                   className={`chrome-autocomplete-item is-${item.type}`}
                   key={item.url}
-                  onClick={() => navigate(item.url)}
+                  onClick={() => navigate(item.url, addressTargetTabId)}
                   role="option"
                   type="button"
                 >
@@ -1007,9 +1211,19 @@ export function BrowserApp() {
           )}
         </form>
         <button
+          aria-label={splitScreenEnabled ? "Disable split screen" : "Enable split screen"}
+          aria-pressed={splitScreenEnabled}
+          className={`chrome-icon-button${splitScreenEnabled ? " is-active" : ""}`}
+          onClick={toggleSplitScreen}
+          type="button"
+          title={splitScreenEnabled ? "Exit split screen" : "Split screen"}
+        >
+          <PhosiumIcon name="grid-2x2" />
+        </button>
+        <button
           aria-label="Save as game"
           className="chrome-icon-button"
-          disabled={!activeTab?.url}
+          disabled={!addressTargetTab?.url}
           onClick={openSaveGameModal}
           type="button"
           title="Save current website as a game"
@@ -1084,6 +1298,7 @@ export function BrowserApp() {
           {menuOpen && (
             <div aria-label="Browser menu" className="chrome-menu-popup" role="menu">
               <button onClick={() => { setMenuOpen(false); addTab(); }} role="menuitem" type="button">New tab <kbd>Ctrl+T</kbd></button>
+              <button onClick={toggleSplitScreen} role="menuitem" type="button">{splitScreenEnabled ? "Exit" : "Enable"} split screen</button>
               <button onClick={toggleBookmarksBar} role="menuitem" type="button">{showBookmarksBar ? "Hide" : "Show"} bookmarks bar</button>
               <button onClick={() => { setMenuOpen(false); setExtensionsOpen(true); }} role="menuitem" type="button">Manage extensions</button>
               <button onClick={() => { setMenuOpen(false); window.dispatchEvent(new CustomEvent("phosium:focus-window", { detail: "settings" })); }} role="menuitem" type="button">Settings</button>
@@ -1249,153 +1464,326 @@ export function BrowserApp() {
         </div>
       )}
       {navigationError && <div className="chrome-error" role="alert">{navigationError}</div>}
-      <div className="chrome-page">
-        {tabs.map((tab) => (
-          <BrowserFrame
-            active={tab.id === activeTabId}
-            key={tab.id}
-            onFrameChange={handleFrameChange}
-            onFrameLoad={handleFrameLoad}
-            tab={tab}
-          />
-        ))}
-        {!activeTab?.url && (
-          <div className="chrome-new-tab-page">
-            <div className="chrome-google-mark">Phosium</div>
-            <form className="chrome-search-form" onSubmit={handleSubmit}>
-              <PhosiumIcon name="search" />
-              <input
-                aria-label="Search the web"
-                onChange={(event) => setTabs((current) => current.map((tab) => tab.id === activeTabId
-                  ? { ...tab, draft: event.target.value }
-                  : tab))}
-                placeholder={`Search with ${searchEngineLabels[searchEngine]} or enter a URL`}
-                value={address}
-              />
-              <button aria-label="Search" type="submit"><PhosiumIcon name="corner-down-left" /></button>
-            </form>
 
-            {/* Quick Access Sites Grid */}
-            <div className="chrome-quick-access-container">
-              <div className="chrome-quick-access-grid">
-                {quickAccessSites.map((site) => {
-                  let domain = "";
-                  try {
-                    domain = new URL(site.url).hostname;
-                  } catch {
-                    domain = site.url;
-                  }
-                  const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-
-                  return (
-                    <div key={site.id} className="chrome-quick-access-wrapper">
-                      <button
-                        className="chrome-quick-access-item"
-                        onClick={() => navigate(site.url)}
-                        type="button"
-                      >
-                        <div className="chrome-quick-access-icon">
-                          <img
-                            src={faviconUrl}
-                            alt=""
-                            onError={(e) => {
-                              e.currentTarget.style.display = "none";
-                              const parent = e.currentTarget.parentElement;
-                              if (parent && !parent.querySelector(".qa-fallback")) {
-                                const span = document.createElement("span");
-                                span.className = "qa-fallback";
-                                span.textContent = site.title.charAt(0);
-                                parent.appendChild(span);
-                              }
-                            }}
-                          />
-                        </div>
-                        <span className="chrome-quick-access-label">{site.title}</span>
-                      </button>
-                      <button
-                        className="chrome-qa-menu-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveMenuSiteId(activeMenuSiteId === site.id ? null : site.id);
-                        }}
-                        type="button"
-                        aria-label="Options"
-                      >
-                        <PhosiumIcon name="ellipsis" />
-                      </button>
-                      {activeMenuSiteId === site.id && (
-                        <div className="chrome-qa-context-menu">
-                          <button
-                            onClick={() => deleteQuickAccessSite(site.id)}
-                            type="button"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-                <div className="chrome-quick-access-wrapper">
+      <div className="chrome-page" ref={splitContainerRef} style={{ position: "relative" }}>
+        {splitScreenEnabled ? (
+          <div className="chrome-split-container">
+            <div
+              className={`chrome-split-pane is-primary${focusedSplitPane === "left" ? " is-focused" : ""}`}
+              onFocusCapture={() => setFocusedSplitPane("left")}
+              onPointerDownCapture={() => setFocusedSplitPane("left")}
+              style={{ width: `calc(${splitRatio}% - 3px)` }}
+            >
+              <div className="chrome-split-pane-header" style={{ height: `${SPLIT_HEADER_HEIGHT}px` }}>
+                <span className="chrome-split-pane-label">
+                  {focusedSplitPane === "left" ? "● " : ""}Left · {activeTab?.title ?? "New tab"}
+                </span>
+                <div className="chrome-split-pane-actions">
                   <button
-                    className="chrome-quick-access-item chrome-quick-access-add"
-                    onClick={() => setIsAddModalOpen(true)}
+                    aria-label="Swap split panes"
+                    className="chrome-split-action-btn"
+                    disabled={!secondaryTab}
+                    onClick={swapSplitPanes}
+                    title="Swap left and right panes"
                     type="button"
-                    title="Add quick access site"
                   >
-                    <div className="chrome-quick-access-icon">
-                      <PhosiumIcon name="plus" className="chrome-qa-plus-icon" size={24} />
-                    </div>
-                    <span className="chrome-quick-access-label">ADD</span>
+                    <PhosiumIcon name="arrow-right" size={13} />
                   </button>
                 </div>
               </div>
+              <div className="chrome-split-pane-body">
+                {!activeTab?.url && (
+                  <div className="chrome-new-tab-page is-split-compact">
+                    <div className="chrome-google-mark">Phosium</div>
+                    <form
+                      className="chrome-search-form"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        if (!activeTab) return;
+                        navigate(activeTab.draft, activeTab.id);
+                      }}
+                    >
+                      <PhosiumIcon name="search" />
+                      <input
+                        aria-label="Search the web"
+                        onChange={(event) => {
+                          if (!activeTab) return;
+                          const nextDraft = event.target.value;
+                          setTabs((current) => current.map((tab) => tab.id === activeTab.id
+                            ? { ...tab, draft: nextDraft }
+                            : tab));
+                        }}
+                        placeholder={`Search with ${searchEngineLabels[searchEngine]} or enter a URL`}
+                        value={activeTab?.draft ?? ""}
+                      />
+                      <button aria-label="Search" type="submit"><PhosiumIcon name="corner-down-left" /></button>
+                    </form>
+                  </div>
+                )}
+              </div>
+              {isResizingSplit && <div className="chrome-split-drag-shield" />}
             </div>
 
-            {isAddModalOpen && (
-              <div className="chrome-qa-modal-overlay" onClick={() => setIsAddModalOpen(false)}>
-                <form className="chrome-qa-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleAddQuickAccess}>
-                  <div className="chrome-modal-mark"><PhosiumIcon name="plus" /></div>
-                  <p className="chrome-modal-eyebrow">NEW TAB · SHORTCUT</p>
-                  <h3>Pin quick access site</h3>
-                  <label className="chrome-modal-field">
-                    <span>Site Title</span>
-                    <input
-                      type="text"
-                      placeholder="e.g. YouTube"
-                      value={newQaTitle}
-                      onChange={(e) => setNewQaTitle(e.target.value)}
-                    />
-                  </label>
-                  <label className="chrome-modal-field">
-                    <span>Website URL</span>
-                    <input
-                      type="text"
-                      placeholder="https://youtube.com"
-                      value={newQaUrl}
-                      onChange={(e) => setNewQaUrl(e.target.value)}
-                      required
-                    />
-                  </label>
-                  <div className="chrome-qa-modal-actions">
-                    <button type="button" onClick={() => setIsAddModalOpen(false)}>Cancel</button>
-                    <button type="submit" className="primary">Pin site</button>
-                  </div>
-                </form>
-              </div>
-            )}
+            <div
+              aria-label="Resize split screen panes"
+              aria-orientation="vertical"
+              aria-valuemax={80}
+              aria-valuemin={20}
+              aria-valuenow={splitRatio}
+              className="chrome-split-divider"
+              onDoubleClick={() => setSplitRatio(50)}
+              onPointerDown={handleDividerPointerDown}
+              role="separator"
+              tabIndex={0}
+            />
 
-            <div className="chrome-new-tab-hint">
-              {proxySettings.enabled
-                ? proxyStatus
-                : "Proxy disabled · browsing directly"}
+            <div
+              className={`chrome-split-pane is-secondary${focusedSplitPane === "right" ? " is-focused" : ""}`}
+              onFocusCapture={() => setFocusedSplitPane("right")}
+              onPointerDownCapture={() => setFocusedSplitPane("right")}
+              style={{ width: `calc(${100 - splitRatio}% - 3px)` }}
+            >
+              <div className="chrome-split-pane-header" style={{ height: `${SPLIT_HEADER_HEIGHT}px` }}>
+                <select
+                  aria-label="Select tab for right split pane"
+                  className="chrome-split-tab-select"
+                  onChange={(event) => {
+                    const nextId = event.target.value;
+                    if (nextId === "__new__") {
+                      openNewTabInSplitPane();
+                    } else {
+                      setSplitTabId(nextId);
+                      setFocusedSplitPane("right");
+                    }
+                  }}
+                  value={secondaryTab?.id ?? ""}
+                >
+                  {tabs
+                    .filter((tab) => tab.id !== activeTab?.id)
+                    .map((tab) => (
+                      <option key={tab.id} value={tab.id}>
+                        {tab.title}
+                      </option>
+                    ))}
+                  <option value="__new__">+ New tab in split</option>
+                </select>
+                <div className="chrome-split-pane-actions">
+                  <button
+                    aria-label="New tab in split pane"
+                    className="chrome-split-action-btn"
+                    onClick={openNewTabInSplitPane}
+                    title="New tab in split pane"
+                    type="button"
+                  >
+                    <PhosiumIcon name="plus" size={13} />
+                  </button>
+                  <button
+                    aria-label="Close split screen"
+                    className="chrome-split-action-btn"
+                    onClick={exitSplitScreen}
+                    title="Close split screen"
+                    type="button"
+                  >
+                    <PhosiumIcon name="x" size={13} />
+                  </button>
+                </div>
+              </div>
+              <div className="chrome-split-pane-body">
+                {!secondaryTab?.url && (
+                  <div className="chrome-new-tab-page is-split-compact">
+                    <div className="chrome-google-mark">Phosium</div>
+                    <form
+                      className="chrome-search-form"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        if (!secondaryTab) return;
+                        navigate(secondaryTab.draft, secondaryTab.id);
+                      }}
+                    >
+                      <PhosiumIcon name="search" />
+                      <input
+                        aria-label="Search in split pane"
+                        onChange={(event) => {
+                          if (!secondaryTab) return;
+                          const nextDraft = event.target.value;
+                          setTabs((current) => current.map((tab) => tab.id === secondaryTab.id
+                            ? { ...tab, draft: nextDraft }
+                            : tab));
+                        }}
+                        placeholder={`Search with ${searchEngineLabels[searchEngine]} or enter a URL`}
+                        value={secondaryTab?.draft ?? ""}
+                      />
+                      <button aria-label="Search split pane" type="submit"><PhosiumIcon name="corner-down-left" /></button>
+                    </form>
+                  </div>
+                )}
+              </div>
+              {isResizingSplit && <div className="chrome-split-drag-shield" />}
             </div>
           </div>
+        ) : (
+          !activeTab?.url && (
+            <div className="chrome-new-tab-page">
+              <div className="chrome-google-mark">Phosium</div>
+              <form className="chrome-search-form" onSubmit={handleSubmit}>
+                <PhosiumIcon name="search" />
+                <input
+                  aria-label="Search the web"
+                  onChange={(event) => {
+                    const nextDraft = event.target.value;
+                    setTabs((current) => current.map((tab) => tab.id === activeTabId
+                      ? { ...tab, draft: nextDraft }
+                      : tab));
+                  }}
+                  placeholder={`Search with ${searchEngineLabels[searchEngine]} or enter a URL`}
+                  value={address}
+                />
+                <button aria-label="Search" type="submit"><PhosiumIcon name="corner-down-left" /></button>
+              </form>
+
+              {/* Quick Access Sites Grid */}
+              <div className="chrome-quick-access-container">
+                <div className="chrome-quick-access-grid">
+                  {quickAccessSites.map((site) => {
+                    let domain = "";
+                    try {
+                      domain = new URL(site.url).hostname;
+                    } catch {
+                      domain = site.url;
+                    }
+                    const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+
+                    return (
+                      <div key={site.id} className="chrome-quick-access-wrapper">
+                        <button
+                          className="chrome-quick-access-item"
+                          onClick={() => navigate(site.url, activeTabId)}
+                          type="button"
+                        >
+                          <div className="chrome-quick-access-icon">
+                            <img
+                              src={faviconUrl}
+                              alt=""
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                                const parent = e.currentTarget.parentElement;
+                                if (parent && !parent.querySelector(".qa-fallback")) {
+                                  const span = document.createElement("span");
+                                  span.className = "qa-fallback";
+                                  span.textContent = site.title.charAt(0);
+                                  parent.appendChild(span);
+                                }
+                              }}
+                            />
+                          </div>
+                          <span className="chrome-quick-access-label">{site.title}</span>
+                        </button>
+                        <button
+                          className="chrome-qa-menu-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveMenuSiteId(activeMenuSiteId === site.id ? null : site.id);
+                          }}
+                          type="button"
+                          aria-label="Options"
+                        >
+                          <PhosiumIcon name="ellipsis" />
+                        </button>
+                        {activeMenuSiteId === site.id && (
+                          <div className="chrome-qa-context-menu">
+                            <button
+                              onClick={() => deleteQuickAccessSite(site.id)}
+                              type="button"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  <div className="chrome-quick-access-wrapper">
+                    <button
+                      className="chrome-quick-access-item chrome-quick-access-add"
+                      onClick={() => setIsAddModalOpen(true)}
+                      type="button"
+                      title="Add quick access site"
+                    >
+                      <div className="chrome-quick-access-icon">
+                        <PhosiumIcon name="plus" className="chrome-qa-plus-icon" size={24} />
+                      </div>
+                      <span className="chrome-quick-access-label">ADD</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {isAddModalOpen && (
+                <div className="chrome-qa-modal-overlay" onClick={() => setIsAddModalOpen(false)}>
+                  <form className="chrome-qa-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleAddQuickAccess}>
+                    <div className="chrome-modal-mark"><PhosiumIcon name="plus" /></div>
+                    <p className="chrome-modal-eyebrow">NEW TAB · SHORTCUT</p>
+                    <h3>Pin quick access site</h3>
+                    <label className="chrome-modal-field">
+                      <span>Site Title</span>
+                      <input
+                        type="text"
+                        placeholder="e.g. YouTube"
+                        value={newQaTitle}
+                        onChange={(e) => setNewQaTitle(e.target.value)}
+                      />
+                    </label>
+                    <label className="chrome-modal-field">
+                      <span>Website URL</span>
+                      <input
+                        type="text"
+                        placeholder="https://youtube.com"
+                        value={newQaUrl}
+                        onChange={(e) => setNewQaUrl(e.target.value)}
+                        required
+                      />
+                    </label>
+                    <div className="chrome-qa-modal-actions">
+                      <button type="button" onClick={() => setIsAddModalOpen(false)}>Cancel</button>
+                      <button type="submit" className="primary">Pin site</button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              <div className="chrome-new-tab-hint">
+                {proxySettings.enabled
+                  ? proxyStatus
+                  : "Proxy disabled · browsing directly"}
+              </div>
+            </div>
+          )
         )}
+
+        {tabs.map((tab) => {
+          const isVisible = splitScreenEnabled
+            ? tab.id === activeTab?.id || tab.id === secondaryTab?.id
+            : tab.id === activeTabId;
+          return (
+            <BrowserFrame
+              frameStyle={getFrameLayoutStyle(tab.id)}
+              key={tab.id}
+              onFrameChange={handleFrameChange}
+              onFrameLoad={handleFrameLoad}
+              tab={tab}
+              visible={isVisible}
+            />
+          );
+        })}
       </div>
+
       <div className="chrome-statusbar">
         <span>{proxySettings.enabled ? `Protected by ${proxySettings.engine}` : "Direct connection"}</span>
-        <span>{phosphorousEnabled ? "Phosphorous enabled" : "Phosphorous disabled"}</span>
+        <span>
+          {splitScreenEnabled
+            ? `Split view (${splitRatio}% / ${100 - splitRatio}%) · ${focusedSplitPane === "right" ? "Right" : "Left"} focused`
+            : phosphorousEnabled ? "Phosphorous enabled" : "Phosphorous disabled"}
+        </span>
       </div>
     </div>
   );

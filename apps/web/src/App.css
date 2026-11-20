@@ -6251,3 +6251,246 @@
 /* ==========================================================================
     End of history App btw.
 ========================================================================== */
+
+
+/* ========================================================================
+    split screen cs
+=========================================================================== */
+
+/* Split Screen Container & Panes */
+.chrome-page {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chrome-page-frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  flex: 1;
+  min-height: 0;
+}
+
+.chrome-split-container {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+  background: rgba(12, 15, 23, 0.72);
+}
+
+.chrome-split-pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  background: rgba(17, 21, 31, 0.88);
+  transition: box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.chrome-split-pane.is-focused {
+  box-shadow: inset 0 0 0 1px rgba(138, 180, 248, 0.42);
+}
+
+/* Pane Header Bar (matches SPLIT_HEADER_HEIGHT = 30px) */
+.chrome-split-pane-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(232, 236, 245, 0.78);
+  background: rgba(24, 29, 42, 0.92);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.chrome-split-pane.is-focused .chrome-split-pane-header {
+  color: #f3f6fc;
+  background: rgba(31, 39, 58, 0.96);
+  border-bottom-color: rgba(138, 180, 248, 0.28);
+}
+
+.chrome-split-pane-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+
+/* Dark Styled Tab Selector in Right Pane */
+.chrome-split-tab-select {
+  appearance: none;
+  -webkit-appearance: none;
+  max-width: 240px;
+  height: 22px;
+  padding: 0 24px 0 8px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #e8ecf5;
+  background-color: rgba(255, 255, 255, 0.06);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  outline: none;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.chrome-split-tab-select:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.chrome-split-tab-select:focus {
+  border-color: rgba(138, 180, 248, 0.65);
+  box-shadow: 0 0 0 2px rgba(138, 180, 248, 0.18);
+}
+
+.chrome-split-tab-select option {
+  background: #181d2a;
+  color: #e8ecf5;
+}
+
+/* Pane Action Buttons */
+.chrome-split-pane-actions {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.chrome-split-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(232, 236, 245, 0.72);
+  cursor: pointer;
+  transition: background-color 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+}
+
+.chrome-split-action-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.chrome-split-action-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Pane Body & Compact New Tab */
+.chrome-split-pane-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chrome-new-tab-page.is-split-compact {
+  padding: 18px;
+  gap: 14px;
+}
+
+.chrome-new-tab-page.is-split-compact .chrome-google-mark {
+  font-size: 26px;
+}
+
+/* Draggable Split Divider */
+.chrome-split-divider {
+  position: relative;
+  width: 6px;
+  flex-shrink: 0;
+  cursor: col-resize;
+  background: rgba(255, 255, 255, 0.08);
+  transition: background-color 0.15s ease;
+  touch-action: none;
+}
+
+.chrome-split-divider::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  transition: background-color 0.15s ease, height 0.15s ease;
+}
+
+.chrome-split-divider:hover,
+.chrome-split-divider:focus-visible,
+.chrome-browser.is-resizing-split .chrome-split-divider {
+  background: rgba(138, 180, 248, 0.28);
+  outline: none;
+}
+
+.chrome-split-divider:hover::after,
+.chrome-split-divider:focus-visible::after,
+.chrome-browser.is-resizing-split .chrome-split-divider::after {
+  height: 44px;
+  background: #8ab4f8;
+}
+
+.chrome-split-drag-shield {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  cursor: col-resize;
+}
+
+/* Tab Strip SPLIT Badge & Active Split Toolbar Button */
+.chrome-split-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(138, 180, 248, 0.18);
+  color: #8ab4f8;
+  border: 1px solid rgba(138, 180, 248, 0.35);
+  margin-left: 6px;
+  flex-shrink: 0;
+}
+
+.chrome-icon-button.is-active {
+  background: rgba(138, 180, 248, 0.18);
+  color: #8ab4f8;
+  border-color: rgba(138, 180, 248, 0.35);
+}
+
+.chrome-browser.is-resizing-split,
+.chrome-browser.is-resizing-split * {
+  user-select: none;
+}
